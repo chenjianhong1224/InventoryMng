@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cjh.InventoryMng.mapper.CustomQueryMapper">
+	<resultMap id="GoodsResultMap" type="com.cjh.InventoryMng.entity.TGoodsInfo">
+		<id column="Id" jdbcType="INTEGER" property="id" />
+		<result column="good_name" jdbcType="VARCHAR" property="goodName" />
+		<result column="manufacturer_id" jdbcType="INTEGER" property="manufacturerId" />
+		<result column="supplier_id" jdbcType="INTEGER" property="supplierId" />
+		<result column="specifications" jdbcType="VARCHAR" property="specifications" />
+		<result column="purchase_price" jdbcType="INTEGER" property="purchasePrice" />
+		<result column="member_price" jdbcType="INTEGER" property="memberPrice" />
+		<result column="status" jdbcType="INTEGER" property="status" />
+		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="creator" jdbcType="VARCHAR" property="creator" />
+		<result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+		<result column="updater" jdbcType="VARCHAR" property="updater" />
+	</resultMap>
+	<select id="queryGoodsByManufacturerGoodName" resultMap="GoodsResultMap">
+		select Id, good_name, manufacturer_id, supplier_id, specifications,
+		purchase_price, member_price,
+		status, create_time, creator,
+		update_time, updater from t_goods_info e
+		WHERE 1 = 1 AND status = 1
+		<if test="manufacturerId != null">
+			AND e.manufacturer_id = #{manufacturerId,
+			jdbcType=INTEGER}
+		</if>
+		<if test="goodName != null">
+			<bind name="pattern" value="'%' + _parameter.goodName + '%'" />
+			AND e.good_name LIKE #{pattern}
+		</if>
+	</select>
+	<select id="queryMemberEffectiveGoodsByManufacturerGoodsName"
+		resultMap="GoodsResultMap">
+		select e.Id, good_name, manufacturer_id, e.supplier_id,
+		specifications,
+		purchase_price, member_price,
+		e.status, create_time,
+		creator,
+		update_time, updater from t_goods_info e, t_supplier a,
+		t_group_map b
+		WHERE 1 = 1 AND e.status = 1 AND a.id = b.supplier_id
+		AND e.supplier_id = a.id
+		AND b.member_id = #{memberId,
+		jdbcType=INTEGER}
+		<if test="manufacturerId != null">
+			AND e.manufacturer_id = #{manufacturerId,
+			jdbcType=INTEGER}
+		</if>
+		<if test="goodName != null">
+			<bind name="pattern" value="'%' + _parameter.goodName + '%'" />
+			AND e.good_name LIKE #{pattern}
+		</if>
+	</select>
+	<resultMap id="MemberBillResultMap" type="com.cjh.InventoryMng.entity.VMemberBillInfo">
+		<result column="member_id" jdbcType="INTEGER" property="memberId" />
+		<result column="member_name" jdbcType="VARCHAR" property="memberName" />
+		<result column="brand_id" jdbcType="INTEGER" property="brandId" />
+		<result column="brand_name" jdbcType="VARCHAR" property="brandName" />
+		<result column="meituan_profit" jdbcType="INTEGER" property="meituanProfit" />
+		<result column="eleme_profit" jdbcType="INTEGER" property="elemeProfit" />
+		<result column="settle_date" jdbcType="VARCHAR" property="settleDate" />
+		<result column="order_amount" jdbcType="INTEGER" property="orderAmount" />
+	</resultMap>
+	<select id="queryMemberBill" resultMap="MemberBillResultMap">
+		select a.member_id, c.member_name, c.brand, d.param_value as
+		brand_name,
+		a.meituan_profit, a.eleme_profit, a.settle_date,
+		IFNULL(b.order_amount, 0) as order_amount from
+		t_platform_profit a
+		left
+		join (select member_id, order_date, sum(member_price*num) as
+		order_amount from t_order_info group by member_id, order_date) b
+		on
+		a.settle_date = b.order_date and a.member_id = b.member_id
+		inner join
+		t_member_info c on a.member_id = c.id
+		<if test="brandId != null">
+			AND c.brand = #{brandId, jdbcType=VARCHAR}
+		</if>
+		<if test="memberId != null">
+			AND c.id = #{memberId, jdbcType=INTEGER}
+		</if>
+		<if test="beginDate != null">
+			AND a.settle_date &gt;= #{beginDate, jdbcType=VARCHAR}
+		</if>
+		<if test="endDate != null">
+			AND a.settle_date &lt;= #{endDate, jdbcType=VARCHAR}
+		</if>
+		inner join t_sys_param d on d.param_name = 'brand' and d.param_key =
+		c.brand
+		union
+		select a.member_id, c.member_name, c.brand, d.param_value
+		as brand_name,
+		IFNULL(a.meituan_profit, 0) as meituan_profit,
+		IFNULL(a.eleme_profit, 0) as eleme_profit, b.order_date as
+		settle_date,
+		b.order_amount from t_platform_profit a
+		right join (select
+		member_id, order_date, sum(member_price*num) as
+		order_amount from
+		t_order_info group by member_id, order_date) b
+		on a.settle_date =
+		b.order_date and a.member_id = b.member_id
+		inner join t_member_info c
+		on b.member_id = c.id
+		<if test="brandId != null">
+			AND c.brand = #{brandId, jdbcType=VARCHAR}
+		</if>
+		<if test="memberId != null">
+			AND c.id = #{memberId, jdbcType=INTEGER}
+		</if>
+		<if test="beginDate != null">
+			AND b.order_date &gt;= #{beginDate, jdbcType=VARCHAR}
+		</if>
+		<if test="endDate != null">
+			AND b.order_date &lt;= #{endDate, jdbcType=VARCHAR}
+		</if>
+		inner join t_sys_param d on d.param_name = 'brand' and d.param_key =
+		c.brand
+	</select>
+	<resultMap id="SupplierBillResultMap"
+		type="com.cjh.InventoryMng.entity.VSuppplierBillInfo">
+		<result column="brand_id" jdbcType="INTEGER" property="brandId" />
+		<result column="brand_name" jdbcType="VARCHAR" property="brandName" />
+		<result column="member_id" jdbcType="INTEGER" property="memberId" />
+		<result column="member_name" jdbcType="VARCHAR" property="memberName" />
+		<result column="good_id" jdbcType="INTEGER" property="goodId" />
+		<result column="good_name" jdbcType="VARCHAR" property="goodName" />
+		<result column="price" jdbcType="INTEGER" property="price" />
+		<result column="num" jdbcType="INTEGER" property="num" />
+		<result column="supplierId" jdbcType="INTEGER" property="supplierId" />
+		<result column="supplier_name" jdbcType="VARCHAR" property="supplierName" />
+		<result column="order_date" jdbcType="VARCHAR" property="orderDate" />
+		<result column="member_price" jdbcType="INTEGER" property="memberPrice" />
+		<result column="manufacturer_id" jdbcType="INTEGER" property="manufacturerId" />
+		<result column="manufacturer_name" jdbcType="VARCHAR" property="manufacturerName" />
+	</resultMap>
+	<select id="querySupplierBill" resultMap="SupplierBillResultMap">
+		select d.brand as brand_id, e.param_value as brand_name, member_id,
+		member_name, good_id, c.good_name, price, num, supplierId,
+		supplier_name,
+		order_date, b.member_price, f.param_value as
+		manufacturer_name, c.manufacturer_id
+		from t_supplier a, (
+		select
+		member_id, good_id, member_price, purchase_price as price, num,
+		order_date,
+		supplierId as supplierId from t_order_info where 1=1
+		<if test="beginDate != null">
+			AND order_date &gt;= #{beginDate, jdbcType=VARCHAR}
+		</if>
+		<if test="endDate != null">
+			AND order_date &lt;= #{endDate, jdbcType=VARCHAR}
+		</if>
+		<if test="supplierId != null">
+			AND supplierId = #{supplierId, jdbcType=INTEGER}
+		</if>
+		union all
+		select member_id, good_id,  0 as member_price, service_price as price, num,
+		order_date,
+		service_id as supplierId from t_order_info b
+		where service_id is not
+		null
+		<if test="beginDate != null">
+			AND order_date &gt;= #{beginDate, jdbcType=VARCHAR}
+		</if>
+		<if test="endDate != null">
+			AND order_date &lt;= #{endDate, jdbcType=VARCHAR}
+		</if>
+		<if test="supplierId != null">
+			AND service_id = #{supplierId, jdbcType=INTEGER}
+		</if>
+		) b, t_goods_info c, t_member_info d, t_sys_param e, t_sys_param f
+		where a.id = b.supplierId and c.id = b.good_id and d.id = b.member_id
+		and
+		e.param_name = 'brand' and e.param_key = d.brand and
+		c.manufacturer_id = f.param_key
+		and f.param_name = 'manufacturer'
+	</select>
+	<resultMap id="VRoleResourceResultMap" type="com.cjh.InventoryMng.entity.VRoleResourceInfo">
+		<result column="resource_id" jdbcType="INTEGER" property="resourceId" />
+		<result column="resource_name" jdbcType="VARCHAR" property="resourceName" />
+		<result column="resource_url" jdbcType="VARCHAR" property="resourceUrl" />
+		<result column="checked" jdbcType="BOOLEAN" property="checked" />
+	</resultMap>
+	<select id="queryResourceOfRole" resultMap="VRoleResourceResultMap">
+		select b.id as
+		resource_id, b.resource_url, b.resource_name, IFNULL(a.role_id, 0) as
+		checked from (select * from t_resource_role where role_id =
+		#{roleId, jdbcType=INTEGER} AND status = 1) a
+		right join t_resource_info b
+		on
+		a.resource_id = b.id
+	</select>
+	<resultMap id="VMemberSupplierResultMap" type="com.cjh.InventoryMng.entity.VMemberSupplierMap">
+		<result column="group_map_id" jdbcType="INTEGER" property="groupMapId" />
+		<result column="member_name" jdbcType="VARCHAR" property="memberName" />
+		<result column="supplier_id" jdbcType="INTEGER" property="supplierId" />
+		<result column="member_id" jdbcType="INTEGER" property="memberId" />
+		<result column="supplier_name" jdbcType="INTEGER" property="supplierName" />
+		<result column="checked" jdbcType="BOOLEAN" property="checked" />
+	</resultMap>	
+	<select id="querySupplierOfMember" resultMap="VMemberSupplierResultMap">
+		select c.id as group_map_id, d.id as supplier_id, c.member_id, c.member_name, IFNULL(c.status, 0) as checked, d.supplier_name
+		from (select a.id, a.supplier_id, a.member_id, b.member_name, a.status 
+			from t_group_map a, t_member_info b 
+			where a.member_id = #{memberId, jdbcType=INTEGER} and a.member_id = b.id) c 
+		right join (select * from t_supplier where status = 1) d on c.supplier_id = d.id
+	</select>
+	
+	<select id="queryMemberAvailableGoods" resultMap="GoodsResultMap">
+		select c.* from t_group_map a, t_supplier b, t_goods_info c
+			where a.member_id = #{memberId, jdbcType=INTEGER} and a.supplier_id = b.id 
+			and a.status = 1
+			and c.supplier_id = b.id and b.status = 1 and c.status = 1
+	</select>
+</mapper>

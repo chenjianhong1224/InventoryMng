@@ -1,0 +1,165 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div class="layui-main mgt10">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 22px;
+}
+</style>
+		<script type="text/javascript">
+			layui.use('laydate', function() {
+
+				var laydate = layui.laydate;
+
+				//执行一个laydate实例
+				laydate.render({
+					elem : '#orderBeginTime' //指定元素
+					,
+					value : getBillBeginDate()
+				});
+				laydate.render({
+					elem : '#orderEndTime' //指定元素
+					,
+					value : getBillEndDate()
+				});
+			});
+		</script>
+		<script type="text/javascript">
+			layui.use('table', function() {
+				var table = layui.table;
+				//第一个实例
+				table.render({
+					elem : '#SupplierBillReport',
+					url : '/report/supplier/billQuery' //数据接口
+					,
+					contentType : 'application/json',
+					method : 'post',
+					page : true //开启分页
+					,
+					where : {
+						beginDate : getBillBeginDate(),
+						endDate : getBillEndDate(),
+					},
+					cols : [ [ //表头
+					{
+						field : 'supplierName',
+						title : '供应商',
+						width : 140,
+					}, {
+						field : 'goodName',
+						title : '商品名称',
+						width : 120,
+					}, {
+						field : 'manufacturerName',
+						title : '厂家名称',
+						width : 120,
+					}, {
+						field : 'memberPrice',
+						title : '加盟商价格',
+						width : 120
+					}, {
+						field : 'price',
+						title : '成本价格',
+						width : 120
+					}, {
+						field : 'num',
+						title : '个数',
+						width : 80
+					}, {
+						field : 'orderDate',
+						title : '下单时间',
+						width : 120
+					}, {
+						field : 'brand',
+						title : '品牌',
+						width : 120
+					}, {
+						field : 'memberName',
+						title : '加盟商',
+						width : 180
+					} ] ],
+					done : function(res, curr, count) {
+						if (res.message != "success") {
+							alert(res.message);
+							return;
+						}
+						$('#amount').html(res.amount);
+						$('#profitAmount').html(res.profitAmount);
+					}
+				});
+				var $ = layui.$, active = {
+					reload : function() {
+						//执行重载
+						table.reload('SupplierBillReport', {
+							page : {
+								curr : 1
+							//重新从第 1 页开始
+							},
+							where : {
+								beginDate : $("#orderBeginTime").val(),
+								endDate : $("#orderEndTime").val(),
+								supplierId : $("#supplier").val(),
+							}
+						});
+					}
+				};
+				$('#queryButton').on('click', function() {
+					var t1 = new Date($('#orderBeginTime').val()).getTime();//返回从1970-1-1开始计算到Date对象中的时间之间的毫秒数
+					var t2 = new Date($('#orderEndTime').val()).getTime();//返回从1970-1-1开始计算到Date对象中的时间之间的毫秒数
+					if (t1 > t2) {
+						alert('开始时间不能大于结束时间');
+						return;
+					}
+					var datetime = 1000 * 60 * 60 * 24; //一天时间的毫秒值 
+					var minusDays = Math.floor(((t2 - t1) / datetime));//计算出两个日期天数差 
+					var days = Math.abs(minusDays);//如果结果为负数，取绝对值
+					if (days > 365) {
+						alert('查询时间跨度不能大于1年');
+						return;
+					}
+					var type = $(this).data('type');
+					active[type] ? active[type].call(this) : '';
+				});
+			});
+		</script>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline mgr10">供应商选择框</label>
+			<div class="layui-inline mgr10">
+				<select id="supplier" name="supplier" lay-filter="supplier">
+					<option th:each="supplier : ${supplierList}"
+						th:value="
+						${supplier.id}" th:text="${supplier.supplierName}">全部</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label>开始时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="orderBeginTime">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label>结束时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="orderEndTime">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="queryButton"
+				data-type="reload">查询</button>
+		</div>
+		<div>
+			<table id="SupplierBillReport" lay-filter="SupplierBillReport"></table>
+		</div>
+		<div class="layui-inline">
+			<label>供货商货款合计:&nbsp;<span id="amount"></span>&nbsp;
+			</label> <label>货款利润合计:&nbsp;<span id="profitAmount"
+				style="color: red"></span>&nbsp;
+			</label>
+		</div>
+	</div>
+</body>
+</html>

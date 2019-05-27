@@ -1,0 +1,203 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>main</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>管理界面</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}">
+<link rel="stylesheet" th:href="@{/css/global.css}" />
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/jquery/jquery.min.js}"></script>
+<script th:src="@{/js/common.js}"></script>
+</head>
+<body>
+	<script>
+		layui.use('element', function() {
+			var element = layui.element;
+		});
+		function queryHisOrderReport() {
+			$.ajax({
+				type : "post",
+				url : "/manager/memberOrderReport",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});
+		}
+		function queryMemberBill() {
+			$.ajax({
+				type : "post",
+				url : "/manager/memberBillReport",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});
+		}
+		function querySupplierBill() {
+			$.ajax({
+				type : "post",
+				url : "/manager/supplierBillReport",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});
+		}
+		function showResource() {
+			$.ajax({
+				type : "post",
+				url : "/manager/managerResource",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});
+		}
+		function showPlatformProfitContent() {
+			$.ajax({
+				type : "post",
+				url : "/financial/queryPlatformProfitContent",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});
+		}
+		function showRole() {
+			$.ajax({
+				type : "post",
+				url : "/manager/managerRole",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});
+		}
+		function showGoods() {
+			$.ajax({
+				type : "post",
+				url : "/manager/managerGoods",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});
+		}
+		function showSuppliers() {
+			$.ajax({
+				type : "post",
+				url : "/manager/managerSuppliers",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});
+		}
+		function showMembes() {
+			$.ajax({
+				type : "post",
+				url : "/manager/managerMembers",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});
+		}
+		function showMemberOrder() {
+			$.ajax({
+				type : "post",
+				url : "/financial/queryFinancialMemberOrder",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});
+		}
+	</script>
+	<div class="layui-side layui-bg-black">
+		<div class="layui-side-scroll">
+			<ul class="layui-nav layui-nav-tree" lay-filter="test">
+				<!-- 侧边导航: <ul class="layui-nav layui-nav-tree layui-nav-side"> -->
+				<li class="layui-nav-item layui-nav-itemed"><a
+					href="javascript:;">报表</a>
+					<dl class="layui-nav-child">
+						<dd>
+							<a id="initClick" href="javascript:;"
+								onclick="queryHisOrderReport()">货款利润报表</a>
+						</dd>
+						<dd>
+							<a href="javascript:;" onclick="queryMemberBill()">加盟商结算报表</a>
+						</dd>
+						<dd>
+							<a href="javascript:;" onclick="querySupplierBill()">供应商结算报表</a>
+						</dd>
+					</dl></li>
+				<li class="layui-nav-item"><a href="javascript:;">账务管理</a>
+					<dl class="layui-nav-child">
+						<dd>
+							<a href="javascript:;" onclick="showPlatformProfitContent()">加盟商平台收入管理</a>
+						</dd>
+					</dl>
+					<dl class="layui-nav-child">
+						<dd>
+							<a href="javascript:;" onclick="showMemberOrder()">加盟商采购管理</a>
+						</dd>
+					</dl></li>
+				<li class="layui-nav-item"><a href="javascript:;">系统管理</a>
+					<dl class="layui-nav-child">
+						<dd>
+							<a href="javascript:;" onclick="showResource()">资源管理</a>
+						</dd>
+					</dl>
+					<dl class="layui-nav-child">
+						<dd>
+							<a href="javascript:;" onclick="showRole()">角色管理</a>
+						</dd>
+					</dl>
+					<dl class="layui-nav-child">
+						<dd>
+							<a href="javascript:;" onclick="showGoods()">商品管理</a>
+						</dd>
+					</dl>
+					<dl class="layui-nav-child">
+						<dd>
+							<a href="javascript:;" onclick="showSuppliers()">供应商管理</a>
+						</dd>
+					</dl>
+					<dl class="layui-nav-child">
+						<dd>
+							<a href="javascript:;" onclick="showMembes()">加盟商管理</a>
+						</dd>
+					</dl></li>
+			</ul>
+		</div>
+	</div>
+	<div style="margin-left: 210px;" id="rightContent">
+		<div class="layui-main mgt10" th:text="'你好 ' + ${userName}"></div>
+	</div>
+</body>
+</html>

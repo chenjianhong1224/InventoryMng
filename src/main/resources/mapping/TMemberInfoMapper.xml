@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cjh.InventoryMng.mapper.TMemberInfoMapper">
+  <resultMap id="BaseResultMap" type="com.cjh.InventoryMng.entity.TMemberInfo">
+    <id column="Id" jdbcType="INTEGER" property="id" />
+    <result column="member_name" jdbcType="VARCHAR" property="memberName" />
+    <result column="city" jdbcType="VARCHAR" property="city" />
+    <result column="phone" jdbcType="VARCHAR" property="phone" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="creator" jdbcType="VARCHAR" property="creator" />
+    <result column="address" jdbcType="VARCHAR" property="address" />
+    <result column="logistics" jdbcType="VARCHAR" property="logistics" />
+    <result column="user_id" jdbcType="VARCHAR" property="userId" />
+    <result column="brand" jdbcType="VARCHAR" property="brand" />
+    <result column="province" jdbcType="VARCHAR" property="province" />
+    <result column="acc_name" jdbcType="VARCHAR" property="accName" />
+    <result column="acc_no" jdbcType="VARCHAR" property="accNo" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    Id, member_name, city, phone, status, create_time, creator, address, logistics, user_id, 
+    brand, province, acc_name, acc_no
+  </sql>
+  <select id="selectByExample" parameterType="com.cjh.InventoryMng.entity.TMemberInfoExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    'false' as QUERYID,
+    <include refid="Base_Column_List" />
+    from t_member_info
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_member_info
+    where Id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from t_member_info
+    where Id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.cjh.InventoryMng.entity.TMemberInfo">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into t_member_info (member_name, city, phone, 
+      status, create_time, creator, 
+      address, logistics, user_id, 
+      brand, province, acc_name, 
+      acc_no)
+    values (#{memberName,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, 
+      #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{creator,jdbcType=VARCHAR}, 
+      #{address,jdbcType=VARCHAR}, #{logistics,jdbcType=VARCHAR}, #{userId,jdbcType=VARCHAR}, 
+      #{brand,jdbcType=VARCHAR}, #{province,jdbcType=VARCHAR}, #{accName,jdbcType=VARCHAR}, 
+      #{accNo,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.cjh.InventoryMng.entity.TMemberInfo">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into t_member_info
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="memberName != null">
+        member_name,
+      </if>
+      <if test="city != null">
+        city,
+      </if>
+      <if test="phone != null">
+        phone,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="creator != null">
+        creator,
+      </if>
+      <if test="address != null">
+        address,
+      </if>
+      <if test="logistics != null">
+        logistics,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="brand != null">
+        brand,
+      </if>
+      <if test="province != null">
+        province,
+      </if>
+      <if test="accName != null">
+        acc_name,
+      </if>
+      <if test="accNo != null">
+        acc_no,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="memberName != null">
+        #{memberName,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null">
+        #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null">
+        #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="creator != null">
+        #{creator,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null">
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="logistics != null">
+        #{logistics,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="brand != null">
+        #{brand,jdbcType=VARCHAR},
+      </if>
+      <if test="province != null">
+        #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="accName != null">
+        #{accName,jdbcType=VARCHAR},
+      </if>
+      <if test="accNo != null">
+        #{accNo,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.cjh.InventoryMng.entity.TMemberInfoExample" resultType="java.lang.Long">
+    select count(*) from t_member_info
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update t_member_info
+    <set>
+      <if test="record.id != null">
+        Id = #{record.id,jdbcType=INTEGER},
+      </if>
+      <if test="record.memberName != null">
+        member_name = #{record.memberName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.city != null">
+        city = #{record.city,jdbcType=VARCHAR},
+      </if>
+      <if test="record.phone != null">
+        phone = #{record.phone,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null">
+        status = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.creator != null">
+        creator = #{record.creator,jdbcType=VARCHAR},
+      </if>
+      <if test="record.address != null">
+        address = #{record.address,jdbcType=VARCHAR},
+      </if>
+      <if test="record.logistics != null">
+        logistics = #{record.logistics,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userId != null">
+        user_id = #{record.userId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.brand != null">
+        brand = #{record.brand,jdbcType=VARCHAR},
+      </if>
+      <if test="record.province != null">
+        province = #{record.province,jdbcType=VARCHAR},
+      </if>
+      <if test="record.accName != null">
+        acc_name = #{record.accName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.accNo != null">
+        acc_no = #{record.accNo,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update t_member_info
+    set Id = #{record.id,jdbcType=INTEGER},
+      member_name = #{record.memberName,jdbcType=VARCHAR},
+      city = #{record.city,jdbcType=VARCHAR},
+      phone = #{record.phone,jdbcType=VARCHAR},
+      status = #{record.status,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      creator = #{record.creator,jdbcType=VARCHAR},
+      address = #{record.address,jdbcType=VARCHAR},
+      logistics = #{record.logistics,jdbcType=VARCHAR},
+      user_id = #{record.userId,jdbcType=VARCHAR},
+      brand = #{record.brand,jdbcType=VARCHAR},
+      province = #{record.province,jdbcType=VARCHAR},
+      acc_name = #{record.accName,jdbcType=VARCHAR},
+      acc_no = #{record.accNo,jdbcType=VARCHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.cjh.InventoryMng.entity.TMemberInfo">
+    update t_member_info
+    <set>
+      <if test="memberName != null">
+        member_name = #{memberName,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null">
+        city = #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null">
+        phone = #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="creator != null">
+        creator = #{creator,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null">
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="logistics != null">
+        logistics = #{logistics,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="brand != null">
+        brand = #{brand,jdbcType=VARCHAR},
+      </if>
+      <if test="province != null">
+        province = #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="accName != null">
+        acc_name = #{accName,jdbcType=VARCHAR},
+      </if>
+      <if test="accNo != null">
+        acc_no = #{accNo,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where Id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.cjh.InventoryMng.entity.TMemberInfo">
+    update t_member_info
+    set member_name = #{memberName,jdbcType=VARCHAR},
+      city = #{city,jdbcType=VARCHAR},
+      phone = #{phone,jdbcType=VARCHAR},
+      status = #{status,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      creator = #{creator,jdbcType=VARCHAR},
+      address = #{address,jdbcType=VARCHAR},
+      logistics = #{logistics,jdbcType=VARCHAR},
+      user_id = #{userId,jdbcType=VARCHAR},
+      brand = #{brand,jdbcType=VARCHAR},
+      province = #{province,jdbcType=VARCHAR},
+      acc_name = #{accName,jdbcType=VARCHAR},
+      acc_no = #{accNo,jdbcType=VARCHAR}
+    where Id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

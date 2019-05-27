@@ -1,0 +1,191 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div class="layui-main mgt10">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 22px;
+}
+</style>
+		<script type="text/html" id="opBar">
+  			<a class="layui-btn layui-btn-xs" lay-event="delete">删除</a>
+		</script>
+		<script type="text/javascript">
+			layui.use('table', function() {
+				var table = layui.table;
+				//第一个实例
+				table.render({
+					elem : '#ResourceList',
+					url : '/sys/queryResource' //数据接口
+					,page : true //开启分页
+					,
+					contentType : 'application/json',
+					method : 'post',
+					cols : [ [ //表头
+					{
+						field : 'id',
+						title : 'ID',
+						width : 60,
+						sort : true,
+					}, {
+						field : 'resourceName',
+						title : '资源名称',
+						width : 160
+					}, {
+						field : 'resourceUrl',
+						title : 'URL',
+						width : 200
+					}, {
+						field : 'perms',
+						title : '权限',
+						width : 260,
+					}, {
+						field : 'op',
+						title : '操作',
+						width : 160,
+						toolbar : "#opBar"
+					} ] ],
+					done : function(res, curr, count) {
+					}
+				});
+				var $ = layui.$, active = {
+					reload : function() {
+						//执行重载
+						table.reload('ResourceList', {
+							page : {
+								curr : 1
+							//重新从第 1 页开始
+							},
+						});
+					}
+				};
+				$('#queryResourceButton').on('click', function() {
+					var type = $(this).data('type');
+					active[type] ? active[type].call(this) : '';
+				});
+
+				table.on('tool(ResourceList)', function(obj) { //注：tool是工具条事件名，ResourceList是table原始容器的属性 lay-filter="对应的值"
+					var data = obj.data; //获得当前行数据
+					var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+					var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+					if (layEvent === 'delete') {
+						$.ajax({
+							type : "post",
+							url : "/sys/deleteResource",
+							contentType : "application/json",
+							data : JSON.stringify({
+								id : data.id
+							}),
+							success : function(result) {
+								if (result.code == 0) {
+									alert("删除成功");
+									table.reload('ResourceList', {
+										page : {
+											curr : 1
+										//重新从第 1 页开始
+										},
+									});
+								} else {
+									alert("系统异常: " + result.message);
+								}
+							},
+							error : function() {
+								alert("系统错误");
+							}
+						});
+					}
+				});
+			});
+			function onAddBtn() {
+				layer.open({
+					type : 1,
+					title : "新建资源",
+					closeBtn : false,
+					shift : 2,
+					area : [ '400px', '300px' ],
+					shadeClose : true,
+					content : $("#add-main"),
+					success : function(layero, index) {
+					},
+					yes : function() {
+					}
+				});
+			}
+			$('#addBtn').on('click', function() {
+				$.ajax({
+					type : "post",
+					url : "/sys/addResource",
+					contentType : "application/json",
+					data : JSON.stringify({
+						resourceName : $("#resourceName").val(),
+						resourceUrl : $("#resourceUrl").val(),
+						perms : $("#perms").val(),
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							alert("添加成功");
+							CloseWin();
+							$("#queryResourceButton").click();
+						} else {
+							alert("系统异常: " + result.message);
+						}
+					},
+					error : function() {
+						alert("系统错误");
+					}
+				});
+			});
+			//关闭页面
+			function CloseWin() {
+				layer.close(layer.index);
+			}
+		</script>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="queryResourceButton"
+				data-type="reload" style="display:none">查询</button>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="addResourceButton"
+				data-type="add" onclick="onAddBtn()">增加</button>
+		</div>
+		<div>
+			<table id="ResourceList" lay-filter="ResourceList"></table>
+		</div>
+		<div id="add-main" style="display: none;">
+			<div class="layui-form-item center mgt20">
+				<label class="layui-form-label" style="width: 100px">资源名称</label>
+				<div class="layui-input-block">
+					<input type="text" id="resourceName" required value=""
+						style="width: 240px" lay-verify="required" autocomplete="off"
+						class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label" style="width: 100px">资源URL</label>
+				<div class="layui-input-block">
+					<input type="text" id="resourceUrl" required style="width: 240px"
+						lay-verify="required" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label" style="width: 100px">资源Perms
+				</label>
+				<div class="layui-input-block">
+					<input type="text" id="perms" required style="width: 240px"
+						lay-verify="required" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<div class="layui-input-block">
+					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn">立即提交</button>
+					<button type="reset" class="layui-btn layui-btn-primary"
+						id="closeBtn" onclick="CloseWin()">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,42 @@
+spring:
+  profiles:
+    active: '@profileActive@'
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html 
+    mode: LEGACYHTML5
+    encoding: UTF-8
+    content-type: text/html
+    cache: false
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+mybatis:
+  mapper-locations: classpath:/mapping/**/*Mapper.xml
+  type-aliases-package: com.cjh.InventoryMng.entity
+pagehelper:
+  page-size-zero: true
+---
+spring:
+  profiles: dev
+  session: 
+    store-type: none
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/inventory_system?useUnicode=true&characterEncoding=utf-8
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: 123456
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      maximumPoolSize: 15
+      connection-test-query: 'SELECT 1'
+email:
+  host: smtp.qq.com
+  port: 25
+  username: 125513958@qq.com
+  password: hb710chw
+  auth: true
+  timeout: 30000
+server:
+  port: 8080
+  context-path: /

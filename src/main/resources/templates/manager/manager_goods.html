@@ -1,0 +1,440 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div class="layui-main mgt10">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 22px;
+}
+</style>
+		<script type="text/html" id="opBar">
+  			<a class="layui-btn layui-btn-xs" lay-event="delete">删除</a>
+			<a class="layui-btn layui-btn-xs" lay-event="modify">修改并生效</a>
+		</script>
+		<script type="text/javascript">
+			var flag = 1;
+			var goodId = 0;
+			layui
+					.use(
+							'table',
+							function() {
+								var table = layui.table;
+								//第一个实例
+								table
+										.render({
+											elem : '#GoodList',
+											url : '/manager/goods/queryGoods' //数据接口
+											,
+											contentType : 'application/json',
+											method : 'post',
+											where : {
+												goodName : document
+														.getElementById('goodName').value
+											},
+											page : true //开启分页
+											,
+											cols : [ [ //表头
+											{
+												field : 'id',
+												title : 'ID',
+												width : 60,
+												sort : true,
+											}, {
+												field : 'goodName',
+												title : '商品名称',
+												width : 100
+											}, {
+												field : 'manufactureName',
+												title : '厂家',
+												width : 80
+											}, {
+												field : 'supplierName',
+												title : '供应商',
+												width : 80
+											}, {
+												field : 'specifications',
+												title : '规格',
+												width : 200,
+											}, {
+												field : 'purchasePrice',
+												title : '采购价',
+												width : 80,
+											}, {
+												field : 'memberPrice',
+												title : '加盟价',
+												width : 80,
+											}, {
+												field : 'serviceName',
+												title : '代仓商',
+												width : 80,
+											}, {
+												field : 'servicePrice',
+												title : '代仓加价',
+												width : 100,
+											}, {
+												field : 'status',
+												title : '状态',
+												width : 80,
+											}, {
+												field : 'op',
+												title : '操作',
+												toolbar : "#opBar"
+											} ] ],
+											done : function(res, curr, count) {
+											}
+										});
+								var $ = layui.$, active = {
+									reload : function() {
+										//执行重载
+										table
+												.reload(
+														'GoodList',
+														{
+															page : {
+																curr : 1
+															//重新从第 1 页开始
+															},
+															where : {
+																goodName : document
+																		.getElementById('goodName').value
+															},
+														});
+									}
+								};
+								$('#queryGoodsButton').on(
+										'click',
+										function() {
+											var type = $(this).data('type');
+											active[type] ? active[type]
+													.call(this) : '';
+										});
+
+								table
+										.on(
+												'tool(GoodList)',
+												function(obj) { //注：tool是工具条事件名，ResourceList是table原始容器的属性 lay-filter="对应的值"
+													var data = obj.data; //获得当前行数据
+													var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+													var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+													if (layEvent === 'delete') {
+														$
+																.ajax({
+																	type : "post",
+																	url : "/manager/goods/deletGood",
+																	contentType : "application/json",
+																	data : JSON
+																			.stringify({
+																				id : data.id
+																			}),
+																	success : function(
+																			result) {
+																		if (result.code == 0) {
+																			alert("删除成功");
+																			table
+																					.reload(
+																							'GoodList',
+																							{
+																								page : {
+																									curr : 1
+																								//重新从第 1 页开始
+																								},
+																								where : {
+																									goodName : document
+																											.getElementById('goodName').value
+																								},
+																							});
+																		} else {
+																			alert("系统异常: "
+																					+ result.message);
+																		}
+																	},
+																	error : function() {
+																		alert("系统错误");
+																	}
+																});
+													}
+													if (layEvent === 'modify') {
+														onModifyBtn(data);
+													}
+												});
+							});
+			function onModifyBtn(data) {
+				layer.open({
+					type : 1,
+					title : "修改商品",
+					closeBtn : false,
+					shift : 2,
+					area : [ '400px', '530px' ],
+					shadeClose : true,
+					content : $("#add-main"),
+					success : function(layero, index) {
+						getManufacturer();
+						getSuppliers();
+						getService();
+						getGoodDetail(data);
+						flag = 2;
+						goodId = data.id;
+					},
+					yes : function() {
+					}
+				});
+			}
+			function getGoodDetail(data) {
+				$("#inputGoodName").val(data.goodName);
+				$("#specifications").val(data.specifications);
+				$("#purchasePrice").val(data.purchasePrice * 100);
+				$("#memberPrice").val(data.memberPrice * 100);
+				if (data.servicePrice != null) {
+					$("#servicePrice").val(data.servicePrice * 100);
+				}
+				var manufacture = $("#manufacture").find("option");
+				for (var i = 0; i < manufacture.length; i++) {
+					if (manufacture.eq(i).text() == data.manufactureName) {
+						$("#manufacture").get(0).selectedIndex = i;
+					}
+				}
+				var supplier = $("#supplier").find("option");
+				for (var i = 0; i < supplier.length; i++) {
+					if (supplier.eq(i).text() == data.supplierName) {
+						$("#supplier").get(0).selectedIndex = i;
+					}
+				}
+				var service = $("#service").find("option");
+				for (var i = 0; i < service.length; i++) {
+					if (service.eq(i).text() == data.serviceName) {
+						$("#service").get(0).selectedIndex = i;
+					}
+				}
+			}
+			function onAddBtn() {
+				layer.open({
+					type : 1,
+					title : "新建商品",
+					closeBtn : false,
+					shift : 2,
+					area : [ '400px', '530px' ],
+					shadeClose : true,
+					content : $("#add-main"),
+					success : function(layero, index) {
+						getManufacturer();
+						getSuppliers();
+						getService();
+						flag = 1;
+						$("#inputGoodName").val("");
+						$("#specifications").val("");
+						$("#purchasePrice").val("");
+						$("#memberPrice").val("");
+					},
+					yes : function() {
+					}
+				});
+			}
+			function getManufacturer() {
+				$.ajax({
+					type : "post",
+					url : "/sys/queryManufacturers",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							var option = '';
+							$.each(result.data, function(i, item) {
+								option += '<option value ="'+item.paramKey+'">'
+										+ item.paramValue + '</option>';
+							});
+							$('#manufacture').html(option);
+						}
+					},
+					error : function() {
+						alert("系统错误");
+					}
+				});
+			}
+			function getSuppliers() {
+				$.ajax({
+					type : "post",
+					url : "/manager/supplier/querySuppliers",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							var option = '';
+							$.each(result.data, function(i, item) {
+								option += '<option value ="'+item.id+'">'
+										+ item.supplierName + '</option>';
+							});
+							$('#supplier').html(option);
+						}
+					},
+					error : function() {
+						alert("系统错误");
+					}
+				});
+			}
+			function getService() {
+				$.ajax({
+					type : "post",
+					url : "/manager/supplier/querySuppliers",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							var option = '<option value ="0">无</option>';
+							$.each(result.data, function(i, item) {
+								option += '<option value ="'+item.id+'">'
+										+ item.supplierName + '</option>';
+							});
+							$('#service').html(option);
+						}
+					},
+					error : function() {
+						alert("系统错误");
+					}
+				});
+			}
+			$('#addBtn').on('click', function() {
+				var goodName = $("#inputGoodName").val();
+				var specifications = $("#specifications").val();
+				var manufacture = $("#manufacture").val();
+				var supplier = $("#supplier").val();
+				var purchasePrice = $("#purchasePrice").val();
+				var memberPrice = $("#memberPrice").val();
+				var service = $("#service").val();
+				var servicePrice = $("#servicePrice").val();
+				$.ajax({
+					type : 'POST',
+					url : '/manager/goods/addGood',
+					data : JSON.stringify({
+						goodName : goodName,
+						specifications : specifications,
+						manufacture : manufacture,
+						supplier : supplier,
+						purchasePrice : purchasePrice,
+						memberPrice : memberPrice,
+						service : service,
+						servicePrice : servicePrice,
+						flag : flag,
+						id : goodId
+					}),
+					contentType : "application/json",
+					async : false,
+					success : function(result) {
+						if (result.code == 0) {
+							alert("添加成功");
+							CloseWin();
+							$("#queryGoodsButton").click();
+						} else {
+							alert("系统异常: " + result.message);
+						}
+					}
+				});
+			});
+			//关闭页面
+			function CloseWin() {
+				layer.close(layer.index);
+			}
+		</script>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline mgr10">商品名称</label>
+			<div class="layui-inline mgr10">
+				<input type="text" id="goodName" name="goodName" required
+					lay-verify="required" placeholder="请输入商品名称" autocomplete="off"
+					class="layui-input">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="queryGoodsButton"
+				data-type="reload">查询</button>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="addGoodButton"
+				data-type="add" onclick="onAddBtn()">增加</button>
+		</div>
+		<div>
+			<table id="GoodList" lay-filter="GoodList"></table>
+		</div>
+		<div id="add-main" style="display: none;">
+			<div class="layui-form-item center mgt20">
+				<label class="layui-form-label" style="width: 160px">商品名称</label>
+				<div class="layui-input-block">
+					<input type="text" id="inputGoodName" required value=""
+						style="width: 180px" lay-verify="required" autocomplete="off"
+						class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label" style="width: 160px">商品规格</label>
+				<div class="layui-input-block">
+					<input type="text" id="specifications" required
+						style="width: 180px" lay-verify="required" autocomplete="off"
+						class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label" style="width: 160px">厂家选择框</label>
+				<div class="layui-input-block">
+					<select id="manufacture" name="manufacture"
+						lay-filter="manufacture" class="layui-select">
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label" style="width: 160px">供应商选择框</label>
+				<div class="layui-input-block">
+					<select id="supplier" name="supplier" lay-filter="supplier"
+						class="layui-select">
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label" style="width: 160px">采购价格(单位分)</label>
+				<div class="layui-input-block">
+					<input type="text" id="purchasePrice" required style="width: 180px"
+						lay-verify="number" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label" style="width: 160px">加盟价格(单位分)</label>
+				<div class="layui-input-block">
+					<input type="text" id="memberPrice" required style="width: 180px"
+						lay-verify="number" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label" style="width: 160px">代仓商选择框</label>
+				<div class="layui-input-block">
+					<select id="service" name="service" lay-filter="service"
+						class="layui-select">
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label" style="width: 160px">代仓价格(单位分)</label>
+				<div class="layui-input-block">
+					<input type="text" id="servicePrice" required style="width: 180px"
+						lay-verify="number" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<div class="layui-input-block">
+					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn">立即提交</button>
+					<button type="reset" class="layui-btn layui-btn-primary"
+						id="closeBtn" onclick="CloseWin()">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

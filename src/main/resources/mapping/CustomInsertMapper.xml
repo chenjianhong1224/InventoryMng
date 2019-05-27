@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cjh.InventoryMng.mapper.CustomInsertMapper">
+	<insert id="insertOrUpdatePlatformProfit" parameterType="com.cjh.InventoryMng.entity.TPlatformProfit">
+	insert into t_platform_profit (member_id, settle_date, meituan_profit, eleme_profit)
+	values(#{memberId,jdbcType=INTEGER}, #{settleDate,jdbcType=VARCHAR}, #{meituanProfit,jdbcType=INTEGER}, #{elemeProfit,jdbcType=INTEGER})
+	ON DUPLICATE KEY UPDATE
+	meituan_profit = #{meituanProfit,jdbcType=INTEGER}, eleme_profit = #{elemeProfit,jdbcType=INTEGER}
+	</insert>
+</mapper>

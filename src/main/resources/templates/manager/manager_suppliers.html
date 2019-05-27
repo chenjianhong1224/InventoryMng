@@ -1,0 +1,286 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div class="layui-main mgt10">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 22px;
+}
+</style>
+		<script type="text/html" id="opBar">
+  			<a class="layui-btn layui-btn-xs" lay-event="delete">删除</a>
+			<a class="layui-btn layui-btn-xs" lay-event="modify">修改并生效</a>
+		</script>
+		<script type="text/javascript">
+			var flag = 1;
+			var supplierId = 0;
+			layui
+					.use(
+							'table',
+							function() {
+								var table = layui.table;
+								//第一个实例
+								table
+										.render({
+											elem : '#SupplierList',
+											url : '/manager/supplier/querySupplier' //数据接口
+											,
+											contentType : 'application/json',
+											method : 'post',
+											where : {
+												supplierName : document
+														.getElementById('supplierName').value
+											},
+											page : true //开启分页
+											,
+											cols : [ [ //表头
+											{
+												field : 'id',
+												title : 'ID',
+												width : 60,
+												sort : true,
+											}, {
+												field : 'supplierName',
+												title : '供应商名称',
+												width : 100
+											}, {
+												field : 'phone',
+												title : '电话',
+												width : 180
+											}, {
+												field : 'address',
+												title : '地址',
+												width : 260,
+											}, {
+												field : 'bossName',
+												title : '对接人',
+												width : 100,
+											}, {
+												field : 'status',
+												title : '状态',
+												width : 80,
+											}, {
+												field : 'op',
+												title : '操作',
+												toolbar : "#opBar"
+											} ] ],
+											done : function(res, curr, count) {
+											}
+										});
+								var $ = layui.$, active = {
+									reload : function() {
+										//执行重载
+										table
+												.reload(
+														'SupplierList',
+														{
+															page : {
+																curr : 1
+															//重新从第 1 页开始
+															},
+															where : {
+																supplierName : document
+																		.getElementById('supplierName').value
+															},
+														});
+									}
+								};
+								$('#querySuppliersButton').on(
+										'click',
+										function() {
+											var type = $(this).data('type');
+											active[type] ? active[type]
+													.call(this) : '';
+										});
+
+								table
+										.on(
+												'tool(SupplierList)',
+												function(obj) { //注：tool是工具条事件名，ResourceList是table原始容器的属性 lay-filter="对应的值"
+													var data = obj.data; //获得当前行数据
+													var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+													var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+													if (layEvent === 'delete') {
+														$
+																.ajax({
+																	type : "post",
+																	url : "/manager/supplier/deletSupplier",
+																	contentType : "application/json",
+																	data : JSON
+																			.stringify({
+																				id : data.id
+																			}),
+																	success : function(
+																			result) {
+																		if (result.code == 0) {
+																			alert("删除成功");
+																			table
+																					.reload(
+																							'SupplierList',
+																							{
+																								page : {
+																									curr : 1
+																								//重新从第 1 页开始
+																								},
+																								where : {
+																									supplierName : document
+																											.getElementById('supplierName').value
+																								},
+																							});
+																		} else {
+																			alert("系统异常: "
+																					+ result.message);
+																		}
+																	},
+																	error : function() {
+																		alert("系统错误");
+																	}
+																});
+													}
+													if (layEvent === 'modify') {
+														onModifyBtn(data);
+													}
+												});
+							});
+			function onModifyBtn(data) {
+				layer.open({
+					type : 1,
+					title : "修改供应商",
+					closeBtn : false,
+					shift : 2,
+					area : [ '380px', '430px' ],
+					shadeClose : true,
+					content : $("#add-main"),
+					success : function(layero, index) {
+						getSupplierDetail(data);
+						flag = 2;
+						supplierId = data.id;
+					},
+					yes : function() {
+					}
+				});
+			}
+			function getSupplierDetail(data) {
+				$("#inputsupplierName").val(data.supplierName);
+				$("#phone").val(data.phone);
+				$("#bossName").val(data.bossName);
+				$("#address").val(data.address);
+			}
+			function onAddBtn() {
+				layer.open({
+					type : 1,
+					title : "新建供应商",
+					closeBtn : false,
+					shift : 2,
+					area : [ '380px', '430px' ],
+					shadeClose : true,
+					content : $("#add-main"),
+					success : function(layero, index) {
+						flag = 1;
+						$("#inputsupplierName").val("");
+						$("#phone").val("");
+						$("#bossName").val("");
+						$("#address").val("");
+					},
+					yes : function() {
+					}
+				});
+			}
+
+			$('#addBtn').on('click', function() {
+				var supplierName = $("#inputsupplierName").val();
+				var phone = $("#phone").val();
+				var bossName = $("#bossName").val();
+				var address = $("#address").val();
+				$.ajax({
+					type : 'POST',
+					url : '/manager/supplier/addSupplier',
+					data : JSON.stringify({
+						supplierName : supplierName,
+						phone : phone,
+						bossName : bossName,
+						address : address,
+						flag : flag,
+						id : supplierId
+					}),
+					contentType : "application/json",
+					async : false,
+					success : function(result) {
+						if (result.code == 0) {
+							alert("添加成功");
+							CloseWin();
+							$("#querySuppliersButton").click();
+						} else {
+							alert("系统异常: " + result.message);
+						}
+					}
+				});
+			});
+			//关闭页面
+			function CloseWin() {
+				layer.close(layer.index);
+			}
+		</script>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline mgr10">供应商名称</label>
+			<div class="layui-inline mgr10">
+				<input type="text" id="supplierName" name="supplierName" required
+					lay-verify="required" placeholder="请输入供应商名称" autocomplete="off"
+					class="layui-input">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="querySuppliersButton"
+				data-type="reload">查询</button>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="addSupplierButton"
+				data-type="add" onclick="onAddBtn()">增加</button>
+		</div>
+		<div>
+			<table id="SupplierList" lay-filter="SupplierList"></table>
+		</div>
+		<div id="add-main" style="display: none;">
+			<div class="layui-form-item center mgt20">
+				<label class="layui-form-label" style="width: 160px">供应商名称</label>
+				<div class="layui-input-block">
+					<input type="text" id="inputsupplierName" required value=""
+						style="width: 180px" lay-verify="required" autocomplete="off"
+						class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label" style="width: 160px">手机号</label>
+				<div class="layui-input-block">
+					<input type="text" id="phone" required style="width: 180px"
+						lay-verify="required" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label" style="width: 160px">地址</label>
+				<div class="layui-input-block">
+					<input type="text" id="address" required style="width: 180px"
+						lay-verify="required" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label" style="width: 160px">对接人</label>
+				<div class="layui-input-block">
+					<input type="text" id="bossName" required style="width: 180px"
+						lay-verify="required" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<div class="layui-input-block">
+					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn">立即提交</button>
+					<button type="reset" class="layui-btn layui-btn-primary"
+						id="closeBtn" onclick="CloseWin()">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

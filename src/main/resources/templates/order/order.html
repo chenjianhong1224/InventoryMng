@@ -1,0 +1,169 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div th:fragment="order" class="layui-main">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 22px;
+}
+</style>
+		<script type="text/html" id="orderBar">
+  			<a class="layui-btn layui-btn-xs" lay-event="order">＋</a>&nbsp;&nbsp;<a class="layui-btn layui-btn-xs" lay-event="modify">－</a>
+		</script>
+		<script type="text/javascript">
+			$(function() {
+				viewOrderDate();
+				setInterval("viewOrderDate()", 5000);
+			});
+			function viewOrderDate() {
+				$("#orderDate").text(getCurrOrderDate());
+			}
+
+			layui.use('table', function() {
+				var table = layui.table;
+				//第一个实例
+				table.render({
+					elem : '#GoodsList',
+					url : '/order/queryCurrOrder' //数据接口
+					,
+					contentType : 'application/json',
+					method : 'post',
+					page : true //开启分页
+					,
+					where : {
+						brand : '全部',
+						goodName : '',
+					},
+					cols : [ [ //表头
+					{
+						field : 'id',
+						title : 'ID',
+						width : 60,
+						sort : true,
+					}, {
+						field : 'goodName',
+						title : '商品名称',
+						width : 120
+					}, {
+						field : 'manufacturerName',
+						title : '厂家',
+						width : 80
+					}, {
+						field : 'specifications',
+						title : '规格',
+						width : 200,
+					}, {
+						field : 'memberPrice',
+						title : '价格',
+						width : 75
+					}, {
+						field : 'op',
+						title : '操作',
+						width : 160,
+						toolbar : "#orderBar"
+					}, {
+						field : 'num',
+						title : '当前已订购（截止到当天15:00，过后算第二天）'
+					} ] ],
+					done : function(res, curr, count) {
+						$("#orderAmount").html(res.orderAmount);
+					}
+				});
+				var $ = layui.$, active = {
+					reload : function() {
+						//执行重载
+						table.reload('GoodsList', {
+							page : {
+								curr : 1
+							//重新从第 1 页开始
+							},
+							where : {
+								manufacturerId : $('#manufacturer').val(),
+								goodName : $('#goodName').val(),
+							}
+						});
+					}
+				};
+				$('#queryGoodButton').on('click', function() {
+					var type = $(this).data('type');
+					active[type] ? active[type].call(this) : '';
+				});
+
+				table.on('tool(GoodsList)', function(obj) { //注：tool是工具条事件名，GoodsList是table原始容器的属性 lay-filter="对应的值"
+					var data = obj.data; //获得当前行数据
+					var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+					var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+					if (layEvent === 'order' || layEvent === 'modify') {
+						var modifyNum = 0;
+						if (layEvent === 'modify') {
+							modifyNum = -1;
+						} else {
+							modifyNum = 1;
+						}
+						$.ajax({
+							type : "post",
+							url : "/order/order",
+							contentType : "application/json",
+							data : JSON.stringify({
+								id : data.id,
+								num : modifyNum
+							}),
+							success : function(result) {
+								if (result.code == 0) {
+									obj.update({
+										num : result.data.orderNum,
+									});
+									$("#orderAmount").html(
+											result.data.orderAmount);
+								} else {
+									alert("系统异常: " + result.message);
+								}
+							},
+							error : function() {
+								alert("系统错误");
+							}
+						});
+					}
+				});
+			});
+		</script>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline mgr10">品牌选择框</label>
+			<div class="layui-inline mgr10">
+				<select id="manufacturer" name="manufacturer"
+					lay-filter="manufacturer">
+					<option th:each="manufacturer : ${manufacturers}"
+						th:value="
+						${manufacturer.paramKey}"
+						th:text="${manufacturer.paramValue}">全部</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline mgr10">商品名称</label>
+			<div class="layui-inline mgr10">
+				<input type="text" id="goodName" name="goodName" required
+					lay-verify="required" placeholder="请输入商品名称" autocomplete="off"
+					class="layui-input">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline mgr10">当前订购日期</label> <label
+				class="layui-inline mgr10" id="orderDate"></label>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="queryGoodButton"
+				data-type="reload">查询</button>
+		</div>
+		<div>
+			<table id="GoodsList" lay-filter="GoodsList"></table>
+		</div>
+		<div class="layui-inline">
+			<label>合计:&nbsp;<span id="orderAmount"></span></label>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div class="layui-main mgt10">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 22px;
+}
+</style>
+		<script type="text/javascript">
+			layui.use('laydate', function() {
+
+				var laydate = layui.laydate;
+
+				//执行一个laydate实例
+				laydate.render({
+					elem : '#orderBeginTime' //指定元素
+					,
+					value : getBillBeginDate()
+				});
+				laydate.render({
+					elem : '#orderEndTime' //指定元素
+					,
+					value : getBillEndDate()
+				});
+			});
+		</script>
+		<script type="text/javascript">
+			layui.use([ 'element', 'upload' ], function() {
+				element = layui.element;
+				upload = layui.upload;
+				//指定允许上传的文件类型
+				upload.render({
+					elem : '#uploadExcel',
+					url : '/financial/importPlatformProfit',
+					accept : 'file' //普通文件
+					,
+					multiple : true,
+					done : function(res) {
+						if(res.code != 0){
+							alert(res.message);
+						}else{
+							alert("导入成功");
+						}
+					}
+				});
+			});
+			layui.use('table', function() {
+				var table = layui.table;
+				//第一个实例
+				table
+						.render({
+							elem : '#PlatformProfitReport',
+							url : '/financial/queryPlatformProfit' //数据接口
+							,
+							contentType : 'application/json',
+							method : 'post',
+							page : true //开启分页
+							,
+							where : {
+								beginDate : getBillBeginDate(),
+								endDate : getBillEndDate(),
+							},
+							cols : [ [ //表头
+							{
+								field : 'brand',
+								title : '品牌',
+								width : 120,
+							}, {
+								field : 'memberName',
+								title : '加盟商',
+								width : 160,
+							}, {
+								field : 'settleDate',
+								title : '结算时间',
+								width : 120
+							}, {
+								field : 'meituanProfit',
+								title : '美团',
+								width : 120
+							}, {
+								field : 'elemeProfit',
+								title : '饿了么',
+								width : 120,
+							} ] ],
+							done : function(res, curr, count) {
+								if (res.message != "success") {
+									alert(res.message);
+									return;
+								}
+								$('#profitAmount').html(res.profitAmount);
+								$('#managementCost').html(res.managementCost);
+							}
+						});
+				var $ = layui.$, active = {
+					reload : function() {
+						//执行重载
+						table.reload('PlatformProfitReport', {
+							page : {
+								curr : 1
+							//重新从第 1 页开始
+							},
+							where : {
+								beginDate : $("#orderBeginTime").val(),
+								endDate : $("#orderEndTime").val(),
+								memberId : $("#member").val(),
+								brandId : $("#brand").val(),
+							}
+						});
+					}
+				};
+				$('#queryButton').on('click', function() {
+					var t1 = new Date($('#orderBeginTime').val()).getTime();//返回从1970-1-1开始计算到Date对象中的时间之间的毫秒数
+					var t2 = new Date($('#orderEndTime').val()).getTime();//返回从1970-1-1开始计算到Date对象中的时间之间的毫秒数
+					if (t1 > t2) {
+						alert('开始时间不能大于结束时间');
+						return;
+					}
+					var datetime = 1000 * 60 * 60 * 24; //一天时间的毫秒值 
+					var minusDays = Math.floor(((t2 - t1) / datetime));//计算出两个日期天数差 
+					var days = Math.abs(minusDays);//如果结果为负数，取绝对值
+					if (days > 365) {
+						alert('查询时间跨度不能大于1年');
+						return;
+					}
+					var type = $(this).data('type');
+					active[type] ? active[type].call(this) : '';
+				});
+			});
+		</script>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline mgr10">品牌选择框</label>
+			<div class="layui-inline mgr10">
+				<select id="brand" name="brand" lay-filter="brand">
+					<option th:each="brand : ${brandList}"
+						th:value="
+						${brand.paramKey}" th:text="${brand.paramValue}">全部</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline mgr10">加盟店选择框</label>
+			<div class="layui-inline mgr10">
+				<select id="member" name="member" lay-filter="member">
+					<option th:each="member : ${memberList}"
+						th:value="
+						${member.id}" th:text="${member.memberName}">全部</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label>开始时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="orderBeginTime">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label>结束时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="orderEndTime">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="queryButton"
+				data-type="reload">查询</button>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="uploadExcel">导入</button>
+		</div>
+		<div>
+			<table id="PlatformProfitReport" lay-filter="PlatformProfitReport"></table>
+		</div>
+		<div class="layui-inline">
+			<label>营收合计:&nbsp;<span id="profitAmount"></span></label> <label
+				class="mgl15">管理费合计:&nbsp;<span id="managementCost"></span></label>
+		</div>
+	</div>
+</body>
+</html>

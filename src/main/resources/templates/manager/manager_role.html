@@ -1,0 +1,316 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div class="layui-main mgt10">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 22px;
+}
+</style>
+		<script type="text/html" id="opBar">
+  			<a class="layui-btn layui-btn-xs" lay-event="deleteRole">删除</a>
+		</script>
+		<script type="text/html" id="checkBar">
+  			<input type="checkbox" lay-event="bindResource" lay-ignore/>
+		</script>
+		<script type="text/javascript">
+			var initRoleId;
+			$(function() {
+				$
+						.ajax({
+							type : "get",
+							url : "/sys/queryRoles",
+							async : false,
+							success : function(result) {
+								if (result.code == 0) {
+									if (result.data.length == 0) {
+										var option = ' <option value ="0">无角色</option>';
+										$('#role').html(option);
+									} else {
+										var option = '';
+										$
+												.each(
+														result.data,
+														function(i, item) {
+															option += '<option value ="'+item.id+'">'
+																	+ item.roleName
+																	+ '</option>';
+														});
+										$('#role').html(option);
+									}
+									initRoleId = $("#role").val();
+									layui.use('table', function() {
+										var table = layui.table;
+										//第一个实例
+										table.render({
+											elem : '#RoleResourceList',
+											url : '/sys/queryResourceOfRole' //数据接口
+											,
+											contentType : 'application/json',
+											method : 'post',
+											page : true //开启分页
+											,
+											limits : [ 5 ],
+											limit : 5,
+											where : {
+												roleId : initRoleId,
+											},
+											cols : [ [ //表头
+											{
+												field : 'check',
+												title : '绑定',
+												width : 60,
+												toolbar : "#checkBar"
+											}, {
+												field : 'resourceId',
+												title : '资源ID',
+												width : 90,
+											}, {
+												field : 'resourceName',
+												title : '资源名称',
+												width : 180
+											}, {
+												field : 'resourceUrl',
+												title : 'URL',
+												width : 200
+											} ] ],
+											done : function(res, curr, count) {
+												if (res.data.length > 0) {
+													var list = $("input[type='checkbox']");
+													$.each(res.data, function(i, item) {
+														if (item.checked == true) {
+															$(list[i]).attr("checked", 'checked')
+														}
+													});
+												}
+											}
+										});
+
+										table.on('tool(RoleResourceList)', function(obj) {
+											var data = obj.data; //获得当前行数据
+											var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+											var tr = obj.tr; //获得当前行 tr 的DOM对象
+											if (layEvent == 'bindResource') {
+												var flag = $(tr).find("input:eq(0)").prop('checked');
+												$.ajax({
+													type : "post",
+													url : "/sys/bindResource",
+													contentType : "application/json",
+													data : JSON.stringify({
+														resourceId : data.resourceId,
+														roleId : $("#role").val(),
+														flag : flag
+													}),
+													success : function(result) {
+														if (result.code == 0) {
+															alert("操作成功");
+														} else {
+															alert("系统异常: " + result.message);
+														}
+													},
+													error : function() {
+														alert("系统错误");
+													}
+												});
+											}
+										});
+
+										$("#role").change(function() {
+											table.reload('RoleResourceList', {
+												page : {
+													curr : 1
+												//重新从第 1 页开始
+												},
+												where : {
+													roleId : $("#role").val(),
+												}
+											});
+										});
+									});
+								} else {
+									alert("系统异常: " + result.message);
+								}
+							},
+							error : function() {
+								alert("系统错误");
+							}
+						});
+			});
+			layui.use('table', function() {
+				var table = layui.table;
+				//第一个实例
+				table.render({
+					elem : '#RoleList',
+					url : '/sys/queryRole' //数据接口
+					,
+					contentType : 'application/json',
+					method : 'post',
+					page : true //开启分页
+					,
+					limits : [ 3 ],
+					limit : 3,
+					cols : [ [ //表头
+					{
+						field : 'id',
+						title : 'ID',
+						width : 60,
+						sort : true,
+					}, {
+						field : 'roleName',
+						title : '角色名称',
+						width : 160
+					}, {
+						field : 'description',
+						title : '描述',
+						width : 400
+					}, {
+						field : 'op',
+						title : '操作',
+						width : 160,
+						toolbar : "#opBar"
+					} ] ],
+					done : function(res, curr, count) {
+					}
+				});
+				var $ = layui.$, active = {
+					reload : function() {
+						//执行重载
+						table.reload('RoleList', {
+							page : {
+								curr : 1
+							//重新从第 1 页开始
+							},
+						});
+					}
+				};
+				$('#queryRoleButton').on('click', function() {
+					var type = $(this).data('type');
+					active[type] ? active[type].call(this) : '';
+				});
+
+				table.on('tool(RoleList)', function(obj) { //注：tool是工具条事件名，RoleList是table原始容器的属性 lay-filter="对应的值"
+					var data = obj.data; //获得当前行数据
+					var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+					var tr = obj.tr; //获得当前行 tr 的DOM对象
+					if (layEvent == 'deleteRole') {
+						$.ajax({
+							type : "post",
+							url : "/sys/deleteRole",
+							contentType : "application/json",
+							data : JSON.stringify({
+								id : data.id
+							}),
+							success : function(result) {
+								if (result.code == 0) {
+									alert("删除成功");
+									table.reload('RoleList', {
+										page : {
+											curr : 1
+										//重新从第 1 页开始
+										},
+									});
+								} else {
+									alert("系统异常: " + result.message);
+								}
+							},
+							error : function() {
+								alert("系统错误");
+							}
+						});
+					}
+				});
+			});
+			
+			function onAddBtn() {
+				layer.open({
+					type : 1,
+					title : "新建角色",
+					closeBtn : false,
+					shift : 2,
+					area : [ '400px', '300px' ],
+					shadeClose : true,
+					content : $("#add-role"),
+					success : function(layero, index) {
+					},
+					yes : function() {
+					}
+				});
+			}
+			$('#addBtn').on('click', function() {
+				$.ajax({
+					type : "post",
+					url : "/sys/addRole",
+					contentType : "application/json",
+					data : JSON.stringify({
+						RoleName : $("#RoleName").val(),
+						RoleDesc : $("#RoleDesc").val(),
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							alert("添加成功");
+							CloseWin();
+							$("#queryRoleButton").click();
+						} else {
+							alert("系统异常: " + result.message);
+						}
+					},
+					error : function() {
+						alert("系统错误");
+					}
+				});
+			});
+			//关闭页面
+			function CloseWin() {
+				layer.close(layer.index);
+			}
+		</script>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="queryRoleButton"
+				data-type="reload" style="display: none">查询</button>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="addRoleButton"
+				data-type="add" onclick="onAddBtn()">增加</button>
+		</div>
+		<div>
+			<table id="RoleList" lay-filter="RoleList"></table>
+		</div>
+		<div class="layui-inline mgr10 mgt20">
+			<label class="layui-inline mgr10">角色选择框</label>
+			<div class="layui-inline mgr10">
+				<select id="role" name="role" lay-filter="role">
+				</select>
+			</div>
+		</div>
+		<div>
+			<table id="RoleResourceList" lay-filter="RoleResourceList"></table>
+		</div>
+		<div id="add-role" style="display: none;">
+			<div class="layui-form-item center mgt20">
+				<label class="layui-form-label" style="width: 100px">角色名称</label>
+				<div class="layui-input-block">
+					<input type="text" id="RoleName" required value=""
+						style="width: 240px" lay-verify="required" autocomplete="off"
+						class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item mgt20">
+				<label class="layui-form-label" style="width: 100px">描述</label>
+				<div class="layui-input-block">
+					<input type="text" id="RoleDesc" required style="width: 240px"
+						lay-verify="required" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<div class="layui-input-block">
+					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn">立即提交</button>
+					<button type="reset" class="layui-btn layui-btn-primary"
+						id="closeBtn" onclick="CloseWin()">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

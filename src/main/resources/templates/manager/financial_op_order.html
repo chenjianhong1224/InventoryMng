@@ -1,0 +1,567 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div class="layui-main mgt10">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 22px;
+}
+</style>
+		<script type="text/html" id="opBar">
+			<a class="layui-btn layui-btn-xs" lay-event="modify">修改</a>
+		</script>
+		<script type="text/javascript">
+			
+			layui.use('laydate', function() {
+
+				var laydate = layui.laydate;
+
+				//执行一个laydate实例
+				laydate.render({
+					elem : '#orderBeginTime' //指定元素
+					,
+					value : getBillBeginDate()
+				});
+				laydate.render({
+					elem : '#orderEndTime' //指定元素
+					,
+					value : new Date(new Date() - 1000 * 60 * 60 * 24)
+							.format("yyyy-MM-dd")
+				});
+				laydate.render({
+					elem : '#orderDate' //指定元素
+					,
+					value : new Date().format("yyyy-MM-dd")
+				});
+				laydate.render({
+					elem : '#orderDate2' //指定元素
+					,
+					value : new Date().format("yyyy-MM-dd")
+				});				
+			});
+		</script>
+		<script type="text/javascript">
+			layui.use('table', function() {
+				var table = layui.table;
+				//第一个实例
+				table.render({
+					elem : '#MemberOrderReport',
+					url : '/report/goods/orderQuery' //数据接口
+					,
+					contentType : 'application/json',
+					method : 'post',
+					page : true //开启分页
+					,
+					where : {
+						beginDate : getBillBeginDate(),
+						endDate : new Date(new Date() - 1000 * 60 * 60 * 24)
+								.format("yyyy-MM-dd"),
+					},
+					cols : [ [ //表头
+					{
+						field : 'id',
+						title : 'ID',
+						width : 60,
+						sort : true,
+					},{
+						field : 'memberId',
+						title : 'memberId',
+						width : 60,
+						sort : true,
+					}, {
+						field : 'brand',
+						title : '品牌',
+						width : 140,
+					}, {
+						field : 'memberName',
+						title : '加盟商',
+						width : 120,
+					}, {
+						field : 'goodName',
+						title : '商品名称',
+						width : 120
+					}, {
+						field : 'manufactor',
+						title : '厂家',
+						width : 80
+					}, {
+						field : 'supplierName',
+						title : '供货商',
+						width : 100,
+					}, {
+						field : 'memberPrice',
+						title : '加盟价',
+						width : 80
+					}, {
+						field : 'purchasePrice',
+						title : '成本价(采购价+代仓价)',
+						width : 180
+					}, {
+						field : 'servicePrice',
+						title : '代仓价',
+						width : 80
+					}, {
+						field : 'orderDate',
+						title : '订购日期',
+						width : 120
+					}, {
+						field : 'num',
+						title : '订购数量',
+						width : 90
+					}, {
+						field : 'op',
+						title : '操作',
+						toolbar : "#opBar",
+						width : 150
+					} ] ],
+					done : function(res, curr, count) {
+						$("[data-field='id']").css('display', 'none');
+						$("[data-field='memberId']").css('display', 'none');
+						$("[data-field='brand']").css('display', 'none');
+					}
+				});
+				var $ = layui.$, active = {
+					reload : function() {
+						//执行重载
+						table.reload('MemberOrderReport', {
+							page : {
+								curr : 1
+							//重新从第 1 页开始
+							},
+							where : {
+								beginDate : $("#orderBeginTime").val(),
+								endDate : $("#orderEndTime").val(),
+								memberId : $("#member").val(),
+								brandId : $("#brand").val(),
+							}
+						});
+					}
+				};
+				$('#queryButton').on('click', function() {
+					var t1 = new Date($('#orderBeginTime').val()).getTime();//返回从1970-1-1开始计算到Date对象中的时间之间的毫秒数
+					var t2 = new Date($('#orderEndTime').val()).getTime();//返回从1970-1-1开始计算到Date对象中的时间之间的毫秒数
+					if (t1 > t2) {
+						alert('开始时间不能大于结束时间');
+						return;
+					}
+					var datetime = 1000 * 60 * 60 * 24; //一天时间的毫秒值 
+					var minusDays = Math.floor(((t2 - t1) / datetime));//计算出两个日期天数差 
+					var days = Math.abs(minusDays);//如果结果为负数，取绝对值
+					if (days > 365) {
+						alert('查询时间跨度不能大于1年');
+						return;
+					}
+					var type = $(this).data('type');
+					active[type] ? active[type].call(this) : '';
+				});
+				table.on('tool(MemberOrderReport)', function(obj) {
+					var data = obj.data; //获得当前行数据
+					var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+					var tr = obj.tr; //获得当前行 tr 的DOM对象
+					if (layEvent == 'modify') {
+						onModifyBtn(data);
+					}
+				});
+				function onModifyBtn(data) {
+					$("#purchasePrice").val("");
+					$("#memberPrice").val("");					
+					$("#servicePrice").val("");					
+					$("#num2").val("");
+					$("#orderId").val("");	
+					$("#servicePrice").attr("readonly",false);
+					layer.open({
+						type : 1,
+						title : "修改订单",
+						closeBtn : false,
+						shift : 2,
+						area : [ '360px', '460px' ],
+						shadeClose : true,
+						content : $("#modify-order"),
+						success : function(layero, index) {
+							$("#purchasePrice").val(parseFloat(data.purchasePrice)*100);
+							$("#memberPrice").val(parseFloat(data.memberPrice)*100);
+							if(data.servicePrice!=null){
+								$("#servicePrice").val(parseFloat(data.servicePrice)*100);
+								$("#purchasePrice").val(parseFloat(data.purchasePrice-data.servicePrice)*100);
+							}else{
+								$("#servicePrice").attr("readonly",true);
+							}
+							$("#num2").val(data.num);
+							$("#orderId").val(data.id);
+							layui.laydate.render({
+								elem : '#orderDate2' //指定元素
+								,
+								value : data.orderDate
+							});
+						},
+						yes : function() {
+						}
+					});
+				}
+			});
+			layui.use('form', function() {
+				var form = layui.form;
+				form.render('select', 'form1');
+				form.render('select', 'form2');
+				form.on('select(member2)', function(data){
+					var memberId = $("#member2").val();
+					if(memberId == "0"){
+						$("#goods").html("");
+						$("#goods").html("<option value=\"0\">全部</option>");
+						form.render('select', 'form2');
+						return;
+					}
+					$.ajax({
+						url : '/sys/queryMemberAvailableGoods',
+						type : "post",
+						dataType : "json",
+						contentType : "application/json",
+						async : false,
+						data : JSON.stringify({
+							memberId : $("#member2").val()
+						}),
+						success : function(result) {
+							var option = "<option value='0'>全部</option>";
+							if (result.code == 0) {
+								$("#goods").html("");
+								$.each(result.data, function(key, val) {
+									option += "<option value='" + val.id + "'>";
+									option += val.goodName + "</option>";
+								});
+								$("#goods").html(option);
+								form.render('select', 'form2');
+							}
+						}
+					});
+				});   
+				$('#brand').change(function() {
+					if($("#brand").val() == '0'){
+						$("#member").html("");
+						$("#member").html("<option value=\"0\">全部</option>");
+						form.render('select', 'form1');
+						return;
+					}
+					$.ajax({
+						url : '/manager/member/queryMemberByBrand',
+						type : "post",
+						dataType : "json",
+						contentType : "application/json",
+						async : false,
+						data : JSON.stringify({
+							brandId : $("#brand").val()
+						}),
+						success : function(result) {
+							var option = "<option value='0'>全部</option>";
+							if (result.code == 0) {
+								$("#member").html("");
+								$.each(result.data, function(key, val) {
+									option += "<option value='" + val.id + "'>";
+									option += val.memberName + "</option>";
+								});
+								$("#member").html(option);
+								form.render('select', 'form1');
+							}
+						}
+					});
+				});
+				$('#brand2').change(function() {
+					if($("#brand2").val() == '0'){
+						$("#member2").html("");
+						$("#member2").html("<option value=\"0\">全部</option>");
+						form.render('select', 'form2');
+						return;
+					}
+					$.ajax({
+						url : '/manager/member/queryMemberByBrand',
+						type : "post",
+						dataType : "json",
+						contentType : "application/json",
+						async : false,
+						data : JSON.stringify({
+							brandId : $("#brand2").val()
+						}),
+						success : function(result) {
+							var option = "<option value='0'>全部</option>";
+							if (result.code == 0) {
+								$("#member2").html("");
+								$.each(result.data, function(key, val) {
+									option += "<option value='" + val.id + "'>";
+									option += val.memberName + "</option>";
+								});
+								$("#member2").html(option);
+								form.render('select', 'form2');
+							}
+						}
+					});
+				});
+			});
+			function onAddBtn() {
+				layer.open({
+					type : 1,
+					title : "新建订单",
+					closeBtn : false,
+					shift : 2,
+					area : [ '480px', '530px' ],
+					shadeClose : true,
+					content : $("#add-order"),
+					success : function(layero, index) {
+						$("#brand2").get(0).selectedIndex = 0;
+						$("#member2").get(0).selectedIndex = 0;
+					},
+					yes : function() {
+					}
+				});
+			}
+			function CloseWin() {
+				layer.close(layer.index);
+			}
+			function newOrder() {
+				var memberId = $("#member2").val();
+				if(memberId == '0'){
+					alert("请选择加盟商");
+					return;
+				}
+				var goodsId = $("#goods").val();
+				if(goodsId == '0'){
+					alert("请选择商品");
+					return;
+				}
+				var re = /^[1-9]+[0-9]*]*$/; 
+				var number = $("#num").val();
+				if (!re.test(number)) {
+				　　alert("请输入正确的订购数");
+				　　return;
+				}
+				$.ajax({
+					url : '/financial/newOrder',
+					type : "post",
+					dataType : "json",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+						memberId : memberId,
+						goodsId : goodsId,
+						num : number,
+						orderDate : $("#orderDate").val()
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							alert("添加成功");
+							CloseWin();
+							$('#queryButton').click();
+						} else {
+							alert("系统异常: " + result.message);
+						}
+					}
+				});
+			}
+			function modifyOrder(data){
+				var id = $("#orderId").val();
+				var re = /^[0-9]+[0-9]*]*$/; 
+				var number = $("#num2").val();
+				if (!re.test(number)) {
+				　　alert("请输入正确的订购数");
+				　　return;
+				}
+				var re2 = /^[1-9]+[0-9]*]*$/; 
+				var purchasePrice = $("#purchasePrice").val() + "";
+				if (!re2.test(purchasePrice)) {
+					alert("请输入正确的采购价格");
+					return;
+				}
+				var memberPrice = $("#memberPrice").val();
+				if (!re.test(memberPrice)) {
+					alert("请正确的加盟价格");
+					return;
+				}
+				if($("#servicePrice").attr("readonly")!="readonly"){
+					var servicePrice = $("#servicePrice").val();
+					if (!re.test(servicePrice)) {
+						alert("请正确的代仓价格");
+						return;
+					}
+				}
+				$.ajax({
+					url : '/financial/modifyOrder',
+					type : "post",
+					dataType : "json",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+						id : id,
+						memberPrice : memberPrice,
+						purchasePrice : purchasePrice,
+						servicePrice : servicePrice,
+						num : number,
+						orderDate : $("#orderDate2").val()
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							alert("修改成功");
+							CloseWin();
+							$('#queryButton').click();
+						} else {
+							alert("系统异常: " + result.message);
+						}
+					},
+					error : function(){
+						alert("系统异常");
+					}
+				});
+			}
+		</script>
+		<label class="layui-inline mgr10">品牌</label>
+		<div class="layui-inline mgr10">
+			<select id="brand" type="text" name="brand" lay-filter="brand"
+				class="layui-select" lay-search="">
+				<option th:each="brand : ${brandList}"
+					th:value="
+						${brand.paramKey}" th:text="${brand.paramValue}">全部</option>
+			</select>
+		</div>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline mgr10">加盟商</label>
+			<div class="layui-inline mgr10" id="search">
+				<form class="layui-form" action="" lay-filter="form1">
+					<select id="member" name="member" lay-filter="member"
+						class="layui-select" lay-search>
+						<option value="0">全部</option>
+					</select>
+				</form>
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label>开始时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="orderBeginTime">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label>结束时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="orderEndTime">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="queryButton"
+				data-type="reload">查询</button>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="addButton"
+				onclick="onAddBtn()">新增</button>
+		</div>
+		<div>
+			<table id="MemberOrderReport" lay-filter="MemberOrderReport"></table>
+		</div>
+		<!-- 新增订购记录框 -->
+		<div id="add-order" style="display: none;">
+			<div class="layui-form-item mgt20">
+				<label class="layui-form-label">品牌</label>
+				<div class="layui-input-block">
+					<select id="brand2" name="brand2" lay-filter="brand2"
+						class="layui-select">
+						<option th:each="brand : ${brandList}"
+							th:value="
+						${brand.paramKey}"
+							th:text="${brand.paramValue}">全部</option>
+					</select>
+				</div>
+			</div>
+			<form class="layui-form" action="" lay-filter="form2">
+				<div class="layui-form-item mgt20">
+					<label class="layui-form-label">加盟商</label>
+					<div class="layui-input-block" style="width: 320px">
+						<select id="member2" name="member2" lay-filter="member2"
+							class="layui-select" lay-search>
+							<option value="0">全部</option>
+						</select>
+					</div>
+				</div>
+				<div class="layui-form-item mgt20">
+					<label class="layui-form-label">商品</label>
+					<div class="layui-input-block" style="width: 320px">
+						<select id="goods" name="goods" lay-filter="goods"
+							class="layui-select" lay-search>
+							<option value="0">全部</option>
+						</select>
+					</div>
+				</div>
+				<div class="layui-form-item center mgt20">
+					<label class="layui-form-label">采购数量</label>
+					<div class="layui-input-block">
+						<input type="text" id="num" required value="" style="width: 100px"
+							lay-verify="required" autocomplete="off" class="layui-input">
+					</div>
+				</div>
+				<div class="layui-form-item center mgt20">
+					<label class="layui-form-label">订购日期</label>
+					<div class="layui-input-block">
+						<input type="text" id="orderDate" class="layui-input"
+							style="width: 180px">
+					</div>
+				</div>
+			</form>
+			<div class="layui-form-item">
+				<div class="layui-input-block">
+					<button class="layui-btn" lay-submit lay-filter="save"
+						onclick="newOrder()">立即提交</button>
+					<button type="reset" class="layui-btn layui-btn-primary"
+						id="closeBtn" onclick="CloseWin()">关闭</button>
+				</div>
+			</div>
+		</div>
+		<!-- 修改订购记录框 -->
+		<div id="modify-order" style="display: none;">
+			<div class="layui-form-item center mgt20">
+				<label class="layui-form-label">加盟价格(分)</label>
+				<div class="layui-input-block">
+					<input type="text" id="memberPrice" required value=""
+						style="width: 100px" lay-verify="required" autocomplete="off"
+						class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item center mgt20">
+				<label class="layui-form-label">采购价格(分)</label>
+				<div class="layui-input-block">
+					<input type="text" id="purchasePrice" required value=""
+						style="width: 100px" lay-verify="required" autocomplete="off"
+						class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item center mgt20">
+				<label class="layui-form-label">代仓价格(分)</label>
+				<div class="layui-input-block">
+					<input type="text" id="servicePrice" required value=""
+						style="width: 100px" lay-verify="required" autocomplete="off"
+						class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item center mgt20">
+				<label class="layui-form-label">采购数量</label>
+				<div class="layui-input-block">
+					<input type="text" id="num2" required value="" style="width: 100px"
+						lay-verify="required" autocomplete="off" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item center mgt20">
+				<label class="layui-form-label">订购日期</label>
+				<div class="layui-input-block">
+					<input type="text" id="orderDate2" class="layui-input"
+						style="width: 180px"> <input type="text" id="orderId"
+						style="display: none">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<div class="layui-input-block">
+					<button class="layui-btn" lay-submit lay-filter="save"
+						onclick="modifyOrder()">立即提交</button>
+					<button type="reset" class="layui-btn layui-btn-primary"
+						id="closeBtn" onclick="CloseWin()">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
