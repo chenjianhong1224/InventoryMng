@@ -23,9 +23,11 @@ spring:
     store-type: none
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/inventory_system?useUnicode=true&characterEncoding=utf-8
+    #url: jdbc:mysql://139.199.89.119:3306/inventory_system?useUnicode=true&characterEncoding=utf-8
     driver-class-name: com.mysql.jdbc.Driver
     username: root
     password: 123456
+    #password: 'chenjianhong#K1'
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
       maximumPoolSize: 15

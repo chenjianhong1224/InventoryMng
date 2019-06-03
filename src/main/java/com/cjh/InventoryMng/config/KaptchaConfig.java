@@ -26,13 +26,15 @@ public class KaptchaConfig {
 		// 图片高
 		properties.setProperty("kaptcha.image.height", "40");
 		// 字体大小
-		properties.setProperty("kaptcha.textproducer.font.size", "30");
+		properties.setProperty("kaptcha.textproducer.font.size", "28");
 		// session key
 		properties.setProperty("kaptcha.session.key", "code");
 		// 验证码长度
 		properties.setProperty("kaptcha.textproducer.char.length", "4");
+		//字间距
+		properties.setProperty("kaptcha.textproducer.char.space", "6");
 		// 字体
-		properties.setProperty("kaptcha.textproducer.font.names", "宋体,楷体,微软雅黑");
+		//properties.setProperty("kaptcha.textproducer.font.names", "宋体,楷体,微软雅黑");
 		Config config = new Config(properties);
 		defaultKaptcha.setConfig(config);
 

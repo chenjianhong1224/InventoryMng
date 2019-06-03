@@ -21,7 +21,7 @@
 
 	<form class="form-horizontal" action="/login" method="post">
 		<div class="layui-form-item">
-			<label class="layui-form-label">输入框</label>
+			<label class="layui-form-label">用户名</label>
 			<div class="layui-input-inline">
 				<input type="text" name="username" lay-verify="title"
 					autocomplete="off" placeholder="用户名" required="true"
@@ -29,10 +29,22 @@
 			</div>
 		</div>
 		<div class="layui-form-item">
-			<label class="layui-form-label">密码框</label>
+			<label class="layui-form-label">密码</label>
 			<div class="layui-input-inline">
 				<input type="password" name="password" placeholder="请输入密码"
 					autocomplete="off" class="layui-input">
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">验证码</label>
+			<div class="layui-input-inline">
+				<input type="text" name="validateCode" placeholder="请输入验证码"
+					autocomplete="off" class="layui-input">
+			</div>
+			<div class="layui-input-inline">
+				<img alt="验证码"
+					onclick="this.src='/validateCode/getCode?d='+new Date()*1"
+					src="/validateCode/getCode" />
 			</div>
 		</div>
 		<div class="layui-form-item">

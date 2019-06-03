@@ -45,6 +45,8 @@ public class LoginController {
 			error = "用户名/密码错误";
 		} else if (IncorrectCredentialsException.class.getName().equals(exceptionClassName)) {
 			error = "用户名/密码错误";
+		} else if ("kaptchaValidateFailed".equals(exceptionClassName)) {
+			error = "验证码错误";
 		} else if (exceptionClassName != null) {
 			error = "登录失败";
 		}
