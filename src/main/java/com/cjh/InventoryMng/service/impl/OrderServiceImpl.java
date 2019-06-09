@@ -5,15 +5,18 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.cjh.InventoryMng.entity.TGoodsInfo;
 import com.cjh.InventoryMng.entity.TOrderInfo;
 import com.cjh.InventoryMng.entity.TOrderInfoExample;
+import com.cjh.InventoryMng.entity.VMemberOrderInfoOrderBy;
 import com.cjh.InventoryMng.exception.BusinessException;
 import com.cjh.InventoryMng.mapper.CustomQueryMapper;
 import com.cjh.InventoryMng.mapper.TGoodsInfoMapper;
@@ -21,6 +24,7 @@ import com.cjh.InventoryMng.mapper.TOrderInfoMapper;
 import com.cjh.InventoryMng.service.OrderService;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Maps;
 
 @Service
 @Transactional
@@ -31,12 +35,12 @@ public class OrderServiceImpl implements OrderService {
 
 	@Autowired
 	private TOrderInfoMapper tOrderInfoMapper;
-	
+
 	@Autowired
 	private CustomQueryMapper customQueryMapper;
 
 	@Override
-	public int order(Integer memberId, Integer goodId, Integer buyNum, String orderDate, Date orderTime)
+	public double order(Integer memberId, Integer goodId, double buyNum, String orderDate, Date orderTime)
 			throws BusinessException {
 		TGoodsInfo goodsInfo = tGoodsInfoMapper.selectByPrimaryKey(goodId);
 		if (goodsInfo != null && goodsInfo.getStatus() == 1) {
@@ -57,7 +61,8 @@ public class OrderServiceImpl implements OrderService {
 				Date now = new Date();
 				record.setOrderDate(orderDate);
 				record.setOrderTime(now);
-				record.setPurchasePrice(goodsInfo.getPurchasePrice() + goodsInfo.getServicePrice());
+				record.setPurchasePrice(goodsInfo.getPurchasePrice()
+						+ (goodsInfo.getServicePrice() == null ? 0 : goodsInfo.getServicePrice()));
 				record.setStatus(1);
 				if (goodsInfo.getServiceId() != null) {
 					record.setServiceId(goodsInfo.getServiceId());
@@ -97,7 +102,7 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-	public boolean modifyOrder(Integer goodId, Integer buyNum) {
+	public boolean modifyOrder(Integer goodId, double buyNum) {
 		if (buyNum <= 0) {
 			return false;
 		}
@@ -223,7 +228,7 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	@Override
-	public int queryEffectiveOrderGoodNum(Integer memberId, String orderDate, Integer goodId) {
+	public double queryEffectiveOrderGoodNum(Integer memberId, String orderDate, Integer goodId) {
 		TOrderInfoExample example = new TOrderInfoExample();
 		example.createCriteria().andMemberIdEqualTo(memberId).andOrderDateEqualTo(orderDate).andStatusEqualTo(1)
 				.andGoodIdEqualTo(goodId);
@@ -231,7 +236,7 @@ public class OrderServiceImpl implements OrderService {
 		if (CollectionUtils.isEmpty(orders)) {
 			return 0;
 		}
-		int num = 0;
+		double num = 0;
 		for (TOrderInfo order : orders) {
 			num += order.getNum();
 		}
@@ -263,5 +268,35 @@ public class OrderServiceImpl implements OrderService {
 	public Page<TGoodsInfo> queryMemberAvailableGoods(Integer memberId, int pageNo, int pageSize) {
 		PageHelper.startPage(pageNo, pageSize);
 		return customQueryMapper.queryMemberAvailableGoods(memberId);
+	}
+
+	@Override
+	public String getOrderContent(Integer memberId, String brandId, String orderDate) {
+		Page<VMemberOrderInfoOrderBy> list = customQueryMapper.queryMemberOrderInfoOrderBy(memberId, brandId, orderDate);
+		int lastMemberId = -1;
+		String lastSupplierName = "";
+		Map<String, String> sendContentMap = Maps.newHashMap();
+		String emailContent = "";
+		for (VMemberOrderInfoOrderBy vo : list) {
+			if (!lastSupplierName.equals(vo.getSupplierName())) {
+				if (!StringUtils.isEmpty(lastSupplierName)) {
+					sendContentMap.put(lastSupplierName, emailContent);
+				}
+				emailContent = "";
+				lastSupplierName = vo.getSupplierName();
+			}
+			if (lastMemberId != vo.getMemberId()) {
+				emailContent += "\r\n" + vo.getMemberName() + "下单\r\n";
+				emailContent += "地址：" + vo.getAddress() + "\r\n";
+				lastMemberId = vo.getMemberId();
+			}
+			emailContent += vo.getGoodsName() + " " + vo.getNum() + "件\r\n";
+		}
+		sendContentMap.put(lastSupplierName, emailContent);
+		String finalContent = "";
+		for (String supplierName : sendContentMap.keySet()) {
+			finalContent += "========\r\n" + supplierName + "\r\n" + sendContentMap.get(supplierName);
+		}
+		return finalContent;
 	}
 }

@@ -13,7 +13,7 @@ public class TOrderInfo {
 
     private Integer memberPrice;
 
-    private Integer num;
+    private Double num;
 
     private Date orderTime;
 
@@ -67,11 +67,11 @@ public class TOrderInfo {
         this.memberPrice = memberPrice;
     }
 
-    public Integer getNum() {
+    public Double getNum() {
         return num;
     }
 
-    public void setNum(Integer num) {
+    public void setNum(Double num) {
         this.num = num;
     }
 

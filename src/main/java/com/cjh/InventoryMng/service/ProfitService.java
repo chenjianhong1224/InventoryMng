@@ -1,6 +1,7 @@
 package com.cjh.InventoryMng.service;
 
 import java.util.List;
+import java.util.TreeMap;
 
 import com.cjh.InventoryMng.bean.PlatformProfitImportBean;
 import com.cjh.InventoryMng.entity.TPlatformProfit;
@@ -20,6 +21,8 @@ public interface ProfitService {
 	void computeProfit(Integer memberId, String settleDate, Integer meituanProfit, Integer elemeProfit);
 
 	void importPlatformProfit(List<PlatformProfitImportBean> beans) throws BusinessException;
+	
+	TreeMap<String, String> getLast7DaysProfit();
 	
 	// List<TProfit> queryPeriodProfit(String period);
 	//

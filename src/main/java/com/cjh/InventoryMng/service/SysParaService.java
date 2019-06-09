@@ -2,6 +2,7 @@ package com.cjh.InventoryMng.service;
 
 import java.util.List;
 
+import com.cjh.InventoryMng.bean.EmailBean;
 import com.cjh.InventoryMng.entity.TSysParam;
 
 
@@ -17,4 +18,7 @@ public interface SysParaService {
 	
 	String getBrandId(String brandName);
 
+	List<String> getOrderEmailAddress();
+	
+	EmailBean getSysEmail();
 }

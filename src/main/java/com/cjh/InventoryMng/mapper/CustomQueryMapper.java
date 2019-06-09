@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Param;
 
 import com.cjh.InventoryMng.entity.TGoodsInfo;
 import com.cjh.InventoryMng.entity.VMemberBillInfo;
+import com.cjh.InventoryMng.entity.VMemberOrderInfoOrderBy;
 import com.cjh.InventoryMng.entity.VRoleResourceInfo;
 import com.cjh.InventoryMng.entity.VSuppplierBillInfo;
 import com.cjh.InventoryMng.entity.VMemberSupplierMap;
@@ -24,8 +25,13 @@ public interface CustomQueryMapper {
 			@Param("beginDate") String beginDate, @Param("endDate") String endDate);
 
 	Page<VRoleResourceInfo> queryResourceOfRole(@Param("roleId") Integer roleId);
-	
+
 	Page<VMemberSupplierMap> querySupplierOfMember(@Param("memberId") Integer memberId);
-	
+
 	Page<TGoodsInfo> queryMemberAvailableGoods(@Param("memberId") Integer memberId);
+
+	Page<VMemberOrderInfoOrderBy> queryMemberOrderInfoOrderBy(@Param("memberId") Integer memberId,
+			@Param("brandId") String brandId, @Param("orderDate") String orderDate);
+	
+	String queryMaxSettleDate();
 }

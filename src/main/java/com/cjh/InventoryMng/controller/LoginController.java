@@ -4,9 +4,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.cjh.InventoryMng.bean.UserInfo;
 import com.cjh.InventoryMng.entity.TSysParam;
+import com.cjh.InventoryMng.service.ProfitService;
 import com.cjh.InventoryMng.service.SysParaService;
 import com.cjh.InventoryMng.vo.ResultMap;
 import com.google.common.collect.Lists;
@@ -36,6 +39,9 @@ public class LoginController {
 
 	@Autowired
 	private SysParaService sysParaService;
+
+	@Autowired
+	private ProfitService profitService;
 
 	@RequestMapping(value = "/login")
 	public String login(Model model, HttpServletRequest request) {
@@ -71,6 +77,24 @@ public class LoginController {
 			map.addAttribute("manufacturers", returnManufacturers);
 			return "index";
 		} else {
+			TreeMap<String, String> profitMap = profitService.getLast7DaysProfit();
+			String dates = "";
+			String profits = "";
+			String key = null;
+			String integ = null;
+			Iterator iter = profitMap.keySet().iterator();
+			while (iter.hasNext()) {
+				// 获取key
+				key = (String) iter.next();
+				// 根据key，获取value
+				integ = (String) profitMap.get(key);
+				dates += key + ",";
+				profits += integ + ",";
+			}
+			dates = dates.substring(0, dates.length() - 1);
+			profits = profits.substring(0, profits.length() - 1);
+			map.addAttribute("dates", dates);
+			map.addAttribute("profits", profits);
 			return "manager";
 		}
 	}

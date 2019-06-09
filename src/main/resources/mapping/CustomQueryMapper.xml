@@ -146,7 +146,7 @@
 		select
 		member_id, good_id, member_price, purchase_price as price, num,
 		order_date,
-		supplierId as supplierId from t_order_info where 1=1
+		supplierId as supplierId from t_order_info where 1=1 and status = 1
 		<if test="beginDate != null">
 			AND order_date &gt;= #{beginDate, jdbcType=VARCHAR}
 		</if>
@@ -161,7 +161,7 @@
 		order_date,
 		service_id as supplierId from t_order_info b
 		where service_id is not
-		null
+		null and status = 1 
 		<if test="beginDate != null">
 			AND order_date &gt;= #{beginDate, jdbcType=VARCHAR}
 		</if>
@@ -215,4 +215,50 @@
 			and a.status = 1
 			and c.supplier_id = b.id and b.status = 1 and c.status = 1
 	</select>
+	
+	<resultMap id="VMemberOrderInfoOrderByResultMap" type="com.cjh.InventoryMng.entity.VMemberOrderInfoOrderBy">
+		<result column="member_id" jdbcType="INTEGER" property="memberId" />
+		<result column="member_name" jdbcType="VARCHAR" property="memberName" />
+		<result column="supplier_id" jdbcType="INTEGER" property="supplierId" />
+		<result column="supplier_name" jdbcType="VARCHAR" property="supplierName" />
+		<result column="good_id" jdbcType="INTEGER" property="goodsId" />
+		<result column="good_name" jdbcType="VARCHAR" property="goodsName" />
+		<result column="num" jdbcType="INTEGER" property="num" />
+		<result column="order_date" jdbcType="VARCHAR" property="orderDate" />
+		<result column="address" jdbcType="VARCHAR" property="address" />
+	</resultMap>
+	
+	<select id="queryMemberOrderInfoOrderBy" resultMap="VMemberOrderInfoOrderByResultMap">
+		select c.member_id, d.member_name, c.supplierId, e.supplier_name, c.good_id, f.good_name, c.num, c.order_date, d.address 
+			from (
+				select a.member_id, a.supplierId as supplierId, good_id, num, order_date 
+				from t_order_info a 
+				where a.status = 1 
+				<if test="memberId != null">
+					AND member_id = #{memberId, jdbcType=INTEGER}
+				</if>
+				and a.order_date = #{orderDate, jdbcType=VARCHAR} and a.service_id is null
+					union
+				select b.member_id, b.service_id as supplierId, good_id, num, order_date 
+				from t_order_info b 
+				where b.status = 1
+				<if test="memberId != null">
+					AND member_id = #{memberId, jdbcType=INTEGER}
+				</if> 
+				and b.order_date = #{orderDate, jdbcType=VARCHAR} and b.service_id is not null 
+				)c, 
+				t_member_info d, 
+				t_supplier e, 
+				t_goods_info f
+				where c.member_id = d.id and c.supplierId = e.id and c.good_id = f.id
+				<if test="brandId != null">
+					AND d.brand = #{brandId, jdbcType=VARCHAR}
+				</if> 
+				order by  c.supplierId, c.member_id
+	</select>
+	
+	<select id="queryMaxSettleDate" resultType="java.lang.String">
+		select max(settle_date) from t_platform_profit
+	</select>	
+	
 </mapper>

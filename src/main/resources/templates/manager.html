@@ -10,17 +10,61 @@
 <link rel="stylesheet" th:href="@{/css/global.css}" />
 <script th:src="@{/layui/layui.js}"></script>
 <script th:src="@{/jquery/jquery.min.js}"></script>
+<script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
 <script th:src="@{/js/common.js}"></script>
 </head>
-<body>
+<body class="layui-layout-body">
+	<script  th:inline="javascript">
+		require.config({
+			paths : {
+				echarts : 'http://echarts.baidu.com/build/dist'
+			}
+		});
+		// 使用
+		require([ 'echarts', 'echarts/chart/bar' ], function(ec) {
+			var dateArray = [[${dates}]];
+			var profitArray = [[${profits}]];
+			var myChart = ec.init(document.getElementById('chart'));
+			var options = {
+				//定义一个标题
+				title : {
+					text : '最近一周的门店营收总和'
+				},
+				legend : {
+					data : [ '营收-单位元' ]
+				},
+				//X轴设置
+				xAxis : {
+					data :  
+								dateArray.split(',')
+					       
+				},
+				yAxis : {},
+				//name=legend.data的时候才能显示图例
+				series : [ {
+					name : '营收-单位元',
+					type : 'bar',
+					data :  
+								profitArray.split(',')
+					       
+				} ]
+
+			};
+			myChart.setOption(options);
+		});
+	</script>
+
 	<script>
 		layui.use('element', function() {
 			var element = layui.element;
 		});
+		layui.use('layer', function() {
+			var layer = layui.layer;
+		});
 		function queryHisOrderReport() {
 			$.ajax({
 				type : "post",
-				url : "/manager/memberOrderReport",
+				url : "/report/memberOrderReportPage",
 				success : function(result) {
 					$("#rightContent").html(result);
 				},
@@ -32,7 +76,7 @@
 		function queryMemberBill() {
 			$.ajax({
 				type : "post",
-				url : "/manager/memberBillReport",
+				url : "/report/memberBillReportPage",
 				success : function(result) {
 					$("#rightContent").html(result);
 				},
@@ -44,7 +88,7 @@
 		function querySupplierBill() {
 			$.ajax({
 				type : "post",
-				url : "/manager/supplierBillReport",
+				url : "/report/supplierBillReportPage",
 				success : function(result) {
 					$("#rightContent").html(result);
 				},
@@ -56,7 +100,7 @@
 		function showResource() {
 			$.ajax({
 				type : "post",
-				url : "/manager/managerResource",
+				url : "/sys/managerResourcePage",
 				success : function(result) {
 					$("#rightContent").html(result);
 				},
@@ -68,7 +112,7 @@
 		function showPlatformProfitContent() {
 			$.ajax({
 				type : "post",
-				url : "/financial/queryPlatformProfitContent",
+				url : "/financial/queryPlatformProfitContentPage",
 				success : function(result) {
 					$("#rightContent").html(result);
 				},
@@ -80,7 +124,7 @@
 		function showRole() {
 			$.ajax({
 				type : "post",
-				url : "/manager/managerRole",
+				url : "/sys/managerRolePage",
 				success : function(result) {
 					$("#rightContent").html(result);
 				},
@@ -92,7 +136,7 @@
 		function showGoods() {
 			$.ajax({
 				type : "post",
-				url : "/manager/managerGoods",
+				url : "/sys/managerGoodsPage",
 				success : function(result) {
 					$("#rightContent").html(result);
 				},
@@ -104,7 +148,7 @@
 		function showSuppliers() {
 			$.ajax({
 				type : "post",
-				url : "/manager/managerSuppliers",
+				url : "/sys/managerSuppliersPage",
 				success : function(result) {
 					$("#rightContent").html(result);
 				},
@@ -116,7 +160,7 @@
 		function showMembes() {
 			$.ajax({
 				type : "post",
-				url : "/manager/managerMembers",
+				url : "/sys/managerMembersPage",
 				success : function(result) {
 					$("#rightContent").html(result);
 				},
@@ -128,7 +172,7 @@
 		function showMemberOrder() {
 			$.ajax({
 				type : "post",
-				url : "/financial/queryFinancialMemberOrder",
+				url : "/financial/queryFinancialMemberOrderPage",
 				success : function(result) {
 					$("#rightContent").html(result);
 				},
@@ -138,19 +182,8 @@
 			});
 		}
 	</script>
-	<div class="layui-layout layui-layout-admin">
-		<div class="layui-header">
-			<div class="layui-logo mgl20" style="color: #fff">犇腾供销系统</div>
-			<ul class="layui-nav layui-layout-right">
-				<li class="layui-nav-item"><a href="">个人信息</a>
-					<dl class="layui-nav-child">
-						<dd>
-							<a href="">修改密码</a>
-						</dd>
-					</dl></li>
-				<li class="layui-nav-item"><a href="">退出</a></li>
-			</ul>
-		</div>
+	<article class="layui-layout layui-layout-admin">
+		<div class="layui-header" th:include="header::header"></div>
 		<div class="layui-side layui-bg-black">
 			<div class="layui-side-scroll">
 				<ul class="layui-nav layui-nav-tree" lay-filter="test">
@@ -159,17 +192,20 @@
 						href="javascript:;">报表</a>
 						<dl class="layui-nav-child">
 							<dd>
-								<a id="initClick" href="javascript:;"
-									onclick="queryHisOrderReport()">货款利润报表</a>
+								<a shiro:hasPermission="report:all" id="initClick"
+									href="javascript:;" onclick="queryHisOrderReport()">货款利润报表</a>
 							</dd>
 							<dd>
-								<a href="javascript:;" onclick="queryMemberBill()">加盟商结算报表</a>
+								<a shiro:hasPermission="report:memberBillReportPage"
+									href="javascript:;" onclick="queryMemberBill()">加盟商结算报表</a>
 							</dd>
 							<dd>
-								<a href="javascript:;" onclick="querySupplierBill()">供应商结算报表</a>
+								<a shiro:hasPermission="report:all" href="javascript:;"
+									onclick="querySupplierBill()">供应商结算报表</a>
 							</dd>
 						</dl></li>
-					<li class="layui-nav-item"><a href="javascript:;">账务管理</a>
+					<li shiro:hasPermission="financial:query" class="layui-nav-item"><a
+						href="javascript:;">账务管理</a>
 						<dl class="layui-nav-child">
 							<dd>
 								<a href="javascript:;" onclick="showPlatformProfitContent()">加盟商平台收入管理</a>
@@ -180,7 +216,8 @@
 								<a href="javascript:;" onclick="showMemberOrder()">加盟商采购管理</a>
 							</dd>
 						</dl></li>
-					<li class="layui-nav-item"><a href="javascript:;">系统管理</a>
+					<li shiro:hasPermission="sys:all" class="layui-nav-item"><a
+						href="javascript:;">系统管理</a>
 						<dl class="layui-nav-child">
 							<dd>
 								<a href="javascript:;" onclick="showResource()">资源管理</a>
@@ -198,7 +235,8 @@
 						</dl>
 						<dl class="layui-nav-child">
 							<dd>
-								<a href="javascript:;" onclick="showSuppliers()">供应商管理</a>
+								<a shiro:hasPermission="sys:op" href="javascript:;"
+									onclick="showSuppliers()">供应商管理</a>
 							</dd>
 						</dl>
 						<dl class="layui-nav-child">
@@ -210,8 +248,11 @@
 			</div>
 		</div>
 		<div id="rightContent" class="layui-body mgt10">
-			<div class="layui-main " th:text="'你好 ' + ${userName}"></div>
+			<div class="layui-main">
+				<div id="chart" style="width: 1180px; height: 400px;"></div>
+			</div>
 		</div>
-	</div>
+		<div id="open-main" style="display: none;"></div>
+	</article>
 </body>
 </html>

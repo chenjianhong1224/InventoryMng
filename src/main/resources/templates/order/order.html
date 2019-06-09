@@ -26,7 +26,7 @@
 				//第一个实例
 				table.render({
 					elem : '#GoodsList',
-					url : '/order/queryCurrOrder' //数据接口
+					url : '/member/order/queryCurrOrder' //数据接口
 					,
 					contentType : 'application/json',
 					method : 'post',
@@ -90,6 +90,34 @@
 					var type = $(this).data('type');
 					active[type] ? active[type].call(this) : '';
 				});
+				
+				$('#sendMsgButton').on('click', function() {
+					$.ajax({
+						type : "post",
+						url : "/member/order/sendOrder",
+						contentType : "application/json",
+						data : JSON.stringify({
+							date : getCurrOrderDate(),
+						}),
+						 beforeSend: function () {
+							 loading = layer.load(1, {
+				                    shade: [0.1, '#fff'] //0.1透明度的白色背景
+				                });
+		                    },
+						success : function(result) {
+							layer.closeAll('loading');
+							if (result.code == 0) {
+								alert("发送成功");
+							} else {
+								alert("系统异常: " + result.message);
+							}
+						},
+						error : function() {
+							layer.closeAll('loading');
+							alert("系统错误");
+						}
+					});
+				});
 
 				table.on('tool(GoodsList)', function(obj) { //注：tool是工具条事件名，GoodsList是table原始容器的属性 lay-filter="对应的值"
 					var data = obj.data; //获得当前行数据
@@ -105,7 +133,7 @@
 						}
 						$.ajax({
 							type : "post",
-							url : "/order/order",
+							url : "member/order/order",
 							contentType : "application/json",
 							data : JSON.stringify({
 								id : data.id,
@@ -157,6 +185,7 @@
 		<div class="layui-inline mgr10">
 			<button class="layui-btn layui-btn-radius" id="queryGoodButton"
 				data-type="reload">查询</button>
+			<button class="layui-btn layui-btn-radius" id="sendMsgButton">采购完毕提醒下单员下单</button>
 		</div>
 		<div>
 			<table id="GoodsList" lay-filter="GoodsList"></table>

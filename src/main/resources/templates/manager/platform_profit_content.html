@@ -6,7 +6,7 @@
 		<style type="text/css">
 .layui-table-cell {
 	height: auto;
-	line-height: 22px;
+	line-height: 20px;
 }
 </style>
 		<script type="text/javascript">
@@ -47,6 +47,25 @@
 					}
 				});
 			});
+			layui.use([ 'element', 'upload' ], function() {
+				element = layui.element;
+				upload = layui.upload;
+				//指定允许上传的文件类型
+				upload.render({
+					elem : '#uploadExcel2',
+					url : '/financial/importPlatformProfit2',
+					accept : 'file' //普通文件
+					,
+					multiple : true,
+					done : function(res) {
+						if(res.code != 0){
+							alert(res.message);
+						}else{
+							alert("导入成功");
+						}
+					}
+				});
+			});
 			layui.use('table', function() {
 				var table = layui.table;
 				//第一个实例
@@ -55,6 +74,7 @@
 							elem : '#PlatformProfitReport',
 							url : '/financial/queryPlatformProfit' //数据接口
 							,
+							limit : 11,
 							contentType : 'application/json',
 							method : 'post',
 							page : true //开启分页
@@ -153,21 +173,24 @@
 		<div class="layui-inline mgr10">
 			<label>开始时间:</label>
 			<div class="layui-input-inline">
-				<input type="text" id="orderBeginTime">
+				<input type="text" id="orderBeginTime" size="10" maxlength="10">
 			</div>
 		</div>
 		<div class="layui-inline mgr10">
 			<label>结束时间:</label>
 			<div class="layui-input-inline">
-				<input type="text" id="orderEndTime">
+				<input type="text" id="orderEndTime" size="10" maxlength="10">
 			</div>
 		</div>
 		<div class="layui-inline mgr10">
 			<button class="layui-btn layui-btn-radius" id="queryButton"
 				data-type="reload">查询</button>
 		</div>
+		<!-- <div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="uploadExcel">导入xls</button>
+		</div>  -->
 		<div class="layui-inline mgr10">
-			<button class="layui-btn layui-btn-radius" id="uploadExcel">导入</button>
+			<button class="layui-btn layui-btn-radius" id="uploadExcel2">导入xlsx</button>
 		</div>
 		<div>
 			<table id="PlatformProfitReport" lay-filter="PlatformProfitReport"></table>

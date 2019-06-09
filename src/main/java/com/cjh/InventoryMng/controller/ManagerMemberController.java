@@ -28,7 +28,7 @@ import com.google.common.collect.Lists;
 
 @Controller
 @RequestMapping(value = "/manager/member")
-public class MemberController {
+public class ManagerMemberController {
 
 	@Autowired
 	private MemberService memberService;
@@ -38,47 +38,6 @@ public class MemberController {
 
 	@Autowired
 	private AuthorizationService authorizationService;
-
-	@RequestMapping(value = "/queryMemberByBrand", method = RequestMethod.POST)
-	@ResponseBody
-	public Map<String, Object> getMemberByBrand(@RequestBody Map<String, Object> reqMap) {
-		ResultMap resultMap = ResultMap.one();
-		String brandId = (String) reqMap.get("brandId");
-		if (brandId.equals("0")) {
-			List<TMemberInfo> resultList = memberService.getAllEffectiveMember();
-			resultMap.setDataObject(resultList);
-		} else {
-			List<TMemberInfo> resultList = memberService.getEffectiveMember(brandId);
-			resultMap.setDataObject(resultList);
-		}
-		return resultMap.toMap();
-	}
-
-	@RequestMapping(value = "/queryMember", method = RequestMethod.POST)
-	@ResponseBody
-	public Map<String, Object> queryMember(@RequestBody Map<String, Object> reqMap) {
-		ResultMap resultMap = ResultMap.one();
-		Integer page = (Integer) reqMap.get("page");
-		Integer limit = (Integer) reqMap.get("limit");
-		String brandId = (String) reqMap.get("brandId");
-		String memberName = (String) reqMap.get("memberName");
-		Page<TMemberInfo> memberInfoList = memberService.getAllMember(memberName, brandId, page, limit);
-		List<MemberVO> returnList = Lists.newArrayList();
-		for (TMemberInfo tMemberInfo : memberInfoList) {
-			MemberVO memberVO = new MemberVO();
-			BeanUtils.copyProperties(tMemberInfo, memberVO);
-			memberVO.setBrand(sysParaService.getBrandName(memberVO.getBrand()));
-			List<TRoleInfo> r = authorizationService.getRoleInfo(tMemberInfo.getUserId());
-			if (!CollectionUtils.isEmpty(r)) {
-				memberVO.setRole(r.get(0).getRoleName());
-			}
-			returnList.add(memberVO);
-		}
-		resultMap.setDataObject(returnList);
-		Map<String, Object> t = resultMap.toMap();
-		t.put("count", memberInfoList.getTotal());
-		return t;
-	}
 
 	@RequestMapping(value = "/deleteMember", method = RequestMethod.POST)
 	@ResponseBody

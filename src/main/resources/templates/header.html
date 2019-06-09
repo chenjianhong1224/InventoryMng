@@ -1,0 +1,129 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div th:fragment="header" class="layui-header">
+		<script type="text/javascript">
+			var modifyPasswd;
+			$(function() {
+				modifyPasswd = $("#modify-passwd").html();
+				$("#modify-passwd").html("");
+			});
+			function logout() {
+				$.ajax({
+					type : "post",
+					url : "/logout",
+					async : false,
+					success : function(result) {
+						alert("成功退出");
+						window.location.reload();
+					},
+					error : function() {
+						alert("系统错误");
+					}
+				});
+			}
+			function openModifyPasswd() {
+				layui.layer.open({
+					type : 1,
+					title : "修改密码",
+					closeBtn : false,
+					shift : 2,
+					area : [ '400px', '300px' ],
+					shadeClose : true,
+					content : $("#open-main"),
+					success : function(layero, index) {
+						$("#open-main").html("");
+						$("#open-main").html(modifyPasswd);
+					},
+					yes : function() {
+					}
+				});
+			}
+			function CloseModifyPasswdWin() {
+				layui.layer.close(layui.layer.index);
+			}
+			function modifyPwd() {
+				var oldPasswd = $("#oldPasswd").val();
+				var newPasswd1 = $("#newPasswd1").val();
+				var newPasswd2 = $("#newPasswd2").val();
+				if (oldPasswd.length == 0 || newPasswd1.length == 0
+						|| newPasswd2.length == 0) {
+					alert("请输入密码");
+					return;
+				}
+				if (newPasswd1 != newPasswd2) {
+					alert("前后两次输入的新密码不一致");
+					return;
+				}
+				$.ajax({
+					type : "post",
+					url : "/user/modifyPassword",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+						oldPassword : oldPasswd,
+						newPassword : newPasswd1,
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							alert("修改成功");
+							CloseModifyPasswdWin();
+						} else {
+							alert("系统异常: " + result.message);
+						}
+					},
+					error : function() {
+						alert("系统错误");
+					}
+				});
+			}
+		</script>
+		<div class="layui-logo mgl20" style="color: #fff">犇腾供销系统</div>
+		<ul class="layui-nav layui-layout-right">
+			<li class="layui-nav-item"><a href="javascript:;"
+				th:text="${userName}+'&nbsp;&nbsp;&nbsp;&nbsp;个人信息'"></a>
+				<dl class="layui-nav-child">
+					<dd>
+						<a href="javascript:;" onclick="openModifyPasswd()">修改密码</a>
+					</dd>
+				</dl></li>
+			<li class="layui-nav-item"><a href="javascript:;"
+				onclick="logout()">退出</a></li>
+		</ul>
+		<div id="modify-passwd" style="display: none;">
+			<div class="layui-form-item center mgt20">
+				<label class="layui-form-label" style="width: 100px">输入原密码</label>
+				<div class="layui-input-block">
+					<input type="password" id="oldPasswd" required value=""
+						style="width: 240px" lay-verify="required" autocomplete="off"
+						class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item mgt20">
+				<label class="layui-form-label" style="width: 100px">输入新密码</label>
+				<div class="layui-input-block">
+					<input type="password" id="newPasswd1" required
+						style="width: 240px" lay-verify="required" autocomplete="off"
+						class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item mgt20">
+				<label class="layui-form-label" style="width: 100px">确认新密码</label>
+				<div class="layui-input-block">
+					<input type="password" id="newPasswd2" required
+						style="width: 240px" lay-verify="required" autocomplete="off"
+						class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<div class="layui-input-block">
+					<button class="layui-btn" id="modifyPwd" onclick="modifyPwd()">立即提交</button>
+					<button type="reset" class="layui-btn layui-btn-primary"
+						onclick="CloseModifyPasswdWin()">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

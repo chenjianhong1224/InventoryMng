@@ -10,10 +10,10 @@ import com.github.pagehelper.Page;
 
 public interface OrderService {
 
-	int order(Integer memberId, Integer goodId, Integer buyNum, String orderDate, Date orderTime)
+	double order(Integer memberId, Integer goodId, double buyNum, String orderDate, Date orderTime)
 			throws BusinessException;
 
-	boolean modifyOrder(Integer goodId, Integer buyNum);
+	boolean modifyOrder(Integer goodId, double buyNum);
 
 	boolean deleteOrder(Integer goodId);
 
@@ -33,8 +33,9 @@ public interface OrderService {
 
 	Page<TOrderInfo> queryEffectiveOrders(Integer memberId, String beginOrderDate, String endOrderDate);
 
-	int queryEffectiveOrderGoodNum(Integer memberId, String orderDate, Integer goodId);
+	double queryEffectiveOrderGoodNum(Integer memberId, String orderDate, Integer goodId);
 	
 	Page<TGoodsInfo> queryMemberAvailableGoods(Integer memberId, int pageNo, int pageSize);
 
+	String getOrderContent(Integer memberId, String brandId, String orderDate);
 }

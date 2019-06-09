@@ -1,9 +1,13 @@
 package com.cjh.InventoryMng.controller;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +18,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.shiro.SecurityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -35,10 +42,13 @@ import com.cjh.InventoryMng.entity.TSysParam;
 import com.cjh.InventoryMng.exception.BusinessException;
 import com.cjh.InventoryMng.service.FinancialService;
 import com.cjh.InventoryMng.service.MemberService;
+import com.cjh.InventoryMng.service.OrderService;
 import com.cjh.InventoryMng.service.ProfitService;
 import com.cjh.InventoryMng.service.SupplierService;
 import com.cjh.InventoryMng.service.SysParaService;
 import com.cjh.InventoryMng.utils.DateUtils;
+import com.cjh.InventoryMng.utils.ExcelUtils;
+import com.cjh.InventoryMng.vo.MemberOrderInfoVO;
 import com.cjh.InventoryMng.vo.PlatformProfitVO;
 import com.cjh.InventoryMng.vo.ResultMap;
 import com.github.pagehelper.Page;
@@ -47,6 +57,8 @@ import com.google.common.collect.Lists;
 @Controller
 @RequestMapping(value = "/financial")
 public class FinancialController {
+
+	private static final Logger log = LoggerFactory.getLogger(FinancialController.class);
 
 	@Autowired
 	private SysParaService sysParaService;
@@ -63,6 +75,9 @@ public class FinancialController {
 	@Autowired
 	private FinancialService financialService;
 
+	@Autowired
+	private OrderService orderSerice;
+
 	@RequestMapping(value = "/newOrder", method = RequestMethod.POST)
 	@ResponseBody
 	public Map<String, Object> newOrder(@RequestBody Map<String, Object> reqMap) {
@@ -75,7 +90,7 @@ public class FinancialController {
 		String memberName = memberService.getMemberInfo(Integer.valueOf(memberId)).getMemberName();
 		try {
 			if (!financialService.newMemberOrder(creator, Integer.valueOf(memberId), memberName,
-					Integer.valueOf(goodsId), Integer.valueOf(num), orderDate)) {
+					Integer.valueOf(goodsId), Double.valueOf(num), orderDate)) {
 				resultMap.setFailed();
 			}
 		} catch (Exception e) {
@@ -103,7 +118,7 @@ public class FinancialController {
 		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
 		try {
 			if (!financialService.modifyOrder(creator, Integer.valueOf(id), Integer.valueOf(purchasePrice),
-					Integer.valueOf(num), Integer.valueOf(memberPrice), Integer.valueOf(servicePrice), orderDate)) {
+					Double.valueOf(num), Integer.valueOf(memberPrice), Integer.valueOf(servicePrice), orderDate)) {
 				resultMap.setFailed();
 			}
 		} catch (Exception e) {
@@ -115,7 +130,7 @@ public class FinancialController {
 		return resultMap.toMap();
 	}
 
-	@RequestMapping(value = "/queryPlatformProfitContent")
+	@RequestMapping(value = "/queryPlatformProfitContentPage")
 	public String platformProfitContentPage(Model model) {
 		List<TSysParam> brandList = sysParaService.getAllBrand();
 		TSysParam all = new TSysParam();
@@ -140,7 +155,7 @@ public class FinancialController {
 		return "manager/platform_profit_content";
 	}
 
-	@RequestMapping(value = "/queryFinancialMemberOrder")
+	@RequestMapping(value = "/queryFinancialMemberOrderPage")
 	public String queryFinancialMemberOrderPage(Model model) {
 		List<TSysParam> brandList = sysParaService.getAllBrand();
 		TSysParam all = new TSysParam();
@@ -165,7 +180,6 @@ public class FinancialController {
 		String endDate = (String) reqMap.get("endDate");
 		String memberId = (String) reqMap.get("memberId");
 		String brandId = (String) reqMap.get("brandId");
-		String nowDate = DateUtils.getCurOrderDate();
 		Page<TPlatformProfit> pageOrderInfo = null;
 		Page<TPlatformProfit> allPageOrderInfo = null;
 		if (!StringUtils.isEmpty(memberId) && !memberId.equals("0")) {
@@ -331,5 +345,178 @@ public class FinancialController {
 		in.close();
 		book.close();
 		return resultMap.toMap();
+	}
+
+	@RequestMapping("/importPlatformProfit2")
+	@ResponseBody
+	public Map<String, Object> importPlatformProfit2(@RequestParam MultipartFile file, HttpServletRequest request,
+			HttpServletResponse response) throws Exception {
+		// 判断文件名是否为空
+		ResultMap resultMap = ResultMap.one();
+		if (file == null) {
+			resultMap.setFailed();
+			resultMap.setMessage("上传的文件为空");
+			return resultMap.toMap();
+		}
+		// 获取文件名
+		String name = file.getOriginalFilename();
+		// 判断文件大小、即名称
+		long size = file.getSize();
+		if (name == null || ("").equals(name) && size == 0) {
+			resultMap.setFailed();
+			resultMap.setMessage("上传的文件异常");
+			return resultMap.toMap();
+		}
+		name = name.substring(0, name.indexOf("."));
+		ByteArrayInputStream in = new ByteArrayInputStream(file.getBytes());
+		XSSFWorkbook book = new XSSFWorkbook(in);
+		int totalRows = book.getSheetAt(0).getLastRowNum();
+		if (totalRows < 15) {
+			resultMap.setFailed();
+			resultMap.setMessage("上传的文件行数异常");
+			in.close();
+			book.close();
+			return resultMap.toMap();
+		}
+		Row row = book.getSheetAt(0).getRow(0);
+		int totalCells = row.getLastCellNum();
+		if (totalCells < 8) {
+			resultMap.setFailed();
+			resultMap.setMessage("上传的文件列数异常");
+			in.close();
+			book.close();
+			return resultMap.toMap();
+		}
+		int i = 0;
+		String lastMemberName = "";
+		boolean endFlag = false;
+		List<PlatformProfitImportBean> platformProfitImportBeans = Lists.newArrayList();
+		PlatformProfitImportBean bean = new PlatformProfitImportBean();
+		List<ProfitBean> profitBeans = Lists.newArrayList();
+		while (i < totalRows) {
+			PlatformProfitImportBean.ProfitBean profitBean = new PlatformProfitImportBean.ProfitBean();
+			for (int j = 0; j < 8; j++) {
+				Row nowRow = book.getSheetAt(0).getRow(i);
+				if (nowRow == null) {
+					break;
+				}
+				bean.setBrandName(name);
+				nowRow.getCell(j).setCellType(CellType.STRING);
+				try {
+					if (j % 8 == 0) {
+						if (nowRow.getCell(j) != null && !StringUtils.isEmpty(nowRow.getCell(j).getStringCellValue())) {
+							if (profitBeans.size() > 0
+									&& !lastMemberName.equals(nowRow.getCell(j).getStringCellValue())) {
+								bean.setProfitBeans(profitBeans);
+								platformProfitImportBeans.add(bean);
+								bean = new PlatformProfitImportBean();
+								lastMemberName = nowRow.getCell(j).getStringCellValue();
+								profitBeans = Lists.newArrayList();
+							}
+							bean.setMemberName(nowRow.getCell(j).getStringCellValue());
+							i++;
+							j = 0;
+							continue;
+						}
+					} else if (j % 8 == 1) {
+						String orderDate = nowRow.getCell(j).getStringCellValue().replace(".", "-");
+						SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+						try {
+							format.setLenient(false);
+							// 设置lenient为false.
+							// 否则SimpleDateFormat会比较宽松地验证日期，比如2007/02/29会被接受，并转换成2007/03/01
+							format.parse(orderDate);
+						} catch (ParseException e) {
+							break;
+						}
+						profitBean.setOrderDate(orderDate);
+					} else if (j % 8 == 2) {
+						String profit = StringUtils.isEmpty(nowRow.getCell(j).getStringCellValue()) ? "0"
+								: nowRow.getCell(j).getStringCellValue();
+						profitBean.setMeituanProfit((int) (Double.valueOf(profit) * 100));
+					} else if (j % 8 == 3) {
+						String profit = StringUtils.isEmpty(nowRow.getCell(j).getStringCellValue()) ? "0"
+								: nowRow.getCell(j).getStringCellValue();
+						profitBean.setElemeProfit((int) (Double.valueOf(profit) * 100));
+					}
+				} catch (Exception e) {
+					resultMap.setFailed();
+					resultMap.setMessage("第" + i + "行" + "第" + j + "列格式有误");
+					in.close();
+					book.close();
+					return resultMap.toMap();
+				}
+			}
+			profitBeans.add(profitBean);
+			i++;
+		}
+		bean.setProfitBeans(profitBeans);
+		platformProfitImportBeans.add(bean);
+		try {
+			profitService.importPlatformProfit(platformProfitImportBeans);
+		} catch (Exception e) {
+			resultMap.setFailed();
+			resultMap.setMessage(e.getMessage());
+		}
+		in.close();
+		book.close();
+		return resultMap.toMap();
+	}
+
+	@RequestMapping(value = "/exportOrder")
+	public void exportOrder(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		String orderDate = request.getParameter("orderDate");
+		String memberId = request.getParameter("memberId");
+		String brandId = request.getParameter("brandId");
+		Integer memberIdInt = new Integer(0);
+		if (StringUtils.isEmpty(memberId) || memberId.equals("0")) {
+			memberIdInt = null;
+		} else {
+			memberIdInt = Integer.valueOf(memberId);
+		}
+		if (StringUtils.isEmpty(brandId) || brandId.equals("0")) {
+			brandId = null;
+		}
+		String content = orderSerice.getOrderContent(memberIdInt, brandId, orderDate);
+		String fileName = orderDate + "的订购结果下载-";
+		fileName += DateUtils.getTheDayStr(new Date(), "yyyyMMddHHmmss") + ".txt";
+		String userAgent = request.getHeader("User-Agent");
+
+		// 针对IE或者以IE为内核的浏览器：
+		if (userAgent.contains("MSIE") || userAgent.contains("Trident")) {
+			fileName = java.net.URLEncoder.encode(fileName, "UTF-8");
+		} else {
+			// 非IE浏览器的处理：
+			fileName = new String(fileName.getBytes("UTF-8"), "ISO-8859-1");
+		}
+		try {
+			byte[] bfile = content.getBytes("UTF-8");
+			if (bfile != null) {
+				output(fileName, bfile, response);
+			} else {
+				response.sendError(404, "导出内容为空");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("出现异常", e);
+			response.setStatus(500);
+			response.sendError(500);
+		}
+		log.info("exportOrder end...");
+	}
+
+	private void output(String name, byte[] body, HttpServletResponse response) throws IOException {
+		response.reset();
+		response.addHeader("Content-Disposition", "attachment;filename=" + name);
+		OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
+		try {
+			response.setContentType("application/octet-stream");
+			toClient.write(body);
+			toClient.flush();
+		} catch (Exception e) {
+			log.error("导出文件出现异常", e);
+		} finally {
+			toClient.close();
+		}
 	}
 }

@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -204,28 +205,44 @@ public class SysController {
 		return resultMap.toMap();
 	}
 	
-	@RequestMapping(value = "/queryManufacturers")
-	@ResponseBody
-	public Map<String, Object> getManufacturers() {
-		ResultMap resultMap = ResultMap.one();
-		List<TSysParam> list = sysParaService.getAllManufacturer();
-		resultMap.setDataList(list);
-		return resultMap.toMap();
-	}
+
 	
-	@RequestMapping(value = "/queryMemberAvailableGoods", method = RequestMethod.POST)
-	@ResponseBody
-	public Map<String, Object> queryMemberAvailableGoods(@RequestBody Map<String, Object> reqMap) {
-		ResultMap resultMap = ResultMap.one();
-		String memberId = (String) reqMap.get("memberId");
-		Page<TGoodsInfo> goodInfoList = orderService.queryMemberAvailableGoods(Integer.valueOf(memberId), 0, 0);
-		List<GoodsOptionVO> returnList = Lists.newArrayList();
-		for (TGoodsInfo g : goodInfoList) {
-			GoodsOptionVO vo = new GoodsOptionVO();
-			BeanUtils.copyProperties(g, vo);
-			returnList.add(vo);
+	
+	
+	@RequestMapping(value = "/managerResourcePage")
+	public String managerResourcePage(Model model) {
+		return "manager/manager_resource";
+	}
+
+	@RequestMapping(value = "/managerRolePage")
+	public String managerRolePage(Model model) {
+		return "manager/manager_role";
+	}
+
+	@RequestMapping(value = "/managerGoodsPage")
+	public String managerGoodsPage(Model model) {
+		return "manager/manager_goods";
+	}
+
+	@RequestMapping(value = "/managerSuppliersPage")
+	public String managerSupplierPage(Model model) {
+		return "manager/manager_suppliers";
+	}
+
+	@RequestMapping(value = "/managerMembersPage")
+	public String managerGroupMapPage(Model model) {
+		List<TSysParam> brandList = sysParaService.getAllBrand();
+		TSysParam all = new TSysParam();
+		all.setParamValue("全部");
+		all.setParamKey("0");
+		List<TSysParam> returnBrandList = Lists.newArrayList();
+		returnBrandList.add(all);
+		for (TSysParam e : brandList) {
+			returnBrandList.add(e);
 		}
-		resultMap.setDataList(returnList);
-		return resultMap.toMap();
+		model.addAttribute("brandList", returnBrandList);
+		Page<TRoleInfo> roleList = authorizationService.getRoleInfos(0, 0);
+		model.addAttribute("roleList", roleList);
+		return "manager/manager_members";
 	}
 }

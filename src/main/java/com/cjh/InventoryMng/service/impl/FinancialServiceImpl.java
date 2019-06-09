@@ -38,7 +38,7 @@ public class FinancialServiceImpl implements FinancialService {
 	private TFinanicalOpLogMapper tFinanicalOpLogMapper;
 
 	@Override
-	public boolean newMemberOrder(String operator, Integer memberId, String memberName, Integer goodId, Integer buyNum,
+	public boolean newMemberOrder(String operator, Integer memberId, String memberName, Integer goodId, double buyNum,
 			String orderDate) throws BusinessException, Exception {
 		TGoodsInfo goodsInfo = tGoodsInfoMapper.selectByPrimaryKey(goodId);
 		String opDesc = "";
@@ -59,7 +59,8 @@ public class FinancialServiceImpl implements FinancialService {
 				record.setSupplierid(goodsInfo.getSupplierId());
 				record.setOrderDate(orderDate);
 				record.setOrderTime(sdf.parse(orderDate));
-				record.setPurchasePrice(goodsInfo.getPurchasePrice() + goodsInfo.getServicePrice());
+				record.setPurchasePrice(goodsInfo.getPurchasePrice()
+						+ (goodsInfo.getServicePrice() == null ? 0 : goodsInfo.getServicePrice()));
 				record.setStatus(1);
 				if (goodsInfo.getServiceId() != null) {
 					record.setServiceId(goodsInfo.getServiceId());
@@ -72,7 +73,7 @@ public class FinancialServiceImpl implements FinancialService {
 						+ "， 记录id为" + record.getId();
 			} else {
 				record = orders.get(0);
-				int oldNum = record.getNum();
+				double oldNum = record.getNum();
 				int oldStatus = record.getStatus();
 				record.setOrderDate(orderDate);
 				record.setOrderTime(sdf.parse(orderDate));
@@ -97,7 +98,7 @@ public class FinancialServiceImpl implements FinancialService {
 	}
 
 	@Override
-	public boolean modifyOrder(String operator, Integer id, Integer purchasePrice, Integer buyNum, Integer memberPrice,
+	public boolean modifyOrder(String operator, Integer id, Integer purchasePrice, double buyNum, Integer memberPrice,
 			Integer servicePrice, String orderDate) throws BusinessException, Exception {
 		TOrderInfo orderInfo = tOrderInfoMapper.selectByPrimaryKey(id);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -106,7 +107,7 @@ public class FinancialServiceImpl implements FinancialService {
 			int oldStatus = orderInfo.getStatus();
 			int oldPurchasePrice = orderInfo.getPurchasePrice();
 			int oldMemberPrice = orderInfo.getMemberPrice();
-			int oldServicePrice = orderInfo.getServicePrice();
+			Integer oldServicePrice = orderInfo.getServicePrice();
 			orderInfo.setPurchasePrice(purchasePrice);
 			orderInfo.setMemberPrice(memberPrice);
 			orderInfo.setServicePrice(servicePrice);
@@ -123,7 +124,7 @@ public class FinancialServiceImpl implements FinancialService {
 			if (oldMemberPrice != orderInfo.getMemberPrice()) {
 				m += " 加盟价由" + oldMemberPrice + "变" + orderInfo.getMemberPrice();
 			}
-			if (oldServicePrice != orderInfo.getServicePrice()) {
+			if (oldServicePrice != null && oldServicePrice != orderInfo.getServicePrice()) {
 				m += " 代仓价由" + oldServicePrice + "变" + orderInfo.getServicePrice();
 			}
 			tOrderInfoMapper.updateByPrimaryKey(orderInfo);

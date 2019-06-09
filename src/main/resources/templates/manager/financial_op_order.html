@@ -13,7 +13,112 @@
 			<a class="layui-btn layui-btn-xs" lay-event="modify">修改</a>
 		</script>
 		<script type="text/javascript">
-			
+			var modifyOrders;
+			var addOrders;
+			$(function() {
+				modifyOrders = $("#modify-order").html();
+				$("#modify-order").html("");
+				addOrders = $("#add-order").html();
+				$("#add-order").html("");
+				layui.use('form', function() {
+					var form = layui.form;
+					form.render('select', 'form1');
+					form.render('select', 'form2');
+					form.on('select(member2)', function(data){
+						var memberId = $("#member2").val();
+						if(memberId == "0"){
+							$("#goods").html("");
+							$("#goods").html("<option value=\"0\">全部</option>");
+							form.render('select', 'form2');
+							return;
+						}
+						$.ajax({
+							url : '/public/queryMemberAvailableGoods',
+							type : "post",
+							dataType : "json",
+							contentType : "application/json",
+							async : false,
+							data : JSON.stringify({
+								memberId : $("#member2").val()
+							}),
+							success : function(result) {
+								var option = "<option value='0'>全部</option>";
+								if (result.code == 0) {
+									$("#goods").html("");
+									$.each(result.data, function(key, val) {
+										option += "<option value='" + val.id + "'>";
+										option += val.goodName + "</option>";
+									});
+									$("#goods").html(option);
+									form.render('select', 'form2');
+								}
+							}
+						});
+					});   
+					$('#brand').change(function() {
+						if($("#brand").val() == '0'){
+							$("#member").html("");
+							$("#member").html("<option value=\"0\">全部</option>");
+							form.render('select', 'form1');
+							return;
+						}
+						$.ajax({
+							url : '/public/queryMemberByBrand',
+							type : "post",
+							dataType : "json",
+							contentType : "application/json",
+							async : false,
+							data : JSON.stringify({
+								brandId : $("#brand").val()
+							}),
+							success : function(result) {
+								var option = "<option value='0'>全部</option>";
+								if (result.code == 0) {
+									$("#member").html("");
+									$.each(result.data, function(key, val) {
+										option += "<option value='" + val.id + "'>";
+										option += val.memberName + "</option>";
+									});
+									$("#member").html(option);
+									form.render('select', 'form1');
+								}
+							}
+						});
+					});
+				});
+				
+
+			});
+			function changeBrand2(){
+				if($("#brand2").val() == '0'){
+					$("#member2").html("");
+					$("#member2").html("<option value=\"0\">全部</option>");
+					layui.form.render('select', 'form2');
+					return;
+				}
+				$.ajax({
+					url : '/public/queryMemberByBrand',
+					type : "post",
+					dataType : "json",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+						brandId : $("#brand2").val()
+					}),
+					success : function(result) {
+						var option = "<option value='0'>全部</option>";
+						if (result.code == 0) {
+							$("#member2").html("");
+							$.each(result.data, function(key, val) {
+								option += "<option value='" + val.id + "'>";
+								option += val.memberName + "</option>";
+							});
+							$("#member2").html(option);
+							layui.form.render('select', 'form2');
+						}
+					}
+				});
+			}
 			layui.use('laydate', function() {
 
 				var laydate = layui.laydate;
@@ -23,12 +128,6 @@
 					elem : '#orderBeginTime' //指定元素
 					,
 					value : getBillBeginDate()
-				});
-				laydate.render({
-					elem : '#orderEndTime' //指定元素
-					,
-					value : new Date(new Date() - 1000 * 60 * 60 * 24)
-							.format("yyyy-MM-dd")
 				});
 				laydate.render({
 					elem : '#orderDate' //指定元素
@@ -56,8 +155,7 @@
 					,
 					where : {
 						beginDate : getBillBeginDate(),
-						endDate : new Date(new Date() - 1000 * 60 * 60 * 24)
-								.format("yyyy-MM-dd"),
+						endDate : getBillBeginDate(),
 					},
 					cols : [ [ //表头
 					{
@@ -114,7 +212,7 @@
 						field : 'op',
 						title : '操作',
 						toolbar : "#opBar",
-						width : 150
+						width : 138
 					} ] ],
 					done : function(res, curr, count) {
 						$("[data-field='id']").css('display', 'none');
@@ -132,7 +230,7 @@
 							},
 							where : {
 								beginDate : $("#orderBeginTime").val(),
-								endDate : $("#orderEndTime").val(),
+								endDate : $("#orderBeginTime").val(),
 								memberId : $("#member").val(),
 								brandId : $("#brand").val(),
 							}
@@ -140,19 +238,6 @@
 					}
 				};
 				$('#queryButton').on('click', function() {
-					var t1 = new Date($('#orderBeginTime').val()).getTime();//返回从1970-1-1开始计算到Date对象中的时间之间的毫秒数
-					var t2 = new Date($('#orderEndTime').val()).getTime();//返回从1970-1-1开始计算到Date对象中的时间之间的毫秒数
-					if (t1 > t2) {
-						alert('开始时间不能大于结束时间');
-						return;
-					}
-					var datetime = 1000 * 60 * 60 * 24; //一天时间的毫秒值 
-					var minusDays = Math.floor(((t2 - t1) / datetime));//计算出两个日期天数差 
-					var days = Math.abs(minusDays);//如果结果为负数，取绝对值
-					if (days > 365) {
-						alert('查询时间跨度不能大于1年');
-						return;
-					}
 					var type = $(this).data('type');
 					active[type] ? active[type].call(this) : '';
 				});
@@ -178,8 +263,10 @@
 						shift : 2,
 						area : [ '360px', '460px' ],
 						shadeClose : true,
-						content : $("#modify-order"),
+						content : $("#open-main"),
 						success : function(layero, index) {
+							$("#open-main").html("");
+							$("#open-main").html(modifyOrders);
 							$("#purchasePrice").val(parseFloat(data.purchasePrice)*100);
 							$("#memberPrice").val(parseFloat(data.memberPrice)*100);
 							if(data.servicePrice!=null){
@@ -201,102 +288,7 @@
 					});
 				}
 			});
-			layui.use('form', function() {
-				var form = layui.form;
-				form.render('select', 'form1');
-				form.render('select', 'form2');
-				form.on('select(member2)', function(data){
-					var memberId = $("#member2").val();
-					if(memberId == "0"){
-						$("#goods").html("");
-						$("#goods").html("<option value=\"0\">全部</option>");
-						form.render('select', 'form2');
-						return;
-					}
-					$.ajax({
-						url : '/sys/queryMemberAvailableGoods',
-						type : "post",
-						dataType : "json",
-						contentType : "application/json",
-						async : false,
-						data : JSON.stringify({
-							memberId : $("#member2").val()
-						}),
-						success : function(result) {
-							var option = "<option value='0'>全部</option>";
-							if (result.code == 0) {
-								$("#goods").html("");
-								$.each(result.data, function(key, val) {
-									option += "<option value='" + val.id + "'>";
-									option += val.goodName + "</option>";
-								});
-								$("#goods").html(option);
-								form.render('select', 'form2');
-							}
-						}
-					});
-				});   
-				$('#brand').change(function() {
-					if($("#brand").val() == '0'){
-						$("#member").html("");
-						$("#member").html("<option value=\"0\">全部</option>");
-						form.render('select', 'form1');
-						return;
-					}
-					$.ajax({
-						url : '/manager/member/queryMemberByBrand',
-						type : "post",
-						dataType : "json",
-						contentType : "application/json",
-						async : false,
-						data : JSON.stringify({
-							brandId : $("#brand").val()
-						}),
-						success : function(result) {
-							var option = "<option value='0'>全部</option>";
-							if (result.code == 0) {
-								$("#member").html("");
-								$.each(result.data, function(key, val) {
-									option += "<option value='" + val.id + "'>";
-									option += val.memberName + "</option>";
-								});
-								$("#member").html(option);
-								form.render('select', 'form1');
-							}
-						}
-					});
-				});
-				$('#brand2').change(function() {
-					if($("#brand2").val() == '0'){
-						$("#member2").html("");
-						$("#member2").html("<option value=\"0\">全部</option>");
-						form.render('select', 'form2');
-						return;
-					}
-					$.ajax({
-						url : '/manager/member/queryMemberByBrand',
-						type : "post",
-						dataType : "json",
-						contentType : "application/json",
-						async : false,
-						data : JSON.stringify({
-							brandId : $("#brand2").val()
-						}),
-						success : function(result) {
-							var option = "<option value='0'>全部</option>";
-							if (result.code == 0) {
-								$("#member2").html("");
-								$.each(result.data, function(key, val) {
-									option += "<option value='" + val.id + "'>";
-									option += val.memberName + "</option>";
-								});
-								$("#member2").html(option);
-								form.render('select', 'form2');
-							}
-						}
-					});
-				});
-			});
+			
 			function onAddBtn() {
 				layer.open({
 					type : 1,
@@ -305,10 +297,18 @@
 					shift : 2,
 					area : [ '480px', '530px' ],
 					shadeClose : true,
-					content : $("#add-order"),
+					content : $("#open-main"),
 					success : function(layero, index) {
+						$("#open-main").html("");
+						$("#open-main").html(addOrders);
 						$("#brand2").get(0).selectedIndex = 0;
 						$("#member2").get(0).selectedIndex = 0;
+						layui.form.render('select', 'form2');
+						layui.laydate.render({
+							elem : '#orderDate' //指定元素
+							,
+							value : new Date().format("yyyy-MM-dd")
+						});
 					},
 					yes : function() {
 					}
@@ -328,7 +328,7 @@
 					alert("请选择商品");
 					return;
 				}
-				var re = /^[1-9]+[0-9]*]*$/; 
+				var re = /^[0-9]+\.?[0-9]*]*$/; 
 				var number = $("#num").val();
 				if (!re.test(number)) {
 				　　alert("请输入正确的订购数");
@@ -359,7 +359,7 @@
 			}
 			function modifyOrder(data){
 				var id = $("#orderId").val();
-				var re = /^[0-9]+[0-9]*]*$/; 
+				var re = /^[0-9]+\.?[0-9]*]*$/; 
 				var number = $("#num2").val();
 				if (!re.test(number)) {
 				　　alert("请输入正确的订购数");
@@ -411,6 +411,11 @@
 					}
 				});
 			}
+			function exportBtn(){
+				window.location.href = '/financial/exportOrder?orderDate='
+					+ $("#orderBeginTime").val() + '&brandId='
+					+ $("#brand").val() + '&memberId=' + $("#member").val();
+			}
 		</script>
 		<label class="layui-inline mgr10">品牌</label>
 		<div class="layui-inline mgr10">
@@ -433,15 +438,9 @@
 			</div>
 		</div>
 		<div class="layui-inline mgr10">
-			<label>开始时间:</label>
+			<label>订购时间:</label>
 			<div class="layui-input-inline">
 				<input type="text" id="orderBeginTime">
-			</div>
-		</div>
-		<div class="layui-inline mgr10">
-			<label>结束时间:</label>
-			<div class="layui-input-inline">
-				<input type="text" id="orderEndTime">
 			</div>
 		</div>
 		<div class="layui-inline mgr10">
@@ -452,6 +451,10 @@
 			<button class="layui-btn layui-btn-radius" id="addButton"
 				onclick="onAddBtn()">新增</button>
 		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="exportBtn"
+				onclick="exportBtn()">导出</button>
+		</div>		
 		<div>
 			<table id="MemberOrderReport" lay-filter="MemberOrderReport"></table>
 		</div>
@@ -461,7 +464,7 @@
 				<label class="layui-form-label">品牌</label>
 				<div class="layui-input-block">
 					<select id="brand2" name="brand2" lay-filter="brand2"
-						class="layui-select">
+						class="layui-select"  onchange="changeBrand2()">
 						<option th:each="brand : ${brandList}"
 							th:value="
 						${brand.paramKey}"

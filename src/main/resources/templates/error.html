@@ -1,0 +1,34 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<!--mian:该页面的业务js-->
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <title>犇腾供销系统-[[${errCode}]]错误页</title>
+</head>
+<body>
+    <article class="layui-layout layui-layout-admin">
+        <header  class="layui-header">
+        </header>
+
+        <div class="container layui-bg-white min-height360">
+
+            <div class="center-block auto-height" style="width:620px">
+                <div class="pull-left">
+                    <h3 class="mgb10 txt-dark f16" style="margin-top:40px;"><b th:text="${errCode}+'错误：'+${errName}"></b></h3>
+                    <h4 th:if="${errMessage}" class="mgb20 txt-red f14" th:text="${errMessage}"></h4>
+                    <h4  class="mgb10 f14">您可以： </h4>
+                    <div>
+                        <script>if(history.length>1)document.write('<button type="button" class="layui-btn layui-btn-primary layui-btn-sm" onclick="history.go(-1)">返回上一页</button>&nbsp;&nbsp;&nbsp;');</script>
+                        <a class="txt-red" href="/">返回首页</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </article>
+
+</body>
+
+
+</html>

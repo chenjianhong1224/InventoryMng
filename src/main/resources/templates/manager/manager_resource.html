@@ -13,13 +13,17 @@
   			<a class="layui-btn layui-btn-xs" lay-event="delete">删除</a>
 		</script>
 		<script type="text/javascript">
+			var addResource;
+			$(function() {
+				addResource = $("#add-resource").html();
+				$("#add-resource").html("");
+			});
 			layui.use('table', function() {
 				var table = layui.table;
 				//第一个实例
 				table.render({
 					elem : '#ResourceList',
 					url : '/sys/queryResource' //数据接口
-					,page : true //开启分页
 					,
 					contentType : 'application/json',
 					method : 'post',
@@ -99,7 +103,7 @@
 					}
 				});
 			});
-			function onAddBtn() {
+			function onresourceAddBtn() {
 				layer.open({
 					type : 1,
 					title : "新建资源",
@@ -107,14 +111,16 @@
 					shift : 2,
 					area : [ '400px', '300px' ],
 					shadeClose : true,
-					content : $("#add-main"),
+					content : $("#open-main"),
 					success : function(layero, index) {
+						$("#open-main").html("");
+						$("#open-main").html(addResource);
 					},
 					yes : function() {
 					}
 				});
 			}
-			$('#addBtn').on('click', function() {
+			function resourceAdd(){
 				$.ajax({
 					type : "post",
 					url : "/sys/addResource",
@@ -137,7 +143,7 @@
 						alert("系统错误");
 					}
 				});
-			});
+			}
 			//关闭页面
 			function CloseWin() {
 				layer.close(layer.index);
@@ -149,12 +155,12 @@
 		</div>
 		<div class="layui-inline mgr10">
 			<button class="layui-btn layui-btn-radius" id="addResourceButton"
-				data-type="add" onclick="onAddBtn()">增加</button>
+				data-type="add" onclick="onresourceAddBtn()">增加</button>
 		</div>
 		<div>
 			<table id="ResourceList" lay-filter="ResourceList"></table>
 		</div>
-		<div id="add-main" style="display: none;">
+		<div id="add-resource" style="display: none;">
 			<div class="layui-form-item center mgt20">
 				<label class="layui-form-label" style="width: 100px">资源名称</label>
 				<div class="layui-input-block">
@@ -180,7 +186,7 @@
 			</div>
 			<div class="layui-form-item">
 				<div class="layui-input-block">
-					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn">立即提交</button>
+					<button class="layui-btn" lay-submit id="resourceAddBtn" onclick="resourceAdd()">立即提交</button>
 					<button type="reset" class="layui-btn layui-btn-primary"
 						id="closeBtn" onclick="CloseWin()">关闭</button>
 				</div>

@@ -33,7 +33,7 @@
 				//第一个实例
 				table.render({
 					elem : '#settleHistory',
-					url : '/bill/query' //数据接口
+					url : '/member/bill/query' //数据接口
 					,
 					contentType : 'application/json',
 					method : 'post',
@@ -77,8 +77,8 @@
 							//重新从第 1 页开始
 							},
 							where : {
-								beginDate : $("#orderBeginTime").val(),
-								endDate : $("#orderEndTime").val(),
+								beginDate : $("#settleBeginTime").val(),
+								endDate : $("#settleEndTime").val(),
 							}
 						});
 					}

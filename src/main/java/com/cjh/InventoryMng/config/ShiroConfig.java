@@ -18,6 +18,8 @@ import com.cjh.InventoryMng.shiro.ChainDefinitionSectionMetaSource;
 import com.cjh.InventoryMng.shiro.MyFormAuthenticationFilter;
 import com.cjh.InventoryMng.shiro.MyShiroRealm;
 
+import at.pollux.thymeleaf.shiro.dialect.ShiroDialect;
+
 import org.apache.shiro.mgt.SecurityManager;
 
 @Configuration
@@ -87,5 +89,10 @@ public class ShiroConfig {
 		AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor = new AuthorizationAttributeSourceAdvisor();
 		authorizationAttributeSourceAdvisor.setSecurityManager(securityManager);
 		return authorizationAttributeSourceAdvisor;
+	}
+
+	@Bean(name = "shiroDialect")
+	public ShiroDialect shiroDialect() {
+		return new ShiroDialect();
 	}
 }

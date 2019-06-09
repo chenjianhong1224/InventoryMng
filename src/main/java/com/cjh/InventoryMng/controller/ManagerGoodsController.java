@@ -25,7 +25,7 @@ import com.google.common.collect.Lists;
 
 @Controller
 @RequestMapping(value = "/manager/goods")
-public class GoodsController {
+public class ManagerGoodsController {
 
 	@Autowired
 	private GoodsService goodsService;

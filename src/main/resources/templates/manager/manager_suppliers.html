@@ -6,7 +6,7 @@
 		<style type="text/css">
 .layui-table-cell {
 	height: auto;
-	line-height: 22px;
+	line-height: 20px;
 }
 </style>
 		<script type="text/html" id="opBar">
@@ -16,6 +16,11 @@
 		<script type="text/javascript">
 			var flag = 1;
 			var supplierId = 0;
+			var addSuppliers;
+			$(function() {
+				addSuppliers = $("#add-supplier").html();
+				$("#add-supplier").html("");
+			});
 			layui
 					.use(
 							'table',
@@ -25,7 +30,7 @@
 								table
 										.render({
 											elem : '#SupplierList',
-											url : '/manager/supplier/querySupplier' //数据接口
+											url : '/public/querySupplier' //数据接口
 											,
 											contentType : 'application/json',
 											method : 'post',
@@ -44,15 +49,15 @@
 											}, {
 												field : 'supplierName',
 												title : '供应商名称',
-												width : 100
+												width : 180
 											}, {
 												field : 'phone',
 												title : '电话',
-												width : 180
+												width : 120
 											}, {
 												field : 'address',
 												title : '地址',
-												width : 260,
+												width : 380,
 											}, {
 												field : 'bossName',
 												title : '对接人',
@@ -153,8 +158,10 @@
 					shift : 2,
 					area : [ '380px', '430px' ],
 					shadeClose : true,
-					content : $("#add-main"),
+					content : $("#open-main"),
 					success : function(layero, index) {
+						$("#open-main").html("");
+						$("#open-main").html(addSuppliers);
 						getSupplierDetail(data);
 						flag = 2;
 						supplierId = data.id;
@@ -177,8 +184,10 @@
 					shift : 2,
 					area : [ '380px', '430px' ],
 					shadeClose : true,
-					content : $("#add-main"),
+					content : $("#open-main"),
 					success : function(layero, index) {
+						$("#open-main").html("");
+						$("#open-main").html(addSuppliers);
 						flag = 1;
 						$("#inputsupplierName").val("");
 						$("#phone").val("");
@@ -189,8 +198,7 @@
 					}
 				});
 			}
-
-			$('#addBtn').on('click', function() {
+			function addSupplier(){
 				var supplierName = $("#inputsupplierName").val();
 				var phone = $("#phone").val();
 				var bossName = $("#bossName").val();
@@ -218,7 +226,7 @@
 						}
 					}
 				});
-			});
+			}
 			//关闭页面
 			function CloseWin() {
 				layer.close(layer.index);
@@ -243,7 +251,7 @@
 		<div>
 			<table id="SupplierList" lay-filter="SupplierList"></table>
 		</div>
-		<div id="add-main" style="display: none;">
+		<div id="add-supplier" style="display: none;">
 			<div class="layui-form-item center mgt20">
 				<label class="layui-form-label" style="width: 160px">供应商名称</label>
 				<div class="layui-input-block">
@@ -275,7 +283,7 @@
 			</div>
 			<div class="layui-form-item">
 				<div class="layui-input-block">
-					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn">立即提交</button>
+					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn" onclick="addSupplier()">立即提交</button>
 					<button type="reset" class="layui-btn layui-btn-primary"
 						id="closeBtn" onclick="CloseWin()">关闭</button>
 				</div>

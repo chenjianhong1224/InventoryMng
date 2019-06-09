@@ -16,6 +16,11 @@
 		<script type="text/javascript">
 			var flag = 1;
 			var goodId = 0;
+			var addGoods;
+			$(function() {
+				addGoods = $("#add-goods").html();
+				$("#add-goods").html("");
+			});
 			layui
 					.use(
 							'table',
@@ -44,7 +49,7 @@
 											}, {
 												field : 'goodName',
 												title : '商品名称',
-												width : 100
+												width : 120
 											}, {
 												field : 'manufactureName',
 												title : '厂家',
@@ -56,7 +61,7 @@
 											}, {
 												field : 'specifications',
 												title : '规格',
-												width : 200,
+												width : 190,
 											}, {
 												field : 'purchasePrice',
 												title : '采购价',
@@ -167,10 +172,12 @@
 					title : "修改商品",
 					closeBtn : false,
 					shift : 2,
-					area : [ '400px', '530px' ],
+					area : [ '400px', '539px' ],
 					shadeClose : true,
-					content : $("#add-main"),
+					content : $("#open-main"),
 					success : function(layero, index) {
+						$("#open-main").html("");
+						$("#open-main").html(addGoods);
 						getManufacturer();
 						getSuppliers();
 						getService();
@@ -215,10 +222,12 @@
 					title : "新建商品",
 					closeBtn : false,
 					shift : 2,
-					area : [ '400px', '530px' ],
+					area : [ '400px', '539px' ],
 					shadeClose : true,
-					content : $("#add-main"),
+					content : $("#open-main"),
 					success : function(layero, index) {
+						$("#open-main").html("");
+						$("#open-main").html(addGoods);
 						getManufacturer();
 						getSuppliers();
 						getService();
@@ -235,7 +244,7 @@
 			function getManufacturer() {
 				$.ajax({
 					type : "post",
-					url : "/sys/queryManufacturers",
+					url : "/public/queryManufacturers",
 					contentType : "application/json",
 					async : false,
 					data : JSON.stringify({
@@ -259,7 +268,7 @@
 			function getSuppliers() {
 				$.ajax({
 					type : "post",
-					url : "/manager/supplier/querySuppliers",
+					url : "/public/querySuppliers",
 					contentType : "application/json",
 					async : false,
 					data : JSON.stringify({
@@ -283,7 +292,7 @@
 			function getService() {
 				$.ajax({
 					type : "post",
-					url : "/manager/supplier/querySuppliers",
+					url : "/public/querySuppliers",
 					contentType : "application/json",
 					async : false,
 					data : JSON.stringify({
@@ -304,7 +313,7 @@
 					}
 				});
 			}
-			$('#addBtn').on('click', function() {
+			function sumbitGoods(){
 				var goodName = $("#inputGoodName").val();
 				var specifications = $("#specifications").val();
 				var manufacture = $("#manufacture").val();
@@ -340,7 +349,7 @@
 						}
 					}
 				});
-			});
+			}
 			//关闭页面
 			function CloseWin() {
 				layer.close(layer.index);
@@ -365,7 +374,7 @@
 		<div>
 			<table id="GoodList" lay-filter="GoodList"></table>
 		</div>
-		<div id="add-main" style="display: none;">
+		<div id="add-goods" style="display: none;">
 			<div class="layui-form-item center mgt20">
 				<label class="layui-form-label" style="width: 160px">商品名称</label>
 				<div class="layui-input-block">
@@ -429,7 +438,7 @@
 			</div>
 			<div class="layui-form-item">
 				<div class="layui-input-block">
-					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn">立即提交</button>
+					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn" onclick="sumbitGoods()">立即提交</button>
 					<button type="reset" class="layui-btn layui-btn-primary"
 						id="closeBtn" onclick="CloseWin()">关闭</button>
 				</div>

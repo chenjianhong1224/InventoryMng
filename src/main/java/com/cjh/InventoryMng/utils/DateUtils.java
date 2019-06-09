@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.springframework.util.StringUtils;
@@ -94,12 +95,43 @@ public class DateUtils {
 		return date;
 	}
 
-	// public static void main(String[] args) {
-	// LocalDate dd = LocalDate.now();
-	// for(int i = 0 ; i < 8 ; i++){
-	// LocalDate plusDays = dd.plusDays(i);
-	// System.out.println(plusDays);
-	// System.out.println(plusDays.getDayOfWeek().getValue());
-	// }
-	// }
+	public static String dateToWeek(String date) {
+		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+		String[] weekDays = { "星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六" };
+		Calendar cal = Calendar.getInstance(); // 获得一个日历
+		Date datet = null;
+		try {
+			datet = f.parse(date);
+			cal.setTime(datet);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		int w = cal.get(Calendar.DAY_OF_WEEK) - 1; // 指示一个星期中的某天。
+		if (w < 0)
+			w = 0;
+		return weekDays[w];
+	}
+
+	static public String[] theNearWeek(String date) {
+		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+		String[] weekDays = { "星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六" };
+		Calendar cal = Calendar.getInstance(); // 获得一个日历
+		Date datet = null;
+		try {
+			datet = f.parse(date);
+			cal.setTime(datet);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		int w = cal.get(Calendar.DAY_OF_WEEK) - 1; // 指示一个星期中的某天。
+		if (w < 0)
+			w = 0;
+		int benginIndex = 0 - w - 6;
+		Date beginDate = getTheIntervalDay(datet, benginIndex);
+		String[] returnStr = new String[7];
+		for (int i = 0; i < 7; i++) {
+			returnStr[i] = f.format(getTheIntervalDay(beginDate, i));
+		}
+		return returnStr;
+	}
 }

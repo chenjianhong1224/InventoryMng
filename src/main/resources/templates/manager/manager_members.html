@@ -6,7 +6,7 @@
 		<style type="text/css">
 .layui-table-cell {
 	height: auto;
-	line-height: 22px;
+	line-height: 16px;
 }
 </style>
 		<script type="text/html" id="opBar">
@@ -19,12 +19,17 @@
 		<script type="text/javascript">
 			var flag = 1;
 			var memberId = 0;
+			var addMembers;
+			$(function() {
+				addMembers = $("#add-member").html();
+				$("#add-member").html("");
+			});			
 			layui.use('table', function() {
 				var table = layui.table;
 				//第一个实例
 				table.render({
 					elem : '#MemberList',
-					url : '/manager/member/queryMember' //数据接口
+					url : '/public/queryMember' //数据接口
 					,
 					contentType : 'application/json',
 					method : 'post',
@@ -44,11 +49,11 @@
 					}, {
 						field : 'brand',
 						title : '品牌',
-						width : 140,
+						width : 120,
 					}, {
 						field : 'memberName',
 						title : '加盟商',
-						width : 100,
+						width : 120,
 					}, {
 						field : 'province',
 						title : '省份',
@@ -80,7 +85,7 @@
 					}, {
 						field : 'role',
 						title : '角色',
-						width : 100
+						width : 80
 					}, {
 						field : 'op',
 						title : '操作',
@@ -157,8 +162,10 @@
 					shift : 2,
 					area : [ '400px', '530px' ],
 					shadeClose : true,
-					content : $("#add-member"),
+					content : $("#open-main"),
 					success : function(layero, index) {
+						$("#open-main").html("");
+						$("#open-main").html(addMembers);
 						var brand3 = $("#brand3").find("option");
 						for (var i = 0; i < brand3.length; i++) {
 							if (brand3.eq(i).text() == data.brand) {
@@ -188,7 +195,7 @@
 		
 			$('#brand2').change(function() {
 				$.ajax({
-					url : '/manager/member/queryMemberByBrand',
+					url : '/public/queryMemberByBrand',
 					type : "post",
 					dataType : "json",
 					contentType : "application/json",
@@ -217,8 +224,10 @@
 					shift : 2,
 					area : [ '400px', '530px' ],
 					shadeClose : true,
-					content : $("#add-member"),
+					content : $("#open-main"),
 					success : function(layero, index) {
+						$("#open-main").html("");
+						$("#open-main").html(addMembers);
 						$("#brand3").get(0).selectedIndex = 0;
 						$("#role").get(0).selectedIndex = 0;
 						flag = 1;
@@ -234,7 +243,7 @@
 					}
 				});
 			}
-			$('#addBtn').on('click', function() {
+			function saveMember(){
 				var memberName = $("#memberName3").val();
 				var province = $("#province").val();
 				var city = $("#city").val();
@@ -276,7 +285,7 @@
 						}
 					}
 				});
-			});
+			}
 			function CloseWin() {
 				layer.close(layer.index);
 			}		
@@ -317,7 +326,7 @@
 					}, {
 						field : 'supplierName',
 						title : '供应商',
-						width : 120,
+						width : 280,
 					} ] ],
 					done : function(res, curr, count) {
 						$("[data-field='groupMapId']").css('display', 'none');
@@ -524,7 +533,7 @@
 			</div>				
 			<div class="layui-form-item">
 				<div class="layui-input-block">
-					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn">立即提交</button>
+					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn" onclick="saveMember()">立即提交</button>
 					<button type="reset" class="layui-btn layui-btn-primary"
 						id="closeBtn" onclick="CloseWin()">关闭</button>
 				</div>

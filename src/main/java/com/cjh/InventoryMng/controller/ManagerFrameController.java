@@ -1,6 +1,8 @@
 package com.cjh.InventoryMng.controller;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.TreeMap;
 
 import org.apache.shiro.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import com.cjh.InventoryMng.entity.TSupplier;
 import com.cjh.InventoryMng.entity.TSysParam;
 import com.cjh.InventoryMng.service.AuthorizationService;
 import com.cjh.InventoryMng.service.MemberService;
+import com.cjh.InventoryMng.service.ProfitService;
 import com.cjh.InventoryMng.service.SupplierService;
 import com.cjh.InventoryMng.service.SysParaService;
 import com.github.pagehelper.Page;
@@ -33,118 +36,35 @@ public class ManagerFrameController {
 
 	@Autowired
 	private SupplierService supplierService;
-	
+
 	@Autowired
 	private AuthorizationService authorizationService;
+
+	@Autowired
+	private ProfitService profitService;
 
 	@RequestMapping(value = "")
 	public String manager(Model model) {
 		UserInfo userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipals().getPrimaryPrincipal();
 		model.addAttribute("userName", userInfo.gettUserInfo().getUserName());
+		TreeMap<String, String> profitMap = profitService.getLast7DaysProfit();
+		String dates = "";
+		String profits = "";
+		String key = null;
+		String integ = null;
+		Iterator iter = profitMap.keySet().iterator();
+		while (iter.hasNext()) {
+			// 获取key
+			key = (String) iter.next();
+			// 根据key，获取value
+			integ = (String) profitMap.get(key);
+			dates = "\'" + key + "\',";
+			profits = "\'" + integ + "\',";
+		}
+		dates = dates.substring(0, dates.length() - 1);
+		profits = profits.substring(0, profits.length() - 1);
+		model.addAttribute("dates", dates);
+		model.addAttribute("profits", profits);
 		return "manager";
-	}
-
-	@RequestMapping(value = "/memberOrderReport")
-	public String hisOrderReport(Model model) {
-		List<TSysParam> brandList = sysParaService.getAllBrand();
-		TSysParam all = new TSysParam();
-		all.setParamValue("全部");
-		all.setParamKey("0");
-		List<TSysParam> returnBrandList = Lists.newArrayList();
-		returnBrandList.add(all);
-		for (TSysParam e : brandList) {
-			returnBrandList.add(e);
-		}
-		model.addAttribute("brandList", returnBrandList);
-		List<TMemberInfo> memberList = memberService.getAllEffectiveMember();
-		List<TMemberInfo> returnMemberList = Lists.newArrayList();
-		TMemberInfo memberAll = new TMemberInfo();
-		memberAll.setId(0);
-		memberAll.setMemberName("全部");
-		returnMemberList.add(memberAll);
-		for (TMemberInfo member : memberList) {
-			returnMemberList.add(member);
-		}
-		model.addAttribute("memberList", returnMemberList);
-		return "manager/member_order_report";
-	}
-
-	
-
-	@RequestMapping(value = "/memberBillReport")
-	public String memberBillReport(Model model) {
-		List<TSysParam> brandList = sysParaService.getAllBrand();
-		TSysParam all = new TSysParam();
-		all.setParamValue("全部");
-		all.setParamKey("0");
-		List<TSysParam> returnBrandList = Lists.newArrayList();
-		returnBrandList.add(all);
-		for (TSysParam e : brandList) {
-			returnBrandList.add(e);
-		}
-		model.addAttribute("brandList", returnBrandList);
-		List<TMemberInfo> memberList = memberService.getAllEffectiveMember();
-		List<TMemberInfo> returnMemberList = Lists.newArrayList();
-		TMemberInfo memberAll = new TMemberInfo();
-		memberAll.setId(0);
-		memberAll.setMemberName("全部");
-		returnMemberList.add(memberAll);
-		for (TMemberInfo member : memberList) {
-			returnMemberList.add(member);
-		}
-		model.addAttribute("memberList", returnMemberList);
-		return "manager/member_bill_report";
-	}
-
-	@RequestMapping(value = "/supplierBillReport")
-	public String supplierBillReport(Model model) {
-		List<TSupplier> returnList = supplierService.getAllSupplier();
-		TSupplier supplierAll = new TSupplier();
-		supplierAll.setId(0);
-		supplierAll.setSupplierName("全部");
-		List<TSupplier> returnSupplierList = Lists.newArrayList();
-		returnSupplierList.add(supplierAll);
-		for (TSupplier tSupplier : returnList) {
-			returnSupplierList.add(tSupplier);
-		}
-		model.addAttribute("supplierList", returnSupplierList);
-		return "manager/supplier_bill_report";
-	}
-
-	@RequestMapping(value = "/managerResource")
-	public String managerResourcePage(Model model) {
-		return "manager/manager_resource";
-	}
-
-	@RequestMapping(value = "/managerRole")
-	public String managerRolePage(Model model) {
-		return "manager/manager_role";
-	}
-
-	@RequestMapping(value = "/managerGoods")
-	public String managerGoodsPage(Model model) {
-		return "manager/manager_goods";
-	}
-
-	@RequestMapping(value = "/managerSuppliers")
-	public String managerSupplierPage(Model model) {
-		return "manager/manager_suppliers";
-	}
-
-	@RequestMapping(value = "/managerMembers")
-	public String managerGroupMapPage(Model model) {
-		List<TSysParam> brandList = sysParaService.getAllBrand();
-		TSysParam all = new TSysParam();
-		all.setParamValue("全部");
-		all.setParamKey("0");
-		List<TSysParam> returnBrandList = Lists.newArrayList();
-		returnBrandList.add(all);
-		for (TSysParam e : brandList) {
-			returnBrandList.add(e);
-		}
-		model.addAttribute("brandList", returnBrandList);
-		Page<TRoleInfo> roleList = authorizationService.getRoleInfos(0, 0);
-		model.addAttribute("roleList", roleList);
-		return "manager/manager_members";
 	}
 }

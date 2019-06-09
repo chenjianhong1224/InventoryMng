@@ -53,11 +53,11 @@ public class MemberGoodCurrOrderInfoVO implements Serializable {
 		return serialVersionUID;
 	}
 
-	public Integer getNum() {
+	public Double getNum() {
 		return num;
 	}
 
-	public void setNum(Integer num) {
+	public void setNum(Double num) {
 		this.num = num;
 	}
 
@@ -71,6 +71,6 @@ public class MemberGoodCurrOrderInfoVO implements Serializable {
 
 	private String memberPrice;
 	
-	private Integer num;
+	private Double num;
 
 }

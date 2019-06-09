@@ -33,7 +33,7 @@
 				//第一个实例
 				table.render({
 					elem : '#OrderHistory',
-					url : '/order/query' //数据接口
+					url : '/member/order/query' //数据接口
 					,
 					contentType : 'application/json',
 					method : 'post',
@@ -141,7 +141,7 @@
 								return;
 							}
 
-							window.location.href = '/order/export?beginDate='
+							window.location.href = '/member/order/export?beginDate='
 									+ $("#orderBeginTime").val() + '&endDate='
 									+ $("#orderEndTime").val();
 						});

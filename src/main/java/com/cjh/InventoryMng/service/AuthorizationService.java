@@ -28,4 +28,6 @@ public interface AuthorizationService {
 	boolean unBindRoleResource(Integer roleId, Integer resourceId);
 	
 	List<TRoleInfo> getRoleInfo(String userId);
+	
+	boolean updatePassword(String userId, String password);
 }

@@ -30,6 +30,7 @@ import com.cjh.InventoryMng.bean.UserInfo;
 import com.cjh.InventoryMng.entity.TGoodsInfo;
 import com.cjh.InventoryMng.entity.TOrderInfo;
 import com.cjh.InventoryMng.exception.BusinessException;
+import com.cjh.InventoryMng.service.EmailService;
 import com.cjh.InventoryMng.service.GoodsService;
 import com.cjh.InventoryMng.service.OrderService;
 import com.cjh.InventoryMng.service.SysParaService;
@@ -44,10 +45,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 @Controller
-@RequestMapping(value = "/order")
-public class OrderController {
+@RequestMapping(value = "/member/order")
+public class MemberOrderController {
 
-	private static final Logger log = LoggerFactory.getLogger(OrderController.class);
+	private static final Logger log = LoggerFactory.getLogger(MemberOrderController.class);
 
 	@Autowired
 	private GoodsService goodsService;
@@ -57,6 +58,9 @@ public class OrderController {
 
 	@Autowired
 	private OrderService orderService;
+
+	@Autowired
+	private EmailService emailService;
 
 	@RequestMapping(value = "/query", method = RequestMethod.POST)
 	@ResponseBody
@@ -96,7 +100,7 @@ public class OrderController {
 		Page<TOrderInfo> allPageOrderInfo = orderService.queryEffectiveOrders(
 				((UserInfo) SecurityUtils.getSubject().getPrincipal()).getMemberBean().getMemberId(), beginDate,
 				endDate);
-		Integer amount = 0;
+		Double amount = 0.0;
 		for (TOrderInfo tOrderInfo : allPageOrderInfo.getResult()) {
 			amount += tOrderInfo.getMemberPrice() * tOrderInfo.getNum();
 		}
@@ -126,7 +130,7 @@ public class OrderController {
 			} else {
 				nowDate = sdf1.format(now);
 			}
-			int orderNum;
+			double orderNum;
 			try {
 				orderNum = orderService.order(
 						((UserInfo) SecurityUtils.getSubject().getPrincipal()).getMemberBean().getMemberId(), goodsId,
@@ -148,6 +152,33 @@ public class OrderController {
 				resultMap.setFailed();
 				resultMap.setMessage("订购失败，" + e.getMessage());
 			}
+		}
+		return resultMap.toMap();
+	}
+
+	@RequestMapping(value = "/sendOrder", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> sendOrder(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		String nowDate = (String) reqMap.get("date");
+
+		Page<TOrderInfo> pageOrderInfo = orderService.queryEffectiveOrders(
+				((UserInfo) SecurityUtils.getSubject().getPrincipal()).getMemberBean().getMemberId(), nowDate, nowDate,
+				0, -1);
+		if (pageOrderInfo.getTotal() == 0) {
+			resultMap.setFailed();
+			resultMap.setMessage("当前没有订购产品");
+		}
+		try {
+			boolean flag = emailService.sendMemberOrderEmail(nowDate,
+					((UserInfo) SecurityUtils.getSubject().getPrincipal()).getMemberBean().getMemberId());
+			if (!flag) {
+				resultMap.setFailed();
+				resultMap.setMessage("发送失败");
+			}
+		} catch (Exception e) {
+			resultMap.setFailed();
+			resultMap.setMessage("发送失败，" + e.getMessage());
 		}
 		return resultMap.toMap();
 	}
@@ -201,7 +232,7 @@ public class OrderController {
 			response.setStatus(500);
 			response.sendError(500);
 		}
-		log.info("exportUsedPhone end...");
+		log.info("exportData end...");
 	}
 
 	private void output(String name, byte[] body, HttpServletResponse response) throws IOException {
@@ -238,7 +269,7 @@ public class OrderController {
 		for (TGoodsInfo tGoodsInfo : goodInfoList) {
 			MemberGoodCurrOrderInfoVO memberGoodInfoVO = new MemberGoodCurrOrderInfoVO();
 			BeanUtils.copyProperties(tGoodsInfo, memberGoodInfoVO);
-			int num = orderService.queryEffectiveOrderGoodNum(
+			double num = orderService.queryEffectiveOrderGoodNum(
 					((UserInfo) SecurityUtils.getSubject().getPrincipal()).getMemberBean().getMemberId(), nowDate,
 					tGoodsInfo.getId());
 			memberGoodInfoVO.setNum(num);

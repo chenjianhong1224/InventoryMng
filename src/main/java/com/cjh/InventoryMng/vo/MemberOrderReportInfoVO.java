@@ -63,11 +63,11 @@ public class MemberOrderReportInfoVO implements Serializable {
 		this.purchasePrice = purchasePrice;
 	}
 
-	public Integer getNum() {
+	public Double getNum() {
 		return num;
 	}
 
-	public void setNum(Integer num) {
+	public void setNum(Double num) {
 		this.num = num;
 	}
 
@@ -148,5 +148,5 @@ public class MemberOrderReportInfoVO implements Serializable {
 	}
 
 	@ExcelAnnotation(TitleName = "订购数量(件)", Order = 6)
-	private Integer num;
+	private Double num;
 }

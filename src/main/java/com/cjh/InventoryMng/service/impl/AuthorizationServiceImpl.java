@@ -14,6 +14,7 @@ import com.cjh.InventoryMng.entity.TResourceRole;
 import com.cjh.InventoryMng.entity.TResourceRoleExample;
 import com.cjh.InventoryMng.entity.TRoleInfo;
 import com.cjh.InventoryMng.entity.TRoleInfoExample;
+import com.cjh.InventoryMng.entity.TUserInfo;
 import com.cjh.InventoryMng.entity.TUserRole;
 import com.cjh.InventoryMng.entity.TUserRoleExample;
 import com.cjh.InventoryMng.entity.VRoleResourceInfo;
@@ -21,6 +22,7 @@ import com.cjh.InventoryMng.mapper.CustomQueryMapper;
 import com.cjh.InventoryMng.mapper.TResourceInfoMapper;
 import com.cjh.InventoryMng.mapper.TResourceRoleMapper;
 import com.cjh.InventoryMng.mapper.TRoleInfoMapper;
+import com.cjh.InventoryMng.mapper.TUserInfoMapper;
 import com.cjh.InventoryMng.mapper.TUserRoleMapper;
 import com.cjh.InventoryMng.service.AuthorizationService;
 import com.github.pagehelper.Page;
@@ -42,6 +44,9 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
 	@Autowired
 	private TUserRoleMapper tUserRoleMapper;
+
+	@Autowired
+	private TUserInfoMapper tUserMapper;
 
 	@Autowired
 	private CustomQueryMapper customQueryMapper;
@@ -162,6 +167,14 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 			}
 		}
 		return returnList;
+	}
+
+	@Override
+	public boolean updatePassword(String userId, String password) {
+		TUserInfo record = new TUserInfo();
+		record.setUserId(userId);
+		record.setPassword(password);
+		return 1 == tUserMapper.updateByPrimaryKeySelective(record);
 	}
 
 }

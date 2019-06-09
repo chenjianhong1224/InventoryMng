@@ -22,36 +22,10 @@ import com.google.common.collect.Lists;
 
 @Controller
 @RequestMapping(value = "/manager/supplier")
-public class SupplierController {
+public class ManagerSupplierController {
 
 	@Autowired
 	private SupplierService supplierService;
-
-	@RequestMapping(value = "/querySuppliers")
-	@ResponseBody
-	public Map<String, Object> getSuppliers() {
-		ResultMap resultMap = ResultMap.one();
-		List<TSupplier> list = supplierService.getAllSupplier();
-		resultMap.setDataList(list);
-		return resultMap.toMap();
-	}
-
-	@RequestMapping(value = "/querySupplier", method = RequestMethod.POST)
-	@ResponseBody
-	public Map<String, Object> querySupplier(@RequestBody Map<String, Object> reqMap) {
-		ResultMap resultMap = ResultMap.one();
-		Integer page = (Integer) reqMap.get("page");
-		Integer limit = (Integer) reqMap.get("limit");
-		String supplierName = (String) reqMap.get("supplierName");
-		if (supplierName == null) {
-			supplierName = "";
-		}
-		Page<TSupplier> supplierList = supplierService.querySupplierByName(page, limit, supplierName);
-		resultMap.setDataList(supplierList);
-		Map<String, Object> t = resultMap.toMap();
-		t.put("count", supplierList.getTotal());
-		return t;
-	}
 
 	@RequestMapping(value = "/deletSupplier", method = RequestMethod.POST)
 	@ResponseBody

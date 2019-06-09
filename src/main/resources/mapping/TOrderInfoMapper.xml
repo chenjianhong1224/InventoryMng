@@ -7,7 +7,7 @@
     <result column="good_id" jdbcType="INTEGER" property="goodId" />
     <result column="purchase_price" jdbcType="INTEGER" property="purchasePrice" />
     <result column="member_price" jdbcType="INTEGER" property="memberPrice" />
-    <result column="num" jdbcType="INTEGER" property="num" />
+    <result column="num" jdbcType="DOUBLE" property="num" />
     <result column="order_time" jdbcType="TIMESTAMP" property="orderTime" />
     <result column="order_date" jdbcType="VARCHAR" property="orderDate" />
     <result column="status" jdbcType="INTEGER" property="status" />
@@ -111,7 +111,7 @@
       order_date, status, supplierId, 
       service_id, service_price)
     values (#{memberId,jdbcType=INTEGER}, #{goodId,jdbcType=INTEGER}, #{purchasePrice,jdbcType=INTEGER}, 
-      #{memberPrice,jdbcType=INTEGER}, #{num,jdbcType=INTEGER}, #{orderTime,jdbcType=TIMESTAMP}, 
+      #{memberPrice,jdbcType=INTEGER}, #{num,jdbcType=DOUBLE}, #{orderTime,jdbcType=TIMESTAMP}, 
       #{orderDate,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{supplierid,jdbcType=INTEGER}, 
       #{serviceId,jdbcType=INTEGER}, #{servicePrice,jdbcType=INTEGER})
   </insert>
@@ -169,7 +169,7 @@
         #{memberPrice,jdbcType=INTEGER},
       </if>
       <if test="num != null">
-        #{num,jdbcType=INTEGER},
+        #{num,jdbcType=DOUBLE},
       </if>
       <if test="orderTime != null">
         #{orderTime,jdbcType=TIMESTAMP},
@@ -216,7 +216,7 @@
         member_price = #{record.memberPrice,jdbcType=INTEGER},
       </if>
       <if test="record.num != null">
-        num = #{record.num,jdbcType=INTEGER},
+        num = #{record.num,jdbcType=DOUBLE},
       </if>
       <if test="record.orderTime != null">
         order_time = #{record.orderTime,jdbcType=TIMESTAMP},
@@ -248,7 +248,7 @@
       good_id = #{record.goodId,jdbcType=INTEGER},
       purchase_price = #{record.purchasePrice,jdbcType=INTEGER},
       member_price = #{record.memberPrice,jdbcType=INTEGER},
-      num = #{record.num,jdbcType=INTEGER},
+      num = #{record.num,jdbcType=DOUBLE},
       order_time = #{record.orderTime,jdbcType=TIMESTAMP},
       order_date = #{record.orderDate,jdbcType=VARCHAR},
       status = #{record.status,jdbcType=INTEGER},
@@ -275,7 +275,7 @@
         member_price = #{memberPrice,jdbcType=INTEGER},
       </if>
       <if test="num != null">
-        num = #{num,jdbcType=INTEGER},
+        num = #{num,jdbcType=DOUBLE},
       </if>
       <if test="orderTime != null">
         order_time = #{orderTime,jdbcType=TIMESTAMP},
@@ -304,7 +304,7 @@
       good_id = #{goodId,jdbcType=INTEGER},
       purchase_price = #{purchasePrice,jdbcType=INTEGER},
       member_price = #{memberPrice,jdbcType=INTEGER},
-      num = #{num,jdbcType=INTEGER},
+      num = #{num,jdbcType=DOUBLE},
       order_time = #{orderTime,jdbcType=TIMESTAMP},
       order_date = #{orderDate,jdbcType=VARCHAR},
       status = #{status,jdbcType=INTEGER},

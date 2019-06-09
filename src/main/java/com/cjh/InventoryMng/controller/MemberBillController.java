@@ -22,8 +22,8 @@ import com.github.pagehelper.Page;
 import com.google.common.collect.Lists;
 
 @Controller
-@RequestMapping(value = "/bill")
-public class BillController {
+@RequestMapping(value = "/member/bill")
+public class MemberBillController {
 
 	@Autowired
 	private MemberService memberSerice;

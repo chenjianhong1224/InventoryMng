@@ -11,30 +11,32 @@
 <script th:src="@{/jquery/jquery.min.js}"></script>
 <script th:src="@{/js/common.js}"></script>
 </head>
-<body>
-	<div class="layui-line-item text-right mgr10"
-		th:text="'你好 ' + ${userName}"></div>
-	<div class="layui-tab">
-		<ul class="layui-tab-title">
-			<li class="layui-this">历史订购查询</li>
-			<li>商品订购</li>
-			<li>账单查询</li>
-		</ul>
-		<div class="layui-tab-content">
-			<div class="layui-tab-item layui-show"
-				th:include="order/query::query">内容1</div>
-			<div class="layui-tab-item" th:include="order/order::order">内容2</div>
-			<div class="layui-tab-item" th:include="bill/bill::bill">内容3</div>
+<body class="layui-layout-body">
+	<article class="layui-layout layui-layout-admin">
+		<div class="layui-header" th:include="header::header"></div>
+		<div class="layui-tab">
+			<ul class="layui-tab-title">
+				<li class="layui-this">历史订购查询</li>
+				<li>商品订购</li>
+				<li>账单查询</li>
+			</ul>
+			<div class="layui-tab-content">
+				<div class="layui-tab-item layui-show"
+					th:include="order/query::query">内容1</div>
+				<div class="layui-tab-item" th:include="order/order::order">内容2</div>
+				<div class="layui-tab-item" th:include="bill/bill::bill">内容3</div>
+			</div>
 		</div>
-	</div>
 
-	<script>
-		//注意：选项卡 依赖 element 模块，否则无法进行功能性操作
-		layui.use('element', function() {
-			var element = layui.element;
+		<script>
+			//注意：选项卡 依赖 element 模块，否则无法进行功能性操作
+			layui.use('element', function() {
+				var element = layui.element;
 
-			//…
-		});
-	</script>
+				//…
+			});
+		</script>
+		<div id="open-main" style="display: none;"></div>
+	</article>
 </body>
 </html>

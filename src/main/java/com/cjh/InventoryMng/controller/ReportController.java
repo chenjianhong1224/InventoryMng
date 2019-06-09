@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +35,7 @@ import com.cjh.InventoryMng.entity.TMemberInfo;
 import com.cjh.InventoryMng.entity.TOrderInfo;
 import com.cjh.InventoryMng.entity.TPlatformProfit;
 import com.cjh.InventoryMng.entity.TSupplier;
+import com.cjh.InventoryMng.entity.TSysParam;
 import com.cjh.InventoryMng.entity.VMemberBillInfo;
 import com.cjh.InventoryMng.entity.VSuppplierBillInfo;
 import com.cjh.InventoryMng.service.GoodsService;
@@ -62,7 +64,7 @@ public class ReportController {
 	private GoodsService goodsService;
 
 	@Autowired
-	private MemberService memberSerice;
+	private MemberService memberService;
 
 	@Autowired
 	private SupplierService supplierService;
@@ -86,16 +88,10 @@ public class ReportController {
 		String memberId = (String) reqMap.get("memberId");
 		String brandId = (String) reqMap.get("brandId");
 		String nowDate = DateUtils.getCurOrderDate();
-		if (endDate.compareTo(nowDate) >= 0) {
-			resultMap.setMessage("截止时间必须为当前订购时间以前");
-			List<String> nullList = Lists.newArrayList();
-			resultMap.setDataList(nullList);
-			return resultMap.toMap();
-		}
 		Page<TOrderInfo> pageOrderInfo = null;
 		Page<TOrderInfo> allPageOrderInfo = null;
 		if (!StringUtils.isEmpty(memberId) && !memberId.equals("0")) {
-			TMemberInfo tMemberInfo = memberSerice.getMemberInfo(Integer.valueOf(memberId));
+			TMemberInfo tMemberInfo = memberService.getMemberInfo(Integer.valueOf(memberId));
 			if (tMemberInfo == null) {
 				resultMap.setMessage("查不到该加盟商");
 				List<String> nullList = Lists.newArrayList();
@@ -106,7 +102,7 @@ public class ReportController {
 			allPageOrderInfo = orderService.queryEffectiveOrders(tMemberInfo.getId(), beginDate, endDate);
 		} else {
 			if (!StringUtils.isEmpty(brandId) && !brandId.equals("0")) {
-				List<TMemberInfo> tMemberInfoList = memberSerice.getEffectiveMember(brandId);
+				List<TMemberInfo> tMemberInfoList = memberService.getEffectiveMember(brandId);
 				if (CollectionUtils.isEmpty(tMemberInfoList)) {
 					resultMap.setMessage("该品牌下没有加盟商");
 					return resultMap.toMap();
@@ -125,7 +121,7 @@ public class ReportController {
 		List<MemberOrderReportInfoVO> returnVOList = Lists.newArrayList();
 		for (TOrderInfo tOrderInfo : pageOrderInfo.getResult()) {
 			TGoodsInfo tGoodsInfo = goodsService.queryGoods(tOrderInfo.getGoodId());
-			TMemberInfo tMemberInfo = memberSerice.getMemberInfo(tOrderInfo.getMemberId());
+			TMemberInfo tMemberInfo = memberService.getMemberInfo(tOrderInfo.getMemberId());
 			TSupplier tSupplier = supplierService.getSupplier(tOrderInfo.getSupplierid());
 			if (tGoodsInfo != null) {
 				MemberOrderReportInfoVO memberOrderReportInfoVO = new MemberOrderReportInfoVO();
@@ -153,12 +149,12 @@ public class ReportController {
 				returnVOList.add(memberOrderReportInfoVO);
 			}
 		}
-		Integer amount = 0;
-		Integer profit = 0;
+		Double amount = 0.0;
+		Double profit = 0.0;
 		for (TOrderInfo tOrderInfo : allPageOrderInfo.getResult()) {
 			amount += tOrderInfo.getMemberPrice() * tOrderInfo.getNum();
-			profit += (tOrderInfo.getMemberPrice() - tOrderInfo.getPurchasePrice() - tOrderInfo.getServicePrice())
-					* tOrderInfo.getNum();
+			profit += (tOrderInfo.getMemberPrice() - tOrderInfo.getPurchasePrice()
+					- (tOrderInfo.getServicePrice() == null ? 0 : tOrderInfo.getServicePrice())) * tOrderInfo.getNum();
 		}
 		resultMap.setDataObject(returnVOList);
 		Map<String, Object> t = resultMap.toMap();
@@ -184,9 +180,9 @@ public class ReportController {
 		if (!StringUtils.isEmpty(brandId) && brandId.equals("0")) {
 			brandId = null;
 		}
-		Page<VMemberBillInfo> memberBillInfos = memberSerice.getMemberBill(brandId,
+		Page<VMemberBillInfo> memberBillInfos = memberService.getMemberBill(brandId,
 				StringUtils.isEmpty(memberId) ? null : Integer.valueOf(memberId), beginDate, endDate, page, limit);
-		Page<VMemberBillInfo> allMemberBillInfos = memberSerice.getMemberBill(brandId,
+		Page<VMemberBillInfo> allMemberBillInfos = memberService.getMemberBill(brandId,
 				StringUtils.isEmpty(memberId) ? null : Integer.valueOf(memberId), beginDate, endDate, page, 0);
 		List<MemberBillInfoVO> returnList = Lists.newArrayList();
 		for (VMemberBillInfo vMemberBillInfo : memberBillInfos) {
@@ -261,5 +257,72 @@ public class ReportController {
 		t.put("amount", new DecimalFormat("#.##").format(((double) amount) / 100));
 		t.put("profitAmount", new DecimalFormat("#.##").format(profit / 100));
 		return t;
+	}
+	
+	@RequestMapping(value = "/memberOrderReportPage")
+	public String hisOrderReportPage(Model model) {
+		List<TSysParam> brandList = sysParaService.getAllBrand();
+		TSysParam all = new TSysParam();
+		all.setParamValue("全部");
+		all.setParamKey("0");
+		List<TSysParam> returnBrandList = Lists.newArrayList();
+		returnBrandList.add(all);
+		for (TSysParam e : brandList) {
+			returnBrandList.add(e);
+		}
+		model.addAttribute("brandList", returnBrandList);
+		List<TMemberInfo> memberList = memberService.getAllEffectiveMember();
+		List<TMemberInfo> returnMemberList = Lists.newArrayList();
+		TMemberInfo memberAll = new TMemberInfo();
+		memberAll.setId(0);
+		memberAll.setMemberName("全部");
+		returnMemberList.add(memberAll);
+		for (TMemberInfo member : memberList) {
+			returnMemberList.add(member);
+		}
+		model.addAttribute("memberList", returnMemberList);
+		return "manager/member_order_report";
+	}
+
+	
+
+	@RequestMapping(value = "/memberBillReportPage")
+	public String memberBillReportPage(Model model) {
+		List<TSysParam> brandList = sysParaService.getAllBrand();
+		TSysParam all = new TSysParam();
+		all.setParamValue("全部");
+		all.setParamKey("0");
+		List<TSysParam> returnBrandList = Lists.newArrayList();
+		returnBrandList.add(all);
+		for (TSysParam e : brandList) {
+			returnBrandList.add(e);
+		}
+		model.addAttribute("brandList", returnBrandList);
+		List<TMemberInfo> memberList = memberService.getAllEffectiveMember();
+		List<TMemberInfo> returnMemberList = Lists.newArrayList();
+		TMemberInfo memberAll = new TMemberInfo();
+		memberAll.setId(0);
+		memberAll.setMemberName("全部");
+		returnMemberList.add(memberAll);
+		for (TMemberInfo member : memberList) {
+			returnMemberList.add(member);
+		}
+		model.addAttribute("memberList", returnMemberList);
+		return "manager/member_bill_report";
+	}
+
+	@RequestMapping(value = "/supplierBillReportPage")
+	public String supplierBillReportPage(Model model) {
+		List<TSupplier> returnList = supplierService.getAllSupplier();
+		TSupplier supplierAll = new TSupplier();
+		supplierAll.setId(0);
+		supplierAll.setSupplierName("全部");
+		List<TSupplier> returnSupplierList = Lists.newArrayList();
+		returnSupplierList.add(supplierAll);
+		for (TSupplier tSupplier : returnList) {
+			returnSupplierList.add(tSupplier);
+		}
+		model.addAttribute("supplierList", returnSupplierList);
+		return "manager/supplier_bill_report";
 	}
 }

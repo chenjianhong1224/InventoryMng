@@ -6,7 +6,7 @@
 		<style type="text/css">
 .layui-table-cell {
 	height: auto;
-	line-height: 22px;
+	line-height: 20px;
 }
 </style>
 		<script type="text/html" id="opBar">
@@ -17,7 +17,10 @@
 		</script>
 		<script type="text/javascript">
 			var initRoleId;
+			var addRoles;
 			$(function() {
+				addRoles = $("#add-role").html();
+				$("#add-role").html("");
 				$
 						.ajax({
 							type : "get",
@@ -231,14 +234,16 @@
 					shift : 2,
 					area : [ '400px', '300px' ],
 					shadeClose : true,
-					content : $("#add-role"),
+					content : $("#open-main"),
 					success : function(layero, index) {
+						$("#open-main").html("");
+						$("#open-main").html(addRoles);
 					},
 					yes : function() {
 					}
 				});
 			}
-			$('#addBtn').on('click', function() {
+			function addRole(){
 				$.ajax({
 					type : "post",
 					url : "/sys/addRole",
@@ -260,7 +265,7 @@
 						alert("系统错误");
 					}
 				});
-			});
+			}
 			//关闭页面
 			function CloseWin() {
 				layer.close(layer.index);
@@ -277,7 +282,7 @@
 		<div>
 			<table id="RoleList" lay-filter="RoleList"></table>
 		</div>
-		<div class="layui-inline mgr10 mgt20">
+		<div class="layui-inline mgr10 mgt5">
 			<label class="layui-inline mgr10">角色选择框</label>
 			<div class="layui-inline mgr10">
 				<select id="role" name="role" lay-filter="role">
@@ -305,7 +310,7 @@
 			</div>
 			<div class="layui-form-item">
 				<div class="layui-input-block">
-					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn">立即提交</button>
+					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn" onclick="addRole()">立即提交</button>
 					<button type="reset" class="layui-btn layui-btn-primary"
 						id="closeBtn" onclick="CloseWin()">关闭</button>
 				</div>

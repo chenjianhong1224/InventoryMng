@@ -1,8 +1,14 @@
 package com.cjh.InventoryMng.service.impl;
 
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.TreeMap;
 
 import org.apache.shiro.util.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,17 +22,22 @@ import com.cjh.InventoryMng.entity.TPlatformProfit;
 import com.cjh.InventoryMng.entity.TPlatformProfitExample;
 import com.cjh.InventoryMng.exception.BusinessException;
 import com.cjh.InventoryMng.mapper.CustomInsertMapper;
+import com.cjh.InventoryMng.mapper.CustomQueryMapper;
 import com.cjh.InventoryMng.mapper.TOrderInfoMapper;
 import com.cjh.InventoryMng.mapper.TPlatformProfitMapper;
 import com.cjh.InventoryMng.service.MemberService;
 import com.cjh.InventoryMng.service.ProfitService;
 import com.cjh.InventoryMng.service.SysParaService;
+import com.cjh.InventoryMng.utils.DateUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Maps;
 
 @Service
 @Transactional
 public class ProfitServiceImpl implements ProfitService {
+
+	Logger log = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
 	private TPlatformProfitMapper tPlatformProfitMapper;
@@ -39,6 +50,9 @@ public class ProfitServiceImpl implements ProfitService {
 
 	@Autowired
 	private CustomInsertMapper customInsertMapper;
+
+	@Autowired
+	private CustomQueryMapper customQueryMapper;
 
 	@Override
 	public void computeProfit(Integer memberId, String settleDate, Integer meituanProfit, Integer elemeProfit) {
@@ -83,6 +97,7 @@ public class ProfitServiceImpl implements ProfitService {
 			}
 			Integer memberId = memberService.getMemberId(bean.getMemberName(), brandId);
 			if (memberId == null) {
+				log.error("加盟商名称不对:" + bean.getMemberName());
 				throw new BusinessException("加盟商名称不对");
 			}
 			for (ProfitBean pBean : bean.getProfitBeans()) {
@@ -96,6 +111,28 @@ public class ProfitServiceImpl implements ProfitService {
 				}
 			}
 		}
+	}
+
+	@Override
+	public TreeMap<String, String> getLast7DaysProfit() {
+		String maxSettleDate = customQueryMapper.queryMaxSettleDate();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		if (maxSettleDate == null) {
+			maxSettleDate = sdf.format(new Date());
+		}
+		String[] dates = DateUtils.theNearWeek(maxSettleDate);
+		TreeMap<String, String> returnMap = Maps.newTreeMap();
+		for (int i = 0; i < dates.length; i++) {
+			TPlatformProfitExample example = new TPlatformProfitExample();
+			example.createCriteria().andSettleDateEqualTo(dates[i]);
+			Page<TPlatformProfit> profits = tPlatformProfitMapper.selectByExample(example);
+			double sum = 0.0;
+			for (TPlatformProfit tPlatformProfit : profits) {
+				sum += ((double) (tPlatformProfit.getMeituanProfit() + tPlatformProfit.getElemeProfit())) / 100;
+			}
+			returnMap.put(dates[i] + " " + DateUtils.dateToWeek(dates[i]), new DecimalFormat("#.##").format(sum));
+		}
+		return returnMap;
 	}
 
 	// @Autowired
