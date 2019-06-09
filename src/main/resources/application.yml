@@ -31,13 +31,6 @@ spring:
     hikari:
       maximumPoolSize: 15
       connection-test-query: 'SELECT 1'
-email:
-  host: smtp.qq.com
-  port: 25
-  username: 125513958@qq.com
-  password: hb710chw
-  auth: true
-  timeout: 30000
 server:
   port: 8080
   context-path: /
