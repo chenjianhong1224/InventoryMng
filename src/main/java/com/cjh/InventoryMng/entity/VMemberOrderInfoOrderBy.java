@@ -19,6 +19,8 @@ public class VMemberOrderInfoOrderBy {
 	private Integer num;
 	
 	private String orderDate;
+	
+	private String phone;
 
 	public Integer getMemberId() {
 		return memberId;
@@ -90,6 +92,14 @@ public class VMemberOrderInfoOrderBy {
 
 	public void setOrderDate(String orderDate) {
 		this.orderDate = orderDate;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
 	}
 
 }

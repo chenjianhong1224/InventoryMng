@@ -82,11 +82,17 @@ public class EmailServiceImpl implements EmailService {
 				}
 				emailContent = "";
 				lastSupplierName = vo.getSupplierName();
-			}
-			if (lastMemberId != vo.getMemberId()) {
 				emailContent += "<br/>" + vo.getMemberName() + "下单<br/>";
 				emailContent += "地址：" + vo.getAddress() + "<br/>";
+				emailContent += "联系方式：" + vo.getPhone() + "<br/>";
 				lastMemberId = vo.getMemberId();
+			} else {
+				if (lastMemberId != vo.getMemberId()) {
+					emailContent += "<br/>" + vo.getMemberName() + "下单<br/>";
+					emailContent += "地址：" + vo.getAddress() + "<br/>";
+					emailContent += "联系方式：" + vo.getPhone() + "<br/>";
+					lastMemberId = vo.getMemberId();
+				}
 			}
 			emailContent += vo.getGoodsName() + " " + vo.getNum() + "件<br/>";
 		}
@@ -114,11 +120,13 @@ public class EmailServiceImpl implements EmailService {
 				lastSupplierName = vo.getSupplierName();
 				emailContent += "<br/>" + vo.getMemberName() + "下单<br/>";
 				emailContent += "地址：" + vo.getAddress() + "<br/>";
+				emailContent += "联系方式：" + vo.getPhone() + "<br/>";
 				lastMemberId = vo.getMemberId();
 			} else {
 				if (lastMemberId != vo.getMemberId()) {
 					emailContent += "<br/>" + vo.getMemberName() + "下单<br/>";
 					emailContent += "地址：" + vo.getAddress() + "<br/>";
+					emailContent += "联系方式：" + vo.getPhone() + "<br/>";
 					lastMemberId = vo.getMemberId();
 				}
 			}

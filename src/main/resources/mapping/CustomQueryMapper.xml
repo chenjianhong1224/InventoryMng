@@ -229,7 +229,7 @@
 	</resultMap>
 	
 	<select id="queryMemberOrderInfoOrderBy" resultMap="VMemberOrderInfoOrderByResultMap">
-		select c.member_id, d.member_name, c.supplierId, e.supplier_name, c.good_id, f.good_name, c.num, c.order_date, d.address 
+		select d.phone, c.member_id, d.member_name, c.supplierId, e.supplier_name, c.good_id, f.good_name, c.num, c.order_date, d.address 
 			from (
 				select a.member_id, a.supplierId as supplierId, good_id, num, order_date 
 				from t_order_info a 
