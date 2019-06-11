@@ -31,6 +31,20 @@ spring:
     hikari:
       maximumPoolSize: 15
       connection-test-query: 'SELECT 1'
+---
+spring:
+  profiles: prod
+  session: 
+    store-type: none
+  datasource:
+    url: jdbc:mysql://localhost:3306/inventory_system?useUnicode=true&characterEncoding=utf-8
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: 'chenjianhong#K1'
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      maximumPoolSize: 15
+      connection-test-query: 'SELECT 1'      
 server:
   port: 8080
   context-path: /

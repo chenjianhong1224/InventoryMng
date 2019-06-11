@@ -168,6 +168,7 @@ public class MemberOrderController {
 		if (pageOrderInfo.getTotal() == 0) {
 			resultMap.setFailed();
 			resultMap.setMessage("当前没有订购产品");
+			return resultMap.toMap();
 		}
 		try {
 			boolean flag = emailService.sendMemberOrderEmail(nowDate,
