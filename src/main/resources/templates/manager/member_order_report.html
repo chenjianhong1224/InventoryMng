@@ -23,8 +23,7 @@
 				laydate.render({
 					elem : '#orderEndTime' //指定元素
 					,
-					value : new Date(new Date() - 1000 * 60 * 60 * 24)
-							.format("yyyy-MM-dd")
+					value : getBillEndDate()
 				});
 			});
 		</script>
@@ -42,8 +41,7 @@
 					,
 					where : {
 						beginDate : getBillBeginDate(),
-						endDate : new Date(new Date() - 1000 * 60 * 60 * 24)
-								.format("yyyy-MM-dd"),
+						endDate : getBillEndDate,
 					},
 					cols : [ [ //表头
 					{
