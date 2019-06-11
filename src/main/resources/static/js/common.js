@@ -37,13 +37,13 @@ function getBillBeginDate() {
 	var nowDate = new Date();
 	if (nowDate.getDate() >= "11" && nowDate.getDate() <= "20") {
 		return new Date(Date.parse(nowDate.getFullYear() + "/"
-				+ (nowDate.getMonth() + 1) + "/11"));
+				+ (nowDate.getMonth() + 1) + "/01"));
 	} else if (nowDate.getDate() <= "10") {
 		return new Date(Date.parse(nowDate.getFullYear() + "/"
-				+ (nowDate.getMonth() + 1) + "/01"));
+				+ (nowDate.getMonth() + 1) + "/21"));
 	} else {
 		return new Date(Date.parse(nowDate.getFullYear() + "/"
-				+ (nowDate.getMonth() + 1) + "/21"));
+				+ (nowDate.getMonth() + 1) + "/11"));
 	}
 }
 
@@ -51,11 +51,11 @@ function getBillEndDate() {
 	var nowDate = new Date();
 	if (nowDate.getDate() >= "11" && nowDate.getDate() <= "20") {
 		return new Date(Date.parse(nowDate.getFullYear() + "/"
-				+ (nowDate.getMonth() + 1) + "/20"));
-	} else if (nowDate.getDate() <= "10") {
-		return new Date(Date.parse(nowDate.getFullYear() + "/"
 				+ (nowDate.getMonth() + 1) + "/10"));
-	} else {
+	} else if (nowDate.getDate() <= "10") {
 		return new Date(nowDate.getFullYear(), (nowDate.getMonth() + 1), 0);
+	} else {
+		return new Date(Date.parse(nowDate.getFullYear() + "/"
+				+ (nowDate.getMonth() + 1) + "/20"));
 	}
 }
