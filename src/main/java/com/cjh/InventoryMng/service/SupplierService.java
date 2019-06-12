@@ -12,8 +12,8 @@ public interface SupplierService {
 
 	List<TSupplier> getAllSupplier();
 
-	Page<VSuppplierBillInfo> querySupplierBill(String suppilerId, String beginDate, String endDate, int pageNo,
-			int pageSize);
+	Page<VSuppplierBillInfo> querySupplierBill(String suppilerId, String beginDate, String endDate, Integer pageNo,
+			Integer pageSize);
 	
 	Page<TSupplier> querySupplierByName(Integer page, Integer limit, String supplierName);
 	

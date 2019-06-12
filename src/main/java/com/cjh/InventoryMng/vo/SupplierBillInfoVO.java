@@ -14,6 +14,8 @@ public class SupplierBillInfoVO implements Serializable {
 	
 	private String memberPrice;
 	
+	private String servicePrice;
+	
 	public String getMemberPrice() {
 		return memberPrice;
 	}
@@ -92,5 +94,13 @@ public class SupplierBillInfoVO implements Serializable {
 
 	public void setMemberName(String memberName) {
 		this.memberName = memberName;
+	}
+
+	public String getServicePrice() {
+		return servicePrice;
+	}
+
+	public void setServicePrice(String servicePrice) {
+		this.servicePrice = servicePrice;
 	}
 }

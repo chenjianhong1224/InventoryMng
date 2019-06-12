@@ -62,7 +62,11 @@
 						width : 120
 					}, {
 						field : 'price',
-						title : '成本价格',
+						title : '采购价格',
+						width : 120
+					}, {
+						field : 'servicePrice',
+						title : '代仓价格',
 						width : 120
 					}, {
 						field : 'num',
@@ -87,6 +91,7 @@
 						}
 						$('#amount').html(res.amount);
 						$('#profitAmount').html(res.profitAmount);
+						$('#allServicePrice').html(res.allServicePrice);
 					}
 				});
 				var $ = layui.$, active = {
@@ -155,6 +160,7 @@
 		</div>
 		<div class="layui-inline">
 			<label>供货商货款合计:&nbsp;<span id="amount"></span>&nbsp;
+			</label><label>供货商代仓费用合计:&nbsp;<span id="allServicePrice"></span>&nbsp;
 			</label> <label>货款利润合计:&nbsp;<span id="profitAmount"
 				style="color: red"></span>&nbsp;
 			</label>

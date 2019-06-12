@@ -25,7 +25,7 @@ public class SupplierServiceImpl implements SupplierService {
 
 	@Autowired
 	private CustomQueryMapper customQueryMapper;
-	
+
 	@Autowired
 	private TGroupMapMapper tGroupMapMapper;
 
@@ -41,10 +41,9 @@ public class SupplierServiceImpl implements SupplierService {
 	}
 
 	@Override
-	public Page<VSuppplierBillInfo> querySupplierBill(String supplierId, String beginDate, String endDate, int pageNo,
-			int pageSize) {
-		PageHelper.startPage(pageNo, pageSize);
-		return customQueryMapper.querySupplierBill(supplierId, beginDate, endDate);
+	public Page<VSuppplierBillInfo> querySupplierBill(String supplierId, String beginDate, String endDate, Integer pageNo,
+			Integer pageSize) {
+		return customQueryMapper.querySupplierBill(supplierId, beginDate, endDate, pageNo, pageSize);
 	}
 
 	@Override
@@ -61,7 +60,7 @@ public class SupplierServiceImpl implements SupplierService {
 		record.setStatus(0);
 		TSupplierExample example = new TSupplierExample();
 		example.createCriteria().andIdEqualTo(id);
-		if( tSupplierMapper.updateByExampleSelective(record, example) == 1){
+		if (tSupplierMapper.updateByExampleSelective(record, example) == 1) {
 			TGroupMap groupRecord = new TGroupMap();
 			groupRecord.setStatus(0);
 			TGroupMapExample groupExample = new TGroupMapExample();

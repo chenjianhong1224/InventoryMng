@@ -30,6 +30,16 @@ public class VSuppplierBillInfo implements Serializable {
 	
 	private int memberPrice;
 	
+	private int servicePrice;
+	
+	public int getServicePrice() {
+		return servicePrice;
+	}
+
+	public void setServicePrice(int servicePrice) {
+		this.servicePrice = servicePrice;
+	}
+
 	public int getMemberPrice() {
 		return memberPrice;
 	}

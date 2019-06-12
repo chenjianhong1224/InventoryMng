@@ -86,6 +86,7 @@
 						title : '订购数量',
 					} ] ],
 					done : function(res, curr, count) {
+						$("[data-field='id']").css('display', 'none');
 						if (res.message != "success") {
 							alert(res.message);
 							return;

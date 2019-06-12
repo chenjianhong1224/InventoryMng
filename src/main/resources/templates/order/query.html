@@ -56,6 +56,18 @@
 						title : '商品名称',
 						width : 120
 					}, {
+						field : 'orderDate',
+						title : '订购日期',
+						width : 120
+					}, {
+						field : 'num',
+						title : '订购数量',
+						width : 75
+					}, {
+						field : 'memberPrice',
+						title : '价格',
+						width : 75
+					}, {
 						field : 'manufacturerName',
 						title : '厂家',
 						width : 80
@@ -64,23 +76,12 @@
 						title : '规格',
 						width : 200,
 					}, {
-						field : 'memberPrice',
-						title : '价格',
-						width : 75
-					}, {
 						field : 'orderTime',
 						title : '订购时间',
-						width : 170,
 						sort : true
-					}, {
-						field : 'orderDate',
-						title : '订购日期',
-						width : 120
-					}, {
-						field : 'num',
-						title : '订购数量',
 					} ] ],
 					done : function(res, curr, count) {
+						$("[data-field='id']").css('display', 'none');
 						$('#amount').html(res.amount);
 					}
 				});

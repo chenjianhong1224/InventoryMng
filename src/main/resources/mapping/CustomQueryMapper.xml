@@ -135,16 +135,17 @@
 		<result column="member_price" jdbcType="INTEGER" property="memberPrice" />
 		<result column="manufacturer_id" jdbcType="INTEGER" property="manufacturerId" />
 		<result column="manufacturer_name" jdbcType="VARCHAR" property="manufacturerName" />
+		<result column="servicePrice" jdbcType="INTEGER" property="servicePrice" />
 	</resultMap>
 	<select id="querySupplierBill" resultMap="SupplierBillResultMap">
 		select d.brand as brand_id, e.param_value as brand_name, member_id,
 		member_name, good_id, c.good_name, price, num, supplierId,
-		supplier_name,
+		supplier_name, b.servicePrice,
 		order_date, b.member_price, f.param_value as
 		manufacturer_name, c.manufacturer_id
-		from t_supplier a, (
+		from t_supplier a, ( select * from (
 		select
-		member_id, good_id, member_price, purchase_price as price, num,
+		member_id, good_id, member_price, purchase_price - ifnull(service_price, 0) as price, service_price as servicePrice, num,
 		order_date,
 		supplierId as supplierId from t_order_info where 1=1 and status = 1
 		<if test="beginDate != null">
@@ -157,7 +158,7 @@
 			AND supplierId = #{supplierId, jdbcType=INTEGER}
 		</if>
 		union all
-		select member_id, good_id,  0 as member_price, service_price as price, num,
+		select member_id, good_id,  0 as member_price, 0 as price, service_price as servicePrice, num,
 		order_date,
 		service_id as supplierId from t_order_info b
 		where service_id is not
@@ -171,7 +172,11 @@
 		<if test="supplierId != null">
 			AND service_id = #{supplierId, jdbcType=INTEGER}
 		</if>
-		) b, t_goods_info c, t_member_info d, t_sys_param e, t_sys_param f
+		) b1
+		<if test="pageNo != null and pageSize != null">
+		LIMIT #{pageNo, jdbcType=INTEGER}, #{pageSize, jdbcType=INTEGER}
+		</if>
+		)b, t_goods_info c, t_member_info d, t_sys_param e, t_sys_param f
 		where a.id = b.supplierId and c.id = b.good_id and d.id = b.member_id
 		and
 		e.param_name = 'brand' and e.param_key = d.brand and

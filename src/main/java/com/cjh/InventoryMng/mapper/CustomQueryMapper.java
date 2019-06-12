@@ -22,7 +22,8 @@ public interface CustomQueryMapper {
 			@Param("beginDate") String beginDate, @Param("endDate") String endDate);
 
 	Page<VSuppplierBillInfo> querySupplierBill(@Param("supplierId") String supplierId,
-			@Param("beginDate") String beginDate, @Param("endDate") String endDate);
+			@Param("beginDate") String beginDate, @Param("endDate") String endDate, @Param("pageNo") Integer pageNo,
+			@Param("pageSize") Integer pageSize);
 
 	Page<VRoleResourceInfo> queryResourceOfRole(@Param("roleId") Integer roleId);
 
@@ -32,6 +33,6 @@ public interface CustomQueryMapper {
 
 	Page<VMemberOrderInfoOrderBy> queryMemberOrderInfoOrderBy(@Param("memberId") Integer memberId,
 			@Param("brandId") String brandId, @Param("orderDate") String orderDate);
-	
+
 	String queryMaxSettleDate();
 }

@@ -228,9 +228,9 @@ public class ReportController {
 			supplierId = null;
 		}
 		Page<VSuppplierBillInfo> pageSupplierBillInfo = supplierService.querySupplierBill(supplierId, beginDate,
-				endDate, page, limit);
+				endDate, (page - 1) * limit, limit);
 		Page<VSuppplierBillInfo> allSupplierBillInfo = supplierService.querySupplierBill(supplierId, beginDate, endDate,
-				page, 0);
+				null, null);
 		List<SupplierBillInfoVO> returnList = Lists.newArrayList();
 		for (VSuppplierBillInfo vSuppplierBillInfo : pageSupplierBillInfo) {
 			SupplierBillInfoVO vo = new SupplierBillInfoVO();
@@ -240,6 +240,7 @@ public class ReportController {
 			vo.setOrderDate(vSuppplierBillInfo.getOrderDate());
 			vo.setMemberPrice(new DecimalFormat("#.##").format(((double) vSuppplierBillInfo.getMemberPrice()) / 100));
 			vo.setPrice(new DecimalFormat("#.##").format(((double) vSuppplierBillInfo.getPrice()) / 100));
+			vo.setServicePrice(new DecimalFormat("#.##").format(((double) vSuppplierBillInfo.getServicePrice()) / 100));
 			vo.setNum(vSuppplierBillInfo.getNum());
 			vo.setMemberName(vSuppplierBillInfo.getMemberName());
 			vo.setManufacturerName(vSuppplierBillInfo.getManufacturerName());
@@ -247,18 +248,23 @@ public class ReportController {
 		}
 		resultMap.setDataList(returnList);
 		Map<String, Object> t = resultMap.toMap();
-		t.put("count", allSupplierBillInfo.getTotal());
+		t.put("count", allSupplierBillInfo.size());
 		Integer amount = 0;
 		Integer profit = 0;
+		Integer allServicePrice = 0;
 		for (VSuppplierBillInfo v : allSupplierBillInfo) {
 			amount += v.getPrice() * v.getNum();
-			profit += (v.getMemberPrice() - v.getPrice()) * v.getNum();
+			if (v.getMemberPrice() != 0 && v.getPrice() != 0) {
+				profit += (v.getMemberPrice() - v.getPrice() - v.getServicePrice()) * v.getNum();
+			}
+			allServicePrice += v.getServicePrice() * v.getNum();
 		}
 		t.put("amount", new DecimalFormat("#.##").format(((double) amount) / 100));
-		t.put("profitAmount", new DecimalFormat("#.##").format(profit / 100));
+		t.put("profitAmount", new DecimalFormat("#.##").format((double) profit / 100));
+		t.put("allServicePrice", new DecimalFormat("#.##").format((double) allServicePrice / 100));
 		return t;
 	}
-	
+
 	@RequestMapping(value = "/memberOrderReportPage")
 	public String hisOrderReportPage(Model model) {
 		List<TSysParam> brandList = sysParaService.getAllBrand();
@@ -283,8 +289,6 @@ public class ReportController {
 		model.addAttribute("memberList", returnMemberList);
 		return "manager/member_order_report";
 	}
-
-	
 
 	@RequestMapping(value = "/memberBillReportPage")
 	public String memberBillReportPage(Model model) {

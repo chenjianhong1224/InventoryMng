@@ -47,27 +47,28 @@
 						title : '商品名称',
 						width : 120
 					}, {
-						field : 'manufacturerName',
-						title : '厂家',
-						width : 80
+						field : 'op',
+						title : '操作',
+						width : 110,
+						toolbar : "#orderBar"
+					}, {
+						field : 'num',
+						title : '已订购数量',
+						width : 100,
+					}, {
+						field : 'memberPrice',
+						title : '价格',
+						width : 70,
 					}, {
 						field : 'specifications',
 						title : '规格',
 						width : 200,
 					}, {
-						field : 'memberPrice',
-						title : '价格',
-						width : 75
-					}, {
-						field : 'op',
-						title : '操作',
-						width : 160,
-						toolbar : "#orderBar"
-					}, {
-						field : 'num',
-						title : '当前已订购（截止到当天15:00，过后算第二天）'
+						field : 'manufacturerName',
+						title : '厂家',
 					} ] ],
 					done : function(res, curr, count) {
+						$("[data-field='id']").css('display', 'none');
 						$("#orderAmount").html(res.orderAmount);
 					}
 				});
@@ -179,7 +180,7 @@
 			</div>
 		</div>
 		<div class="layui-inline mgr10">
-			<label class="layui-inline mgr10">当前订购日期</label> <label
+			<label class="layui-inline mgr10">当前订购日期（截止到当天15:00，过后算第二天）</label> <label
 				class="layui-inline mgr10" id="orderDate"></label>
 		</div>
 		<div class="layui-inline mgr10">
