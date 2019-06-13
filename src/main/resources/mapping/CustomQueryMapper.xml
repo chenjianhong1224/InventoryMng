@@ -51,6 +51,7 @@
 			<bind name="pattern" value="'%' + _parameter.goodName + '%'" />
 			AND e.good_name LIKE #{pattern}
 		</if>
+		 order by e.id
 	</select>
 	<resultMap id="MemberBillResultMap" type="com.cjh.InventoryMng.entity.VMemberBillInfo">
 		<result column="member_id" jdbcType="INTEGER" property="memberId" />
@@ -63,6 +64,7 @@
 		<result column="order_amount" jdbcType="INTEGER" property="orderAmount" />
 	</resultMap>
 	<select id="queryMemberBill" resultMap="MemberBillResultMap">
+	select * from (
 		select a.member_id, c.member_name, c.brand, d.param_value as
 		brand_name,
 		a.meituan_profit, a.eleme_profit, a.settle_date,
@@ -90,7 +92,7 @@
 		inner join t_sys_param d on d.param_name = 'brand' and d.param_key =
 		c.brand
 		union
-		select a.member_id, c.member_name, c.brand, d.param_value
+		select b.member_id, c.member_name, c.brand, d.param_value
 		as brand_name,
 		IFNULL(a.meituan_profit, 0) as meituan_profit,
 		IFNULL(a.eleme_profit, 0) as eleme_profit, b.order_date as
@@ -118,6 +120,7 @@
 		</if>
 		inner join t_sys_param d on d.param_name = 'brand' and d.param_key =
 		c.brand
+		)al order by member_id, settle_date
 	</select>
 	<resultMap id="SupplierBillResultMap"
 		type="com.cjh.InventoryMng.entity.VSuppplierBillInfo">
@@ -145,7 +148,7 @@
 		manufacturer_name, c.manufacturer_id
 		from t_supplier a, ( select * from (
 		select
-		member_id, good_id, member_price, purchase_price - ifnull(service_price, 0) as price, service_price as servicePrice, num,
+		id, member_id, good_id, member_price, purchase_price - ifnull(service_price, 0) as price, service_price as servicePrice, num,
 		order_date,
 		supplierId as supplierId from t_order_info where 1=1 and status = 1
 		<if test="beginDate != null">
@@ -165,7 +168,7 @@
             </foreach>
 		</if>
 		union all
-		select member_id, good_id,  0 as member_price, 0 as price, service_price as servicePrice, num,
+		select id, member_id, good_id,  0 as member_price, 0 as price, service_price as servicePrice, num,
 		order_date,
 		service_id as supplierId from t_order_info b
 		where service_id is not
@@ -188,7 +191,7 @@
 		</if>
 		) b1
 		<if test="pageNo != null and pageSize != null">
-		LIMIT #{pageNo, jdbcType=INTEGER}, #{pageSize, jdbcType=INTEGER}
+		order by b1.id LIMIT #{pageNo, jdbcType=INTEGER}, #{pageSize, jdbcType=INTEGER}
 		</if>
 		)b, t_goods_info c, t_member_info d, t_sys_param e, t_sys_param f
 		where a.id = b.supplierId and c.id = b.good_id and d.id = b.member_id
@@ -211,6 +214,7 @@
 		right join t_resource_info b
 		on
 		a.resource_id = b.id
+		order by b.id
 	</select>
 	<resultMap id="VMemberSupplierResultMap" type="com.cjh.InventoryMng.entity.VMemberSupplierMap">
 		<result column="group_map_id" jdbcType="INTEGER" property="groupMapId" />
@@ -226,6 +230,7 @@
 			from t_group_map a, t_member_info b 
 			where a.member_id = #{memberId, jdbcType=INTEGER} and a.member_id = b.id) c 
 		right join (select * from t_supplier where status = 1) d on c.supplier_id = d.id
+		order by d.id
 	</select>
 	
 	<select id="queryMemberAvailableGoods" resultMap="GoodsResultMap">
@@ -233,6 +238,7 @@
 			where a.member_id = #{memberId, jdbcType=INTEGER} and a.supplier_id = b.id 
 			and a.status = 1
 			and c.supplier_id = b.id and b.status = 1 and c.status = 1
+			order by c.id
 	</select>
 	
 	<resultMap id="VMemberOrderInfoOrderByResultMap" type="com.cjh.InventoryMng.entity.VMemberOrderInfoOrderBy">

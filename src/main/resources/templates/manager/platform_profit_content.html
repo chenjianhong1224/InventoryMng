@@ -80,8 +80,8 @@
 							page : true //开启分页
 							,
 							where : {
-								beginDate : getBillBeginDate(),
-								endDate : getBillEndDate(),
+								beginDate : getBillBeginDate().format("yyyy-MM-dd"),
+								endDate : getBillEndDate().format("yyyy-MM-dd"),
 							},
 							cols : [ [ //表头
 							{
