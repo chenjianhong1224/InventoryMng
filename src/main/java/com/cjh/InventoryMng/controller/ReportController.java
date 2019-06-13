@@ -224,13 +224,21 @@ public class ReportController {
 		String beginDate = (String) reqMap.get("beginDate");
 		String endDate = (String) reqMap.get("endDate");
 		String supplierId = (String) reqMap.get("supplierId");
+		String brandId = (String) reqMap.get("brandId");
+		String memberName = (String) reqMap.get("memberName");
 		if (!StringUtils.isEmpty(supplierId) && supplierId.equals("0")) {
 			supplierId = null;
 		}
+		if (!StringUtils.isEmpty(brandId) && brandId.equals("0")) {
+			brandId = null;
+		}
+		if (StringUtils.isEmpty(memberName)) {
+			memberName = null;
+		}
 		Page<VSuppplierBillInfo> pageSupplierBillInfo = supplierService.querySupplierBill(supplierId, beginDate,
-				endDate, (page - 1) * limit, limit);
+				endDate, brandId, memberName, (page - 1) * limit, limit);
 		Page<VSuppplierBillInfo> allSupplierBillInfo = supplierService.querySupplierBill(supplierId, beginDate, endDate,
-				null, null);
+				brandId, memberName, null, null);
 		List<SupplierBillInfoVO> returnList = Lists.newArrayList();
 		for (VSuppplierBillInfo vSuppplierBillInfo : pageSupplierBillInfo) {
 			SupplierBillInfoVO vo = new SupplierBillInfoVO();
@@ -249,9 +257,9 @@ public class ReportController {
 		resultMap.setDataList(returnList);
 		Map<String, Object> t = resultMap.toMap();
 		t.put("count", allSupplierBillInfo.size());
-		Integer amount = 0;
-		Integer profit = 0;
-		Integer allServicePrice = 0;
+		Double amount = 0.0;
+		Double profit = 0.0;
+		Double allServicePrice = 0.0;
 		for (VSuppplierBillInfo v : allSupplierBillInfo) {
 			amount += v.getPrice() * v.getNum();
 			if (v.getMemberPrice() != 0 && v.getPrice() != 0) {
@@ -327,6 +335,16 @@ public class ReportController {
 			returnSupplierList.add(tSupplier);
 		}
 		model.addAttribute("supplierList", returnSupplierList);
+		List<TSysParam> brandList = sysParaService.getAllBrand();
+		TSysParam all = new TSysParam();
+		all.setParamValue("全部");
+		all.setParamKey("0");
+		List<TSysParam> returnBrandList = Lists.newArrayList();
+		returnBrandList.add(all);
+		for (TSysParam e : brandList) {
+			returnBrandList.add(e);
+		}
+		model.addAttribute("brandList", returnBrandList);
 		return "manager/supplier_bill_report";
 	}
 }

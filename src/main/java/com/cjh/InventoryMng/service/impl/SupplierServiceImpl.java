@@ -1,21 +1,29 @@
 package com.cjh.InventoryMng.service.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.cjh.InventoryMng.entity.TGroupMap;
 import com.cjh.InventoryMng.entity.TGroupMapExample;
+import com.cjh.InventoryMng.entity.TMemberInfo;
+import com.cjh.InventoryMng.entity.TMemberInfoExample;
+import com.cjh.InventoryMng.entity.TMemberInfoExample.Criteria;
 import com.cjh.InventoryMng.entity.TSupplier;
 import com.cjh.InventoryMng.entity.TSupplierExample;
 import com.cjh.InventoryMng.entity.VSuppplierBillInfo;
 import com.cjh.InventoryMng.mapper.CustomQueryMapper;
 import com.cjh.InventoryMng.mapper.TGroupMapMapper;
+import com.cjh.InventoryMng.mapper.TMemberInfoMapper;
 import com.cjh.InventoryMng.mapper.TSupplierMapper;
 import com.cjh.InventoryMng.service.SupplierService;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 @Service
 public class SupplierServiceImpl implements SupplierService {
@@ -29,6 +37,9 @@ public class SupplierServiceImpl implements SupplierService {
 	@Autowired
 	private TGroupMapMapper tGroupMapMapper;
 
+	@Autowired
+	private TMemberInfoMapper tMemberInfoMapper;
+
 	@Override
 	public TSupplier getSupplier(Integer supplierId) {
 		return tSupplierMapper.selectByPrimaryKey(supplierId);
@@ -41,9 +52,29 @@ public class SupplierServiceImpl implements SupplierService {
 	}
 
 	@Override
-	public Page<VSuppplierBillInfo> querySupplierBill(String supplierId, String beginDate, String endDate, Integer pageNo,
-			Integer pageSize) {
-		return customQueryMapper.querySupplierBill(supplierId, beginDate, endDate, pageNo, pageSize);
+	public Page<VSuppplierBillInfo> querySupplierBill(String supplierId, String beginDate, String endDate,
+			String brandId, String memberName, Integer pageNo, Integer pageSize) {
+		TMemberInfoExample example = new TMemberInfoExample();
+		Criteria c = example.createCriteria();
+		if (!StringUtils.isEmpty(brandId)) {
+			c.andBrandEqualTo(brandId);
+		}
+		if (!StringUtils.isEmpty(memberName)) {
+			c.andMemberNameLike("%" + memberName + "%");
+		}
+		Page<TMemberInfo> memberList = tMemberInfoMapper.selectByExample(example);
+		List<Integer> memberIds = Lists.newArrayList();
+		for(TMemberInfo tMemberInfo : memberList){
+			memberIds.add(tMemberInfo.getId());
+		}
+		Map<String, Object> param = Maps.newHashMap();
+		param.put("supplierId", supplierId);
+		param.put("beginDate", beginDate);
+		param.put("endDate", endDate);
+		param.put("memberIds", memberIds);
+		param.put("pageNo", pageNo);
+		param.put("pageSize", pageSize);
+		return customQueryMapper.querySupplierBill(param);
 	}
 
 	@Override

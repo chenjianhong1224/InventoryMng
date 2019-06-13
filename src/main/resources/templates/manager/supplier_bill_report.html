@@ -59,15 +59,15 @@
 					}, {
 						field : 'memberPrice',
 						title : '加盟商价格',
-						width : 120
+						width : 100
 					}, {
 						field : 'price',
 						title : '采购价格',
-						width : 120
+						width : 100
 					}, {
 						field : 'servicePrice',
 						title : '代仓价格',
-						width : 120
+						width : 100
 					}, {
 						field : 'num',
 						title : '个数',
@@ -106,6 +106,8 @@
 								beginDate : $("#orderBeginTime").val(),
 								endDate : $("#orderEndTime").val(),
 								supplierId : $("#supplier").val(),
+								brandId : $("#brand").val(),
+								memberName : $("#memberName").val()
 							}
 						});
 					}
@@ -135,20 +137,37 @@
 				<select id="supplier" name="supplier" lay-filter="supplier">
 					<option th:each="supplier : ${supplierList}"
 						th:value="
-						${supplier.id}" th:text="${supplier.supplierName}">全部</option>
+						${supplier.id}"
+						th:text="${supplier.supplierName}">全部</option>
 				</select>
 			</div>
 		</div>
 		<div class="layui-inline mgr10">
-			<label>开始时间:</label>
+			<label>开始时间&nbsp;</label>
 			<div class="layui-input-inline">
-				<input type="text" id="orderBeginTime">
+				<input type="text" id="orderBeginTime" size="10">
 			</div>
 		</div>
 		<div class="layui-inline mgr10">
-			<label>结束时间:</label>
+			<label>结束时间&nbsp;</label>
 			<div class="layui-input-inline">
-				<input type="text" id="orderEndTime">
+				<input type="text" id="orderEndTime" size="10">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline">品牌&nbsp;</label>
+			<div class="layui-inline">
+				<select id="brand" name="brand" lay-filter="brand">
+					<option th:each="brand : ${brandList}"
+						th:value="
+						${brand.paramKey}" th:text="${brand.paramValue}">全部</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline">加盟商&nbsp;</label>
+			<div class="layui-inline">
+				<input type="text" id="memberName" size="12">
 			</div>
 		</div>
 		<div class="layui-inline mgr10">
@@ -156,7 +175,8 @@
 				data-type="reload">查询</button>
 		</div>
 		<div>
-			<table id="SupplierBillReport" lay-filter="SupplierBillReport"></table>
+			<table id="SupplierBillReport" lay-filter="SupplierBillReport"
+				style="margin-top: 0px"></table>
 		</div>
 		<div class="layui-inline">
 			<label>供货商货款合计:&nbsp;<span id="amount"></span>&nbsp;

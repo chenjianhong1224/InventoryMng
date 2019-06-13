@@ -24,7 +24,7 @@ public class SupplierBillInfoVO implements Serializable {
 		this.memberPrice = memberPrice;
 	}
 
-	private Integer num;
+	private Double num;
 	
 	private String brand;
 	
@@ -72,11 +72,11 @@ public class SupplierBillInfoVO implements Serializable {
 		this.price = price;
 	}
 
-	public Integer getNum() {
+	public Double getNum() {
 		return num;
 	}
 
-	public void setNum(Integer num) {
+	public void setNum(Double num) {
 		this.num = num;
 	}
 

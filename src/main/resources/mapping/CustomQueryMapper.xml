@@ -128,7 +128,7 @@
 		<result column="good_id" jdbcType="INTEGER" property="goodId" />
 		<result column="good_name" jdbcType="VARCHAR" property="goodName" />
 		<result column="price" jdbcType="INTEGER" property="price" />
-		<result column="num" jdbcType="INTEGER" property="num" />
+		<result column="num" jdbcType="DOUBLE" property="num" />
 		<result column="supplierId" jdbcType="INTEGER" property="supplierId" />
 		<result column="supplier_name" jdbcType="VARCHAR" property="supplierName" />
 		<result column="order_date" jdbcType="VARCHAR" property="orderDate" />
@@ -157,6 +157,13 @@
 		<if test="supplierId != null">
 			AND supplierId = #{supplierId, jdbcType=INTEGER}
 		</if>
+		<if test="memberIds!=null and memberIds.size!=0">
+			AND member_id in
+			<foreach collection="memberIds" item="memberId"
+                    index="index" open="(" close=")" separator=",">
+                    #{memberId}
+            </foreach>
+		</if>
 		union all
 		select member_id, good_id,  0 as member_price, 0 as price, service_price as servicePrice, num,
 		order_date,
@@ -171,6 +178,13 @@
 		</if>
 		<if test="supplierId != null">
 			AND service_id = #{supplierId, jdbcType=INTEGER}
+		</if>
+		<if test="memberIds!=null and memberIds.size!=0">
+			AND member_id in
+			<foreach collection="memberIds" item="memberId"
+                    index="index" open="(" close=")" separator=",">
+                    #{memberId}
+            </foreach>
 		</if>
 		) b1
 		<if test="pageNo != null and pageSize != null">

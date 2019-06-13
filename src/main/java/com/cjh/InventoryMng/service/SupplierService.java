@@ -12,11 +12,11 @@ public interface SupplierService {
 
 	List<TSupplier> getAllSupplier();
 
-	Page<VSuppplierBillInfo> querySupplierBill(String suppilerId, String beginDate, String endDate, Integer pageNo,
-			Integer pageSize);
-	
+	Page<VSuppplierBillInfo> querySupplierBill(String suppilerId, String beginDate, String endDate, String brandId,
+			String memberName, Integer pageNo, Integer pageSize);
+
 	Page<TSupplier> querySupplierByName(Integer page, Integer limit, String supplierName);
-	
+
 	boolean deleteSupplier(Integer id);
 
 	boolean addSupplier(String suppliersName, String phone, String bossName, String address);

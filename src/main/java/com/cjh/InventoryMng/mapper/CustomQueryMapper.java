@@ -1,5 +1,7 @@
 package com.cjh.InventoryMng.mapper;
 
+import java.util.Map;
+
 import org.apache.ibatis.annotations.Param;
 
 import com.cjh.InventoryMng.entity.TGoodsInfo;
@@ -21,9 +23,7 @@ public interface CustomQueryMapper {
 	Page<VMemberBillInfo> queryMemberBill(@Param("brandId") String brandId, @Param("memberId") Integer memberId,
 			@Param("beginDate") String beginDate, @Param("endDate") String endDate);
 
-	Page<VSuppplierBillInfo> querySupplierBill(@Param("supplierId") String supplierId,
-			@Param("beginDate") String beginDate, @Param("endDate") String endDate, @Param("pageNo") Integer pageNo,
-			@Param("pageSize") Integer pageSize);
+	Page<VSuppplierBillInfo> querySupplierBill(Map<String, Object> param);
 
 	Page<VRoleResourceInfo> queryResourceOfRole(@Param("roleId") Integer roleId);
 

@@ -18,7 +18,7 @@ public class VSuppplierBillInfo implements Serializable {
 	
 	private int price;
 	
-	private int num;
+	private double num;
 	
 	private int supplierId;
 	
@@ -122,11 +122,11 @@ public class VSuppplierBillInfo implements Serializable {
 		this.price = price;
 	}
 
-	public int getNum() {
+	public double getNum() {
 		return num;
 	}
 
-	public void setNum(int num) {
+	public void setNum(double num) {
 		this.num = num;
 	}
 
