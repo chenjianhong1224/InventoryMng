@@ -5,7 +5,7 @@
 <generatorConfiguration>
 	<!-- 数据库驱动:选择你的本地硬盘上面的数据库驱动包 -->
 	<classPathEntry
-		location="C:\Users\admin\.m2\repository\mysql\mysql-connector-java\5.1.38\mysql-connector-java-5.1.38.jar" />
+		location="C:\Users\Administrator\.m2\repository\mysql\mysql-connector-java\5.1.46\mysql-connector-java-5.1.46.jar" />
 	<context id="mysql" targetRuntime="MyBatis3">
 		<commentGenerator>
 			<property name="suppressDate" value="true" />
@@ -14,7 +14,7 @@
 		</commentGenerator>
 		<!--数据库链接URL，用户名、密码 -->
 		<jdbcConnection driverClass="com.mysql.jdbc.Driver"
-			connectionURL="jdbc:mysql://10.37.241.98:3306/inventory_system" userId="root" password="123456">
+			connectionURL="jdbc:mysql://localhost:3306/inventory_system" userId="root" password="cjh">
 		</jdbcConnection>
 		<javaTypeResolver>
 			<property name="forceBigDecimals" value="false" />
@@ -36,7 +36,7 @@
 			<property name="enableSubPackages" value="true" />
 		</javaClientGenerator>
 		<!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名 -->
-		<table tableName="t_order_info" domainObjectName="TOrderInfo"
+		<table tableName="t_member_reduce" domainObjectName="TMemberReduce"
 			enableCountByExample="true" enableUpdateByExample="true"
 			enableDeleteByExample="false" enableSelectByExample="true"
 			selectByExampleQueryId="false">

@@ -170,6 +170,73 @@ public class FinancialController {
 		return "manager/financial_op_order";
 	}
 
+	@RequestMapping(value = "/newReduce", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> newReduce(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		String memberId = (String) reqMap.get("memberId");
+		String reduceAmount = (String) reqMap.get("reduceAmount");
+		String reduceDate = (String) reqMap.get("reduceDate");
+		String reduceItem = (String) reqMap.get("reduceItem");
+		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
+		try {
+			String memberName = memberService.getMemberInfo(Integer.valueOf(memberId)).getMemberName();
+			if (!financialService.newMemberReduce(creator, Integer.valueOf(memberId), memberName,
+					Integer.valueOf(reduceAmount), reduceDate, reduceItem)) {
+				resultMap.setFailed();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.setFailed();
+			resultMap.setMessage("异常" + e.getMessage());
+			return resultMap.toMap();
+		}
+		return resultMap.toMap();
+	}
+
+	@RequestMapping(value = "/modifyReduce", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> modifyReduce(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		String reduceId = (String) reqMap.get("reduceId");
+		String memberId = (String) reqMap.get("memberId");
+		String reduceAmount = (String) reqMap.get("reduceAmount");
+		String reduceDate = (String) reqMap.get("reduceDate");
+		String reduceItem = (String) reqMap.get("reduceItem");
+		if (StringUtils.isEmpty(reduceAmount)) {
+			reduceAmount = "0";
+		}
+		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
+		try {
+			String memberName = memberService.getMemberInfo(Integer.valueOf(memberId)).getMemberName();
+			if (!financialService.modifyMemberReduce(creator, Integer.valueOf(reduceId), memberName,
+					Integer.valueOf(reduceAmount), reduceDate, reduceItem)) {
+				resultMap.setFailed();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.setFailed();
+			resultMap.setMessage("异常" + e.getMessage());
+			return resultMap.toMap();
+		}
+		return resultMap.toMap();
+	}
+
+	@RequestMapping(value = "/queryMemberReducePage")
+	public String queryMemberReducePage(Model model) {
+		List<TSysParam> brandList = sysParaService.getAllBrand();
+		TSysParam all = new TSysParam();
+		all.setParamValue("全部");
+		all.setParamKey("0");
+		List<TSysParam> returnBrandList = Lists.newArrayList();
+		returnBrandList.add(all);
+		for (TSysParam e : brandList) {
+			returnBrandList.add(e);
+		}
+		model.addAttribute("brandList", returnBrandList);
+		return "manager/financial_member_reduce";
+	}
+
 	@RequestMapping(value = "/queryPlatformProfit", method = RequestMethod.POST)
 	@ResponseBody
 	public Map<String, Object> queryPlatformProfit(@RequestBody Map<String, Object> reqMap) {

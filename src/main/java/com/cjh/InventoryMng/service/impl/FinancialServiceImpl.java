@@ -11,12 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cjh.InventoryMng.constants.Constants.EnumOpType;
 import com.cjh.InventoryMng.entity.TFinanicalOpLog;
 import com.cjh.InventoryMng.entity.TGoodsInfo;
+import com.cjh.InventoryMng.entity.TMemberReduce;
 import com.cjh.InventoryMng.entity.TOrderInfo;
 import com.cjh.InventoryMng.entity.TOrderInfoExample;
 import com.cjh.InventoryMng.exception.BusinessException;
 import com.cjh.InventoryMng.mapper.TFinanicalOpLogMapper;
 import com.cjh.InventoryMng.mapper.TGoodsInfoMapper;
 import com.cjh.InventoryMng.mapper.TMemberInfoMapper;
+import com.cjh.InventoryMng.mapper.TMemberReduceMapper;
 import com.cjh.InventoryMng.mapper.TOrderInfoMapper;
 import com.cjh.InventoryMng.service.FinancialService;
 import com.github.pagehelper.Page;
@@ -36,6 +38,9 @@ public class FinancialServiceImpl implements FinancialService {
 
 	@Autowired
 	private TFinanicalOpLogMapper tFinanicalOpLogMapper;
+
+	@Autowired
+	private TMemberReduceMapper tMemberReduceMapper;
 
 	@Override
 	public boolean newMemberOrder(String operator, Integer memberId, String memberName, Integer goodId, double buyNum,
@@ -146,4 +151,52 @@ public class FinancialServiceImpl implements FinancialService {
 		return false;
 	}
 
+	@Override
+	public boolean newMemberReduce(String creator, Integer memberId, String memberName, Integer reduceAmount,
+			String reduceDate, String reduceItem) {
+		TMemberReduce record = new TMemberReduce();
+		record.setCreator(creator);
+		record.setMemberId(memberId);
+		record.setReduceAmount(reduceAmount);
+		record.setReduceDate(reduceDate);
+		record.setReduceItem(reduceItem);
+		TFinanicalOpLog opLogRecord = new TFinanicalOpLog();
+		opLogRecord.setOperator(creator);
+		Date now = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		opLogRecord.setOpDate(sdf.format(now));
+		opLogRecord.setOpTime(now);
+		opLogRecord.setOpRecordId(record.getId());
+		opLogRecord.setOpType(EnumOpType.NEW_REDUCE.ordinal());
+		String opDesc = reduceDate + " " + creator + "给" + memberName + "新增:" + reduceAmount + "减免/奖励金额，理由:"
+				+ reduceItem + "， 记录id为" + record.getId();
+		opLogRecord.setOpDesc(opDesc);
+		tFinanicalOpLogMapper.insert(opLogRecord);
+		return 1 == tMemberReduceMapper.insert(record);
+	}
+
+	@Override
+	public boolean modifyMemberReduce(String updater, Integer reduceId, String memberName, Integer reduceAmount,
+			String reduceDate, String reduceItem) {
+		TMemberReduce record = new TMemberReduce();
+		record.setUpdater(updater);
+		record.setId(reduceId);
+		record.setReduceAmount(reduceAmount);
+		record.setReduceItem(reduceItem);
+		record.setReduceDate(reduceDate);
+		tMemberReduceMapper.updateByPrimaryKeySelective(record);
+		TFinanicalOpLog opLogRecord = new TFinanicalOpLog();
+		opLogRecord.setOperator(updater);
+		Date now = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		opLogRecord.setOpDate(sdf.format(now));
+		opLogRecord.setOpTime(now);
+		opLogRecord.setOpRecordId(record.getId());
+		opLogRecord.setOpType(EnumOpType.UPDATE_REDUCE.ordinal());
+		String opDesc = reduceDate + " " + updater + "给" + memberName + "修改:" + reduceAmount + "减免/奖励金额，理由:"
+				+ reduceItem + "， 记录id为" + record.getId();
+		opLogRecord.setOpDesc(opDesc);
+		tFinanicalOpLogMapper.insert(opLogRecord);
+		return true;
+	}
 }

@@ -13,48 +13,17 @@
 			<a class="layui-btn layui-btn-xs" lay-event="modify">修改</a>
 		</script>
 		<script type="text/javascript">
-			var modifyOrders;
-			var addOrders;
+			var modifyReduces;
+			var addReduces;
 			$(function() {
-				modifyOrders = $("#modify-order").html();
-				$("#modify-order").html("");
-				addOrders = $("#add-order").html();
-				$("#add-order").html("");
+				modifyReduces = $("#modify-reduce").html();
+				$("#modify-reduce").html("");
+				addReduces = $("#add-reduce").html();
+				$("#add-reduce").html("");
 				layui.use('form', function() {
 					var form = layui.form;
 					form.render('select', 'form1');
 					form.render('select', 'form2');
-					form.on('select(member2)', function(data){
-						var memberId = $("#member2").val();
-						if(memberId == "0"){
-							$("#goods").html("");
-							$("#goods").html("<option value=\"0\">全部</option>");
-							form.render('select', 'form2');
-							return;
-						}
-						$.ajax({
-							url : '/public/queryMemberAvailableGoods',
-							type : "post",
-							dataType : "json",
-							contentType : "application/json",
-							async : false,
-							data : JSON.stringify({
-								memberId : $("#member2").val()
-							}),
-							success : function(result) {
-								var option = "<option value='0'>全部</option>";
-								if (result.code == 0) {
-									$("#goods").html("");
-									$.each(result.data, function(key, val) {
-										option += "<option value='" + val.id + "'>";
-										option += val.goodName + "</option>";
-									});
-									$("#goods").html(option);
-									form.render('select', 'form2');
-								}
-							}
-						});
-					});   
 					$('#brand').change(function() {
 						if($("#brand").val() == '0'){
 							$("#member").html("");
@@ -130,12 +99,12 @@
 					value : getBillBeginDate(),trigger: 'click'
 				});
 				laydate.render({
-					elem : '#orderDate' //指定元素
+					elem : '#reduceDate' //指定元素
 					,
 					value : new Date().format("yyyy-MM-dd"),trigger: 'click'
 				});
 				laydate.render({
-					elem : '#orderDate2' //指定元素
+					elem : '#reduceDate2' //指定元素
 					,
 					value : new Date().format("yyyy-MM-dd"),trigger: 'click'
 				});				
@@ -146,8 +115,8 @@
 				var table = layui.table;
 				//第一个实例
 				table.render({
-					elem : '#MemberOrderReport',
-					url : '/report/goods/orderQuery' //数据接口
+					elem : '#MemberReduceReport',
+					url : '/report/member/reduceQuery' //数据接口
 					,
 					contentType : 'application/json',
 					method : 'post',
@@ -159,7 +128,7 @@
 					},
 					cols : [ [ //表头
 					{
-						field : 'id',
+						field : 'reduceId',
 						title : 'ID',
 						width : 60,
 						sort : true,
@@ -169,46 +138,22 @@
 						width : 60,
 						sort : true,
 					}, {
-						field : 'brand',
-						title : '品牌',
-						width : 140,
-					}, {
 						field : 'memberName',
 						title : '加盟商',
 						width : 120,
 					}, {
-						field : 'goodName',
-						title : '商品名称',
+						field : 'reduceDate',
+						title : '减免日期',
 						width : 120
 					}, {
-						field : 'manufactor',
-						title : '厂家',
-						width : 80
-					}, {
-						field : 'supplierName',
-						title : '供货商',
-						width : 100,
-					}, {
-						field : 'memberPrice',
-						title : '加盟价',
-						width : 80
-					}, {
-						field : 'purchasePrice',
-						title : '成本价(采购价+代仓价)',
+						field : 'reduceAmount',
+						title : '减免/奖励金额',
 						width : 180
 					}, {
-						field : 'servicePrice',
-						title : '代仓价',
-						width : 80
-					}, {
-						field : 'orderDate',
-						title : '订购日期',
-						width : 120
-					}, {
-						field : 'num',
-						title : '订购数量',
-						width : 90
-					}, {
+						field : 'reduceItem',
+						title : '减免/奖励事由',
+						width : 460
+					},{
 						field : 'op',
 						title : '操作',
 						toolbar : "#opBar",
@@ -223,7 +168,7 @@
 				var $ = layui.$, active = {
 					reload : function() {
 						//执行重载
-						table.reload('MemberOrderReport', {
+						table.reload('MemberReduceReport', {
 							page : {
 								curr : 1
 							//重新从第 1 页开始
@@ -241,7 +186,7 @@
 					var type = $(this).data('type');
 					active[type] ? active[type].call(this) : '';
 				});
-				table.on('tool(MemberOrderReport)', function(obj) {
+				table.on('tool(MemberReduceReport)', function(obj) {
 					var data = obj.data; //获得当前行数据
 					var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
 					var tr = obj.tr; //获得当前行 tr 的DOM对象
@@ -250,37 +195,29 @@
 					}
 				});
 				function onModifyBtn(data) {
-					$("#purchasePrice").val("");
-					$("#memberPrice").val("");					
-					$("#servicePrice").val("");					
-					$("#num2").val("");
-					$("#orderId").val("");	
-					$("#servicePrice").attr("readonly",false);
+					$("#reducePrice").val("");
+					$("#reduceItem").val("");					
+					$("#reduceId").val("");	
+					$("#memberId").val("");
 					layer.open({
 						type : 1,
-						title : "修改订单",
+						title : "新建减免/奖励",
 						closeBtn : false,
 						shift : 2,
-						area : [ '360px', '460px' ],
+						area : [ '520px', '570px'],
 						shadeClose : true,
 						content : $("#open-main"),
 						success : function(layero, index) {
 							$("#open-main").html("");
-							$("#open-main").html(modifyOrders);
-							$("#purchasePrice").val(parseFloat(data.purchasePrice)*100);
-							$("#memberPrice").val(parseFloat(data.memberPrice)*100);
-							if(data.servicePrice!=null){
-								$("#servicePrice").val(parseFloat(data.servicePrice)*100);
-								$("#purchasePrice").val(parseFloat(data.purchasePrice-data.servicePrice)*100);
-							}else{
-								$("#servicePrice").attr("readonly",true);
-							}
-							$("#num2").val(data.num);
-							$("#orderId").val(data.id);
+							$("#open-main").html(modifyReduces);
+							$("#reduceAmount").val(parseFloat(data.reduceAmount)*100);
+							$("#reduceItem").val(data.reduceItem);
+							$("#reduceId").val(data.reduceId);
+							$("#memberId").val(data.memberId);
 							layui.laydate.render({
-								elem : '#orderDate2' //指定元素
+								elem : '#reduceDate' //指定元素
 								,
-								value : data.orderDate
+								value : data.reduceDate
 							});
 						},
 						yes : function() {
@@ -292,20 +229,20 @@
 			function onAddBtn() {
 				layer.open({
 					type : 1,
-					title : "新建订单",
+					title : "新建减免/奖励",
 					closeBtn : false,
 					shift : 2,
-					area : [ '480px', '530px' ],
+					area : [ '520px', '570px' ],
 					shadeClose : true,
 					content : $("#open-main"),
 					success : function(layero, index) {
 						$("#open-main").html("");
-						$("#open-main").html(addOrders);
+						$("#open-main").html(addReduces);
 						$("#brand2").get(0).selectedIndex = 0;
 						$("#member2").get(0).selectedIndex = 0;
 						layui.form.render('select', 'form2');
 						layui.laydate.render({
-							elem : '#orderDate' //指定元素
+							elem : '#reduceDate2' //指定元素
 							,
 							value : new Date().format("yyyy-MM-dd")
 						});
@@ -317,34 +254,29 @@
 			function CloseWin() {
 				layer.close(layer.index);
 			}
-			function newOrder() {
+			function newReduce() {
 				var memberId = $("#member2").val();
 				if(memberId == '0'){
 					alert("请选择加盟商");
 					return;
 				}
-				var goodsId = $("#goods").val();
-				if(goodsId == '0'){
-					alert("请选择商品");
-					return;
-				}
-				var re = /^[0-9]+\.?[0-9]*]*$/; 
-				var number = $("#num").val();
-				if (!re.test(number)) {
-				　　alert("请输入正确的订购数");
+				var re = /^[1-9]+\.?[0-9]*]*$/; 
+				var reduceAmount = $("#reduceAmount2").val();
+				if (!re.test(reduceAmount)) {
+				　　alert("请输入正确的金额");
 				　　return;
 				}
 				$.ajax({
-					url : '/financial/newOrder',
+					url : '/financial/newReduce',
 					type : "post",
 					dataType : "json",
 					contentType : "application/json",
 					async : false,
 					data : JSON.stringify({
 						memberId : memberId,
-						goodsId : goodsId,
-						num : number,
-						orderDate : $("#orderDate").val()
+						reduceAmount : reduceAmount,
+						reduceItem :  $("#reduceItem2").val(),
+						reduceDate : $("#reduceDate2").val()
 					}),
 					success : function(result) {
 						if (result.code == 0) {
@@ -357,45 +289,26 @@
 					}
 				});
 			}
-			function modifyOrder(data){
-				var id = $("#orderId").val();
-				var re = /^[0-9]+\.?[0-9]*]*$/; 
-				var number = $("#num2").val();
-				if (!re.test(number)) {
-				　　alert("请输入正确的订购数");
-				　　return;
-				}
-				var re2 = /^[1-9]+[0-9]*]*$/; 
-				var purchasePrice = $("#purchasePrice").val() + "";
-				if (!re2.test(purchasePrice)) {
-					alert("请输入正确的采购价格");
+			function modifyReduce(data){
+				var reduceId = $("#reduceId").val();
+				var re2 = /^[0-9]+\.?[0-9]*]*$/; 
+				var reduceAmount = $("#reduceAmount").val() + "";
+				if (!re2.test(reduceAmount)) {
+					alert("请输入正确的金额");
 					return;
-				}
-				var memberPrice = $("#memberPrice").val();
-				if (!re.test(memberPrice)) {
-					alert("请正确的加盟价格");
-					return;
-				}
-				if($("#servicePrice").attr("readonly")!="readonly"){
-					var servicePrice = $("#servicePrice").val();
-					if (!re.test(servicePrice)) {
-						alert("请正确的代仓价格");
-						return;
-					}
 				}
 				$.ajax({
-					url : '/financial/modifyOrder',
+					url : '/financial/modifyReduce',
 					type : "post",
 					dataType : "json",
 					contentType : "application/json",
 					async : false,
 					data : JSON.stringify({
-						id : id,
-						memberPrice : memberPrice,
-						purchasePrice : purchasePrice,
-						servicePrice : servicePrice,
-						num : number,
-						orderDate : $("#orderDate2").val()
+						reduceId : reduceId,
+						reduceAmount : reduceAmount,
+						reduceItem : $("#reduceItem").val(),
+						reduceDate : $("#reduceDate").val(),
+						memberId: $("#memberId").val(),
 					}),
 					success : function(result) {
 						if (result.code == 0) {
@@ -411,11 +324,7 @@
 					}
 				});
 			}
-			function exportBtn(){
-				window.location.href = '/financial/exportOrder?orderDate='
-					+ $("#orderBeginTime").val() + '&brandId='
-					+ $("#brand").val() + '&memberId=' + $("#member").val();
-			}
+
 		</script>
 		<label class="layui-inline mgr10">品牌</label>
 		<div class="layui-inline mgr10">
@@ -451,20 +360,17 @@
 			<button class="layui-btn layui-btn-radius" id="addButton"
 				onclick="onAddBtn()">新增</button>
 		</div>
-		<div class="layui-inline mgr10">
-			<button class="layui-btn layui-btn-radius" id="exportBtn"
-				onclick="exportBtn()">导出</button>
-		</div>		
+
 		<div>
-			<table id="MemberOrderReport" lay-filter="MemberOrderReport"></table>
+			<table id="MemberReduceReport" lay-filter="MemberReduceReport"></table>
 		</div>
-		<!-- 新增订购记录框 -->
-		<div id="add-order" style="display: none;">
-			<div class="layui-form-item mgt20">
+		<!-- 新增减免记录框 -->
+		<div id="add-reduce" style="display: none;">
+			<div class="layui-form-item mgt30">
 				<label class="layui-form-label">品牌</label>
 				<div class="layui-input-block">
 					<select id="brand2" name="brand2" lay-filter="brand2"
-						class="layui-select"  onchange="changeBrand2()">
+						class="layui-select" onchange="changeBrand2()">
 						<option th:each="brand : ${brandList}"
 							th:value="
 						${brand.paramKey}"
@@ -473,7 +379,7 @@
 				</div>
 			</div>
 			<form class="layui-form" action="" lay-filter="form2">
-				<div class="layui-form-item mgt20">
+				<div class="layui-form-item mgt30">
 					<label class="layui-form-label">加盟商</label>
 					<div class="layui-input-block" style="width: 320px">
 						<select id="member2" name="member2" lay-filter="member2"
@@ -482,26 +388,26 @@
 						</select>
 					</div>
 				</div>
-				<div class="layui-form-item mgt20">
-					<label class="layui-form-label">商品</label>
-					<div class="layui-input-block" style="width: 320px">
-						<select id="goods" name="goods" lay-filter="goods"
-							class="layui-select" lay-search>
-							<option value="0">全部</option>
-						</select>
+				<div class="layui-form-item center mgt30">
+					<label class="layui-form-label">减免/奖励金额（单位分）</label>
+					<div class="layui-input-block">
+						<input type="text" id="reduceAmount2" required value=""
+							style="width: 100px" lay-verify="required" autocomplete="off"
+							class="layui-input">
 					</div>
 				</div>
-				<div class="layui-form-item center mgt20">
-					<label class="layui-form-label">采购数量</label>
+				<div class="layui-form-item center mgt30">
+					<label class="layui-form-label">减免/奖励事由</label>
 					<div class="layui-input-block">
-						<input type="text" id="num" required value="" style="width: 100px"
-							lay-verify="required" autocomplete="off" class="layui-input">
+						<input type="text" id="reduceItem2" required value=""
+							style="width: 280px" lay-verify="required" autocomplete="off"
+							class="layui-input">
 					</div>
 				</div>
-				<div class="layui-form-item center mgt20">
-					<label class="layui-form-label">订购日期</label>
+				<div class="layui-form-item center mgt30">
+					<label class="layui-form-label">日期</label>
 					<div class="layui-input-block">
-						<input type="text" id="orderDate" class="layui-input"
+						<input type="text" id="reduceDate2" class="layui-input"
 							style="width: 180px">
 					</div>
 				</div>
@@ -509,57 +415,43 @@
 			<div class="layui-form-item">
 				<div class="layui-input-block">
 					<button class="layui-btn" lay-submit lay-filter="save"
-						onclick="newOrder()">立即提交</button>
+						onclick="newReduce()">立即提交</button>
 					<button type="reset" class="layui-btn layui-btn-primary"
 						id="closeBtn" onclick="CloseWin()">关闭</button>
 				</div>
 			</div>
 		</div>
-		<!-- 修改订购记录框 -->
-		<div id="modify-order" style="display: none;">
-			<div class="layui-form-item center mgt20">
-				<label class="layui-form-label">加盟价格(分)</label>
+		<!-- 修改减免记录框 -->
+		<div id="modify-reduce" style="display: none;">
+			<div class="layui-form-item center mgt30">
+				<label class="layui-form-label">减免/奖励金额（单位分）</label>
 				<div class="layui-input-block">
-					<input type="text" id="memberPrice" required value=""
+					<input type="text" id="reduceAmount" required value=""
 						style="width: 100px" lay-verify="required" autocomplete="off"
 						class="layui-input">
 				</div>
 			</div>
-			<div class="layui-form-item center mgt20">
-				<label class="layui-form-label">采购价格(分)</label>
+			<div class="layui-form-item center mgt30">
+				<label class="layui-form-label">日期</label>
 				<div class="layui-input-block">
-					<input type="text" id="purchasePrice" required value=""
-						style="width: 100px" lay-verify="required" autocomplete="off"
-						class="layui-input">
-				</div>
-			</div>
-			<div class="layui-form-item center mgt20">
-				<label class="layui-form-label">代仓价格(分)</label>
-				<div class="layui-input-block">
-					<input type="text" id="servicePrice" required value=""
-						style="width: 100px" lay-verify="required" autocomplete="off"
-						class="layui-input">
-				</div>
-			</div>
-			<div class="layui-form-item center mgt20">
-				<label class="layui-form-label">采购数量</label>
-				<div class="layui-input-block">
-					<input type="text" id="num2" required value="" style="width: 100px"
-						lay-verify="required" autocomplete="off" class="layui-input">
-				</div>
-			</div>
-			<div class="layui-form-item center mgt20">
-				<label class="layui-form-label">订购日期</label>
-				<div class="layui-input-block">
-					<input type="text" id="orderDate2" class="layui-input"
-						style="width: 180px"> <input type="text" id="orderId"
+					<input type="text" id="reduceDate" class="layui-input"
+						style="width: 180px"><input type="text" id="reduceId"
+						style="display: none"><input type="text" id="memberId"
 						style="display: none">
+				</div>
+			</div>
+			<div class="layui-form-item center mgt20">
+				<label class="layui-form-label">减免/奖励事由</label>
+				<div class="layui-input-block">
+					<input type="text" id="reduceItem" required value=""
+						style="width: 200px" lay-verify="required" autocomplete="off"
+						class="layui-input">
 				</div>
 			</div>
 			<div class="layui-form-item">
 				<div class="layui-input-block">
 					<button class="layui-btn" lay-submit lay-filter="save"
-						onclick="modifyOrder()">立即提交</button>
+						onclick="modifyReduce()">立即提交</button>
 					<button type="reset" class="layui-btn layui-btn-primary"
 						id="closeBtn" onclick="CloseWin()">关闭</button>
 				</div>

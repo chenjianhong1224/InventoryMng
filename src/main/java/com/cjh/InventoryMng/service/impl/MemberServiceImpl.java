@@ -16,6 +16,8 @@ import com.cjh.InventoryMng.entity.TGroupMapExample;
 import com.cjh.InventoryMng.entity.TMemberInfo;
 import com.cjh.InventoryMng.entity.TMemberInfoExample;
 import com.cjh.InventoryMng.entity.TMemberInfoExample.Criteria;
+import com.cjh.InventoryMng.entity.TMemberReduce;
+import com.cjh.InventoryMng.entity.TMemberReduceExample;
 import com.cjh.InventoryMng.entity.TSysParam;
 import com.cjh.InventoryMng.entity.TSysParamExample;
 import com.cjh.InventoryMng.entity.TUserInfo;
@@ -26,6 +28,7 @@ import com.cjh.InventoryMng.entity.VMemberBillInfo;
 import com.cjh.InventoryMng.mapper.CustomQueryMapper;
 import com.cjh.InventoryMng.mapper.TGroupMapMapper;
 import com.cjh.InventoryMng.mapper.TMemberInfoMapper;
+import com.cjh.InventoryMng.mapper.TMemberReduceMapper;
 import com.cjh.InventoryMng.mapper.TSysParamMapper;
 import com.cjh.InventoryMng.mapper.TUserInfoMapper;
 import com.cjh.InventoryMng.mapper.TUserRoleMapper;
@@ -55,6 +58,9 @@ public class MemberServiceImpl implements MemberService {
 
 	@Autowired
 	private TGroupMapMapper tGroupMapMapper;
+
+	@Autowired
+	private TMemberReduceMapper tMemberReduceMapper;
 
 	@Override
 	public List<TMemberInfo> getAllEffectiveMember() {
@@ -256,6 +262,19 @@ public class MemberServiceImpl implements MemberService {
 			tGroupMapMapper.updateByPrimaryKeySelective(record);
 		}
 		return true;
+	}
+
+	@Override
+	public Page<TMemberReduce> getMemberReduce(Integer memberId, String beginDate, String endDate, int pageNo,
+			int pageSize) {
+		PageHelper.startPage(pageNo, pageSize);
+		TMemberReduceExample example = new TMemberReduceExample();
+		com.cjh.InventoryMng.entity.TMemberReduceExample.Criteria c = example.createCriteria()
+				.andReduceDateGreaterThanOrEqualTo(beginDate).andReduceDateLessThanOrEqualTo(endDate);
+		if (memberId != null) {
+			c.andMemberIdEqualTo(memberId);
+		}
+		return tMemberReduceMapper.selectByExample(example);
 	}
 
 }

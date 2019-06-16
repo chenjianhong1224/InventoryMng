@@ -181,6 +181,30 @@
 				}
 			});
 		}
+		function showMemberReduce() {
+			$.ajax({
+				type : "post",
+				url : "/financial/queryMemberReducePage",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});
+		}
+		function analyzeManjian() {
+			$.ajax({
+				type : "post",
+				url : "/analyze/analyzeManjianPage",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});	
+		}
 	</script>
 	<article class="layui-layout layui-layout-admin">
 		<div class="layui-header" th:include="header::header"></div>
@@ -204,6 +228,13 @@
 									onclick="querySupplierBill()">供应商结算报表</a>
 							</dd>
 						</dl></li>
+					<li class="layui-nav-item layui-nav-itemed"><a
+						href="javascript:;">经营分析</a>
+						<dl class="layui-nav-child">
+							<dd>
+								<a href="javascript:;" onclick="analyzeManjian()">满减分析</a>
+							</dd>
+						</dl></li>	
 					<li shiro:hasPermission="financial:query" class="layui-nav-item"><a
 						href="javascript:;">账务管理</a>
 						<dl class="layui-nav-child">
@@ -215,7 +246,13 @@
 							<dd>
 								<a href="javascript:;" onclick="showMemberOrder()">加盟商采购管理</a>
 							</dd>
-						</dl></li>
+						</dl>
+						<dl class="layui-nav-child">
+							<dd>
+								<a href="javascript:;" onclick="showMemberReduce()">加盟商减免管理</a>
+							</dd>
+						</dl>
+						</li>
 					<li shiro:hasPermission="sys:all" class="layui-nav-item"><a
 						href="javascript:;">系统管理</a>
 						<dl class="layui-nav-child">

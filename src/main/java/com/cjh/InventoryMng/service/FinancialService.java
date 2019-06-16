@@ -11,4 +11,10 @@ public interface FinancialService {
 
 	boolean modifyOrder(String operator, Integer id, Integer purchasePrice, double buyNum, Integer memberPrice,
 			Integer servicePrice, String orderDate) throws BusinessException, Exception;
+
+	boolean newMemberReduce(String creator, Integer memberId, String memberName, Integer reduceAmount,
+			String reduceDate, String reduceItem);
+
+	boolean modifyMemberReduce(String updater, Integer reduceId, String memberName, Integer reduceAmount,
+			String reduceDate, String reduceItem);
 }

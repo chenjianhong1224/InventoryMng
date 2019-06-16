@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 import com.cjh.InventoryMng.entity.TMemberInfo;
+import com.cjh.InventoryMng.entity.TMemberReduce;
 import com.cjh.InventoryMng.entity.VMemberBillInfo;
 import com.cjh.InventoryMng.entity.VMemberSupplierMap;
 import com.github.pagehelper.Page;
@@ -24,6 +25,10 @@ public interface MemberService {
 	Page<VMemberBillInfo> getMemberBill(String brandId, Integer memberId, String beginDate, String endDate, int pageNo,
 			int pageSize);
 
+	Page<TMemberReduce> getMemberReduce(Integer memberId, String beginDate, String endDate, int pageNo,
+			int pageSize);
+	
+	
 	Integer getMemberId(String memberName, String brandId);
 
 	Page<TMemberInfo> getAllMember(String memberName, String brandId, int pageNo, int pageSize);

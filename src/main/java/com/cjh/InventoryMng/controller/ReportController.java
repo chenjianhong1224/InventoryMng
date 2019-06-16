@@ -32,6 +32,7 @@ import com.cjh.InventoryMng.bean.PlatformProfitImportBean;
 import com.cjh.InventoryMng.bean.PlatformProfitImportBean.ProfitBean;
 import com.cjh.InventoryMng.entity.TGoodsInfo;
 import com.cjh.InventoryMng.entity.TMemberInfo;
+import com.cjh.InventoryMng.entity.TMemberReduce;
 import com.cjh.InventoryMng.entity.TOrderInfo;
 import com.cjh.InventoryMng.entity.TPlatformProfit;
 import com.cjh.InventoryMng.entity.TSupplier;
@@ -47,6 +48,7 @@ import com.cjh.InventoryMng.service.SysParaService;
 import com.cjh.InventoryMng.utils.DateUtils;
 import com.cjh.InventoryMng.vo.MemberBillInfoVO;
 import com.cjh.InventoryMng.vo.MemberOrderReportInfoVO;
+import com.cjh.InventoryMng.vo.MemberReduceInfoVO;
 import com.cjh.InventoryMng.vo.PlatformProfitVO;
 import com.cjh.InventoryMng.vo.ResultMap;
 import com.cjh.InventoryMng.vo.SupplierBillInfoVO;
@@ -199,12 +201,18 @@ public class ReportController {
 		Double managementCost = 0.0;
 		Integer orderAmount = 0;
 		Double settleAmount = 0.0;
+		Integer reduceAmount = 0;
+		Page<TMemberReduce> reduces = memberService.getMemberReduce(memberId == null ? null : Integer.valueOf(memberId),
+				beginDate, endDate, page, limit);
+		for (TMemberReduce tMemberReduce : reduces) {
+			reduceAmount += tMemberReduce.getReduceAmount();
+		}
 		for (VMemberBillInfo vMemberBillInfo : allMemberBillInfos.getResult()) {
 			amount += vMemberBillInfo.getElemeProfit() + vMemberBillInfo.getMeituanProfit();
 			orderAmount += vMemberBillInfo.getOrderAmount();
 		}
 		managementCost = amount * 0.05;
-		settleAmount = amount - managementCost - orderAmount;
+		settleAmount = amount - managementCost - orderAmount + reduceAmount;
 		resultMap.setDataObject(returnList);
 		Map<String, Object> t = resultMap.toMap();
 		t.put("count", allMemberBillInfos.getTotal());
@@ -212,6 +220,41 @@ public class ReportController {
 		t.put("managementCost", new DecimalFormat("#.##").format(managementCost / 100));
 		t.put("orderAmount", new DecimalFormat("#.##").format(((double) orderAmount) / 100));
 		t.put("settleAmount", new DecimalFormat("#.##").format(settleAmount / 100));
+		t.put("reduceAmount", new DecimalFormat("#.##").format(((double) reduceAmount) / 100));
+		return t;
+	}
+
+	@RequestMapping(value = "/member/reduceQuery", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> queryMemberReduce(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		Integer page = (Integer) reqMap.get("page");
+		Integer limit = (Integer) reqMap.get("limit");
+		String beginDate = (String) reqMap.get("beginDate");
+		String endDate = (String) reqMap.get("endDate");
+		String memberId = (String) reqMap.get("memberId");
+		if (!StringUtils.isEmpty(memberId) && memberId.equals("0")) {
+			memberId = null;
+		}
+
+		Page<TMemberReduce> memberReduceInfos = memberService.getMemberReduce(
+				StringUtils.isEmpty(memberId) ? null : Integer.valueOf(memberId), beginDate, endDate, page, limit);
+		List<MemberReduceInfoVO> returnList = Lists.newArrayList();
+		for (TMemberReduce tMemberReduce : memberReduceInfos) {
+			MemberReduceInfoVO vo = new MemberReduceInfoVO();
+			vo.setReduceId(tMemberReduce.getId());
+			vo.setReduceDate(tMemberReduce.getReduceDate());
+			vo.setReduceItem(tMemberReduce.getReduceItem());
+			String memberName = memberService.getMemberInfo(Integer.valueOf(tMemberReduce.getMemberId()))
+					.getMemberName();
+			vo.setMemberName(memberName);
+			vo.setMemberId(Integer.valueOf(tMemberReduce.getMemberId()));
+			vo.setReduceAmount(new DecimalFormat("#.##").format(((double) tMemberReduce.getReduceAmount()) / 100));
+			returnList.add(vo);
+		}
+		resultMap.setDataObject(returnList);
+		Map<String, Object> t = resultMap.toMap();
+		t.put("count", memberReduceInfos.getTotal());
 		return t;
 	}
 
