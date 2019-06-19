@@ -127,17 +127,21 @@
 				laydate.render({
 					elem : '#orderBeginTime' //指定元素
 					,
-					value : getBillBeginDate(),trigger: 'click'
+					value : getBillBeginDate(),trigger: 'click',
+					
 				});
 				laydate.render({
 					elem : '#orderDate' //指定元素
 					,
-					value : new Date(),trigger: 'click'
+					value : new Date(),trigger: 'click',
+					
 				});
 				laydate.render({
 					elem : '#orderDate2' //指定元素
 					,
-					value : new Date(),trigger: 'click'
+					value : new Date(),
+					trigger: 'click',
+					
 				});				
 			});
 		</script>
@@ -280,7 +284,8 @@
 							layui.laydate.render({
 								elem : '#orderDate2' //指定元素
 								,
-								value : data.orderDate
+								value : data.orderDate,trigger: 'click',
+								
 							});
 						},
 						yes : function() {
@@ -307,7 +312,8 @@
 						layui.laydate.render({
 							elem : '#orderDate' //指定元素
 							,
-							value : new Date().format("yyyy-MM-dd")
+							value : new Date().format("yyyy-MM-dd"),trigger: 'click',
+							
 						});
 					},
 					yes : function() {
@@ -454,7 +460,7 @@
 		<div class="layui-inline mgr10">
 			<button class="layui-btn layui-btn-radius" id="exportBtn"
 				onclick="exportBtn()">导出</button>
-		</div>		
+		</div>
 		<div>
 			<table id="MemberOrderReport" lay-filter="MemberOrderReport"></table>
 		</div>
@@ -464,7 +470,7 @@
 				<label class="layui-form-label">品牌</label>
 				<div class="layui-input-block">
 					<select id="brand2" name="brand2" lay-filter="brand2"
-						class="layui-select"  onchange="changeBrand2()">
+						class="layui-select" onchange="changeBrand2()">
 						<option th:each="brand : ${brandList}"
 							th:value="
 						${brand.paramKey}"
