@@ -148,7 +148,7 @@
 		manufacturer_name, c.manufacturer_id
 		from t_supplier a, ( select * from (
 		select
-		id, member_id, good_id, member_price, purchase_price - ifnull(service_price, 0) as price, service_price as servicePrice, num,
+		id, member_id, good_id, member_price, purchase_price - ifnull(service_price, 0) as price, 0 as servicePrice, num,
 		order_date,
 		supplierId as supplierId from t_order_info where 1=1 and status = 1
 		<if test="beginDate != null">

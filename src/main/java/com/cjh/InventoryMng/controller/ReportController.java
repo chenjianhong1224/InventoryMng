@@ -140,8 +140,8 @@ public class ReportController {
 					memberOrderReportInfoVO.setPurchasePrice(
 							new DecimalFormat("#.##").format(((double) tOrderInfo.getPurchasePrice()) / 100));
 				} else {
-					memberOrderReportInfoVO.setPurchasePrice(new DecimalFormat("#.##")
-							.format(((double) (tOrderInfo.getPurchasePrice() + tOrderInfo.getServicePrice())) / 100));
+					memberOrderReportInfoVO.setPurchasePrice(
+							new DecimalFormat("#.##").format(((double) tOrderInfo.getPurchasePrice()) / 100));
 					memberOrderReportInfoVO.setServicePrice(
 							new DecimalFormat("#.##").format((double) tOrderInfo.getServicePrice() / 100));
 				}
@@ -155,8 +155,7 @@ public class ReportController {
 		Double profit = 0.0;
 		for (TOrderInfo tOrderInfo : allPageOrderInfo.getResult()) {
 			amount += tOrderInfo.getMemberPrice() * tOrderInfo.getNum();
-			profit += (tOrderInfo.getMemberPrice() - tOrderInfo.getPurchasePrice()
-					- (tOrderInfo.getServicePrice() == null ? 0 : tOrderInfo.getServicePrice())) * tOrderInfo.getNum();
+			profit += (tOrderInfo.getMemberPrice() - tOrderInfo.getPurchasePrice()) * tOrderInfo.getNum();
 		}
 		resultMap.setDataObject(returnVOList);
 		Map<String, Object> t = resultMap.toMap();
@@ -305,9 +304,7 @@ public class ReportController {
 		Double allServicePrice = 0.0;
 		for (VSuppplierBillInfo v : allSupplierBillInfo) {
 			amount += v.getPrice() * v.getNum();
-			if (v.getMemberPrice() != 0 && v.getPrice() != 0) {
-				profit += (v.getMemberPrice() - v.getPrice() - v.getServicePrice()) * v.getNum();
-			}
+			profit += (v.getMemberPrice() - v.getPrice() - v.getServicePrice()) * v.getNum();
 			allServicePrice += v.getServicePrice() * v.getNum();
 		}
 		t.put("amount", new DecimalFormat("#.##").format(((double) amount) / 100));
