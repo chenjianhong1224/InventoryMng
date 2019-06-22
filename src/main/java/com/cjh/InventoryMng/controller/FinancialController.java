@@ -468,7 +468,9 @@ public class FinancialController {
 					break;
 				}
 				bean.setBrandName(name);
-				nowRow.getCell(j).setCellType(CellType.STRING);
+				if (nowRow.getCell(j) != null) {
+					nowRow.getCell(j).setCellType(CellType.STRING);
+				}
 				try {
 					if (j % 8 == 0) {
 						if (nowRow.getCell(j) != null && !StringUtils.isEmpty(nowRow.getCell(j).getStringCellValue())) {
@@ -486,6 +488,9 @@ public class FinancialController {
 							continue;
 						}
 					} else if (j % 8 == 1) {
+						if (nowRow.getCell(j) == null) {
+							continue;
+						}
 						String orderDate = nowRow.getCell(j).getStringCellValue().replace(".", "-");
 						SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 						try {
@@ -509,6 +514,7 @@ public class FinancialController {
 				} catch (Exception e) {
 					resultMap.setFailed();
 					resultMap.setMessage("第" + i + "行" + "第" + j + "列格式有误");
+					log.error("第" + i + "行" + "第" + j + "列格式有误", e);
 					in.close();
 					book.close();
 					return resultMap.toMap();
