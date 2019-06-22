@@ -205,6 +205,18 @@
 				}
 			});	
 		}
+		function analyzeTejia(){
+			$.ajax({
+				type : "post",
+				url : "/analyze/analyzeTejiaPage",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});				
+		}
 	</script>
 	<article class="layui-layout layui-layout-admin">
 		<div class="layui-header" th:include="header::header"></div>
@@ -233,6 +245,9 @@
 						<dl class="layui-nav-child">
 							<dd>
 								<a href="javascript:;" onclick="analyzeManjian()">满减分析</a>
+							</dd>						
+							<dd>
+								<a href="javascript:;" onclick="analyzeTejia()">特价分析</a>
 							</dd>
 						</dl></li>	
 					<li shiro:hasPermission="financial:query" class="layui-nav-item"><a

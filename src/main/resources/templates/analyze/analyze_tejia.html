@@ -1,0 +1,115 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div class="layui-main mgt10">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 22px;
+}
+</style>
+		<script type="text/javascript">
+			layui.use('table', function() {
+				var table = layui.table;
+				//第一个实例
+				table.render({
+					elem : '#tejiaPriceReport',
+					url : '/analyze/analyzeTejia' //数据接口
+					,
+					contentType : 'application/json',
+					method : 'post',
+					where : {
+
+					},
+					cols : [ [ //表头
+					{
+						field : 'orginPrice',
+						title : '原价',
+						width : 160,
+					}, {
+						field : 'specialOffer',
+						title : '特价',
+						width : 160,
+					} ] ],
+					done : function(res, curr, count) {
+					}
+				});
+				var $ = layui.$, active = {
+					reload : function() {
+						//执行重载
+						table.reload('tejiaPriceReport', {
+							where : {
+								distributionFee : $("#distributionFee").val(),
+								atLeast : $("#atLeast").val(),
+								primeCost : $("#primeCost").val(),
+								percent : $("#percent").val(),
+								isAgent : $("#isAgent").val(),
+								discount : $("#discount").val(),
+								profitRatio : $("#profitRatio").val()
+							}
+						});
+					}
+				};
+				$('#queryButton').on('click', function() {
+					var type = $(this).data('type');
+					active[type] ? active[type].call(this) : '';
+				});
+			});
+		</script>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline">配送费减免&nbsp;</label>
+			<div class="layui-inline">
+				<input type="text" id="distributionFee" size="6">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline">成本&nbsp;</label>
+			<div class="layui-inline">
+				<input type="text" id="primeCost" size="6">
+			</div>
+		</div>		
+		<div class="layui-inline mgr10">
+			<label class="layui-inline">保底&nbsp;</label>
+			<div class="layui-inline">
+				<input type="text" id="atLeast" size="6">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline">抽点</label>
+			<div class="layui-inline">
+				<input type="text" id="percent" size="6">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline">抽点模式</label>
+			<div class="layui-inline">
+				<select id="isAgent" name="isAgent" style="width: 80px;">
+					<option value="0">直营</option>
+					<option value="1">代理</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline">毛利</label>
+			<div class="layui-inline">
+				<input type="text" id="profitRatio" size="6">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline">折扣</label>
+			<div class="layui-inline">
+				<input type="text" id="discount" size="6" value="9.8">
+			</div>
+		</div>					
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="queryButton"
+				data-type="reload">查询</button>
+		</div>
+		<div>
+			<table id="tejiaPriceReport" lay-filter="tejiaPriceReport"
+				style="margin-top: 0px"></table>
+		</div>
+	</div>
+</body>
+</html>

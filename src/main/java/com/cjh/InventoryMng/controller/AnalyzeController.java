@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.cjh.InventoryMng.vo.ManjianVO;
 import com.cjh.InventoryMng.vo.ResultMap;
+import com.cjh.InventoryMng.vo.TejiaVO;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -24,6 +25,11 @@ public class AnalyzeController {
 	@RequestMapping(value = "/analyzeManjianPage")
 	public String analyzeManjianPage(Model model) {
 		return "analyze/analyze_manjian";
+	}
+
+	@RequestMapping(value = "/analyzeTejiaPage")
+	public String analyzeTejiaPage(Model model) {
+		return "analyze/analyze_tejia";
 	}
 
 	@RequestMapping(value = "/analyzeManjian", method = RequestMethod.POST)
@@ -99,5 +105,38 @@ public class AnalyzeController {
 		Map<String, Object> t = resultMap.toMap();
 		t.put("count", size);
 		return t;
+	}
+
+	@RequestMapping(value = "/analyzeTejia", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> analyzeTejia(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		String distributionFee = (String) reqMap.get("distributionFee");
+		String atLeast = (String) reqMap.get("atLeast");
+		String primeCost = (String) reqMap.get("primeCost");
+		String percent = (String) reqMap.get("percent");
+		String isAgent = (String) reqMap.get("isAgent");
+		String profitRatio = (String) reqMap.get("profitRatio");
+		String discount = (String) reqMap.get("discount");
+		if (StringUtils.isEmpty(distributionFee)) {
+			return resultMap.toMap();
+		} else {
+			if ("1".equals(isAgent)) {
+				// 特价-特价*配送费减免/起送价-原价*点数=成本*毛利
+				// 特价/原价=折扣
+				// 即原价=成本*毛利/(折扣*(1-配送费减免/起送价)-点数)
+				double orginPrice = Double.valueOf(primeCost) * Double.valueOf(profitRatio)
+						/ (Double.valueOf(discount) * (1 - Double.valueOf(distributionFee) / Double.valueOf(atLeast))
+								- Double.valueOf(percent));
+				double specialOffer = orginPrice * Double.valueOf(discount);
+				TejiaVO vo = new TejiaVO();
+				vo.setOrginPrice((new DecimalFormat("#.##").format(orginPrice)));
+				vo.setSpecialOffer((new DecimalFormat("#.##").format(specialOffer)));
+				List<TejiaVO> data = Lists.newArrayList();
+				data.add(vo);
+				resultMap.setDataList(data);
+			}
+		}
+		return resultMap.toMap();
 	}
 }
