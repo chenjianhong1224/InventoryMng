@@ -1,0 +1,192 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div class="layui-main mgt10">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 22px;
+}
+</style>
+
+		<script type="text/javascript">
+			layui.use('form', function() {
+				var form = layui.form;
+				form.render('select', 'form1');
+			});
+			layui.use('laydate', function() {
+
+				var laydate = layui.laydate;
+
+				//执行一个laydate实例
+				laydate.render({
+					elem : '#orderBeginTime' //指定元素
+					,
+					value : getBillBeginDate(),
+					trigger : 'click',
+
+				});
+				laydate.render({
+					elem : '#orderEndTime' //指定元素
+					,
+					value : getBillEndDate(),
+					trigger : 'click',
+
+				});
+			});
+			layui
+					.use(
+							'table',
+							function() {
+								var table = layui.table;
+								//第一个实例
+								table
+										.render({
+											elem : '#GoodsUseCountList',
+											url : '/report/goods/queryUseGoods' //数据接口
+											,
+											contentType : 'application/json',
+											method : 'post',
+											page : true //开启分页
+											,
+											where : {
+												brandId : document
+														.getElementById("brand").value,
+												memberId : document
+														.getElementById("member").value,
+												goodsName : document
+														.getElementById("goodsName").value,
+												beginDate : getBillBeginDate(),
+												endDate : getBillEndDate(),
+											},
+											cols : [ [ //表头
+											{
+												field : 'manufacturerName',
+												title : '厂家',
+												width : 120,
+											}, {
+												field : 'goodsName',
+												title : '商品名称',
+												width : 120,
+											}, {
+												field : 'specifications',
+												title : '规格',
+												width : 200
+											}, {
+												field : 'num',
+												title : '总数',
+											} ] ],
+											done : function(res, curr, count) {
+											}
+										});
+								var $ = layui.$, active = {
+									reload : function() {
+										//执行重载
+										table
+												.reload(
+														'GoodsUseCountList',
+														{
+															page : {
+																curr : 1
+															//重新从第 1 页开始
+															},
+															where : {
+																brandId : document
+																		.getElementById("brand").value,
+																memberId : document
+																		.getElementById("member").value,
+																goodsName : document
+																		.getElementById("goodsName").value,
+																beginDate : document
+																		.getElementById("orderBeginTime").value,
+																endDate : document
+																		.getElementById("orderEndTime").value
+															}
+														});
+									}
+								};
+								$('#queryButton').on(
+										'click',
+										function() {
+											var type = $(this).data('type');
+											active[type] ? active[type]
+													.call(this) : '';
+										});
+							});
+
+			function changeBrand() {
+				$.ajax({
+					url : '/public/queryMemberByBrand',
+					type : "post",
+					dataType : "json",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+						brandId : $("#brand").val()
+					}),
+					success : function(result) {
+						var option = "<option value='0'>全部</option>";
+						if (result.code == 0) {
+							$("#member").html("");
+							$.each(result.data, function(key, val) {
+								option += "<option value='" + val.id + "'>";
+								option += val.memberName + "</option>";
+							});
+							$("#member").html(option);
+						}
+						layui.form.render('select', 'form1');
+					}
+				});
+			};
+		</script>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline mgr10">品牌选择框</label> <select id="brand"
+				name="brand" lay-filter="brand" class="layui-select" onchange="changeBrand()">
+				<option th:each="brand : ${brandList}"
+					th:value="
+						${brand.paramKey}" th:text="${brand.paramValue}">全部</option>
+			</select>
+		</div>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline mgr10">加盟商</label>
+			<div class="layui-inline mgr10" id="search">
+				<form class="layui-form" action="" lay-filter="form1">
+					<select id="member" name="member" lay-filter="member"
+						class="layui-select" lay-search>
+						<option value="0">全部</option>
+					</select>
+				</form>
+			</div>
+		</div>
+
+		<div class="layui-inline mgr10">
+			<label class="layui-inline mgr10">商品名称</label>
+			<div class="layui-inline mgr10">
+				<input type="text" id="goodsName" name="goodsName" required
+					lay-verify="required" placeholder="请输入商品名称" autocomplete="off"
+					class="layui-input">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label>开始时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="orderBeginTime" size="8">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label>结束时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="orderEndTime" size="8">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="queryButton"
+				data-type="reload">查询</button>
+		</div>
+		<div>
+			<table id="GoodsUseCountList" lay-filter="GoodsUseCountList"></table>
+		</div>
+	</div>
+</body>
+</html>
