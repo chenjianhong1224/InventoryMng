@@ -141,7 +141,8 @@ public class AnalyzeController {
 				// 特价/原价=折扣
 				// 即折扣=成本*毛利/原价+(配送费减免+保底)/起送价
 				double specialOffer = Double.valueOf(primeCost) * Double.valueOf(profitRatio)
-						/ Double.valueOf(orginPriceStr)
+						/ (Double.valueOf(orginPriceStr) > Double.valueOf(atLeast) ? Double.valueOf(atLeast)
+								: Double.valueOf(orginPriceStr))
 						+ (Double.valueOf(distributionFee) + Double.valueOf(percent)) / Double.valueOf(atLeast);
 				TejiaVO vo = new TejiaVO();
 				vo.setOrginPrice(orginPriceStr);
