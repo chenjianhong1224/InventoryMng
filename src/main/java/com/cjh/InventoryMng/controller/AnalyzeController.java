@@ -137,14 +137,15 @@ public class AnalyzeController {
 				data.add(vo);
 				resultMap.setDataList(data);
 			} else {
-				// 特价-特价*(配送费减免+保底)/起送价=成本*毛利
+				// 特价-原价*(配送费减免+保底)/起送价=成本*毛利
 				// 特价/原价=折扣
-				// 即特价/折扣=成本*毛利/(1-(配送费减免+保底)/起送价)
+				// 即折扣=成本*毛利/原价+(配送费减免+保底)/起送价
 				double specialOffer = Double.valueOf(primeCost) * Double.valueOf(profitRatio)
-						/ (1 - (Double.valueOf(distributionFee) + Double.valueOf(percent)) / Double.valueOf(atLeast));
+						/ Double.valueOf(orginPriceStr)
+						+ (Double.valueOf(distributionFee) + Double.valueOf(percent)) / Double.valueOf(atLeast);
 				TejiaVO vo = new TejiaVO();
 				vo.setOrginPrice(orginPriceStr);
-				vo.setSpecialOffer((new DecimalFormat("#.##").format(specialOffer)));
+				vo.setSpecialOffer((new DecimalFormat("#.##").format(specialOffer * Double.valueOf(orginPriceStr))));
 				List<TejiaVO> data = Lists.newArrayList();
 				data.add(vo);
 				resultMap.setDataList(data);
