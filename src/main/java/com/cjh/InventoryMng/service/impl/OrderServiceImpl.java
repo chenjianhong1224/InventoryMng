@@ -17,6 +17,7 @@ import com.cjh.InventoryMng.entity.TGoodsInfo;
 import com.cjh.InventoryMng.entity.TOrderInfo;
 import com.cjh.InventoryMng.entity.TOrderInfoExample;
 import com.cjh.InventoryMng.entity.VMemberOrderInfoOrderBy;
+import com.cjh.InventoryMng.entity.VUseGoodsCount;
 import com.cjh.InventoryMng.exception.BusinessException;
 import com.cjh.InventoryMng.mapper.CustomQueryMapper;
 import com.cjh.InventoryMng.mapper.TGoodsInfoMapper;
@@ -298,5 +299,12 @@ public class OrderServiceImpl implements OrderService {
 			finalContent += "========\r\n" + supplierName + "\r\n" + sendContentMap.get(supplierName);
 		}
 		return finalContent;
+	}
+
+	@Override
+	public Page<VUseGoodsCount> queryUseGoodsCount(Integer memberId, String beginDate, String endDate, String goodsName,
+			int pageNo, int pageSize) {
+		PageHelper.startPage(pageNo, pageSize);
+		return customQueryMapper.queryUseGoodsCount(memberId, beginDate, endDate, goodsName);
 	}
 }

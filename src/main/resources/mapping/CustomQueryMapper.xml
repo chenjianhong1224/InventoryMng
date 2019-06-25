@@ -286,4 +286,32 @@
 		select max(settle_date) from t_platform_profit
 	</select>	
 	
+	
+	<resultMap id="VUseGoodsCountMap" type="com.cjh.InventoryMng.entity.VUseGoodsCount">
+		<result column="good_id" jdbcType="INTEGER" property="goodsId" />
+		<result column="manufacturer_id" jdbcType="INTEGER" property="manufacturerId" />
+		<result column="good_name" jdbcType="VARCHAR" property="goodsName" />
+		<result column="specifications" jdbcType="VARCHAR" property="specifications" />
+		<result column="num" jdbcType="INTEGER" property="num" />
+	</resultMap>
+	<select id="queryUseGoodsCount" resultMap="VUseGoodsCountMap">
+	select * from (
+		select b.id, b.good_name, b.manufacturer_id, b.specifications, sum(a.num) as num from t_order_info a, t_goods_info b 
+		 where 1 = 1 and a.status = 1 
+		and a.good_id = b.id 
+		<if test="beginDate != null">
+			AND a.order_date &gt;= #{beginDate, jdbcType=VARCHAR}
+		</if>
+		<if test="endDate != null">
+			AND a.order_date &lt;= #{endDate, jdbcType=VARCHAR}
+		</if>
+		<if test="memberId != null">
+			AND a.member_id = #{memberId, jdbcType=INTEGER}
+		</if>
+		<if test="goodsName != null">
+			AND b.good_name like CONCAT('%', #{goodsName, jdbcType=INTEGER},'%')
+		</if>
+		group by a.good_id ) c order by  c.num desc, c.id
+	</select>
+	
 </mapper>

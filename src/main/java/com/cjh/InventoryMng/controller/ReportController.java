@@ -1,6 +1,7 @@
 package com.cjh.InventoryMng.controller;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -10,6 +11,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.CellType;
@@ -39,6 +41,7 @@ import com.cjh.InventoryMng.entity.TSupplier;
 import com.cjh.InventoryMng.entity.TSysParam;
 import com.cjh.InventoryMng.entity.VMemberBillInfo;
 import com.cjh.InventoryMng.entity.VSuppplierBillInfo;
+import com.cjh.InventoryMng.entity.VUseGoodsCount;
 import com.cjh.InventoryMng.service.GoodsService;
 import com.cjh.InventoryMng.service.MemberService;
 import com.cjh.InventoryMng.service.OrderService;
@@ -46,6 +49,7 @@ import com.cjh.InventoryMng.service.ProfitService;
 import com.cjh.InventoryMng.service.SupplierService;
 import com.cjh.InventoryMng.service.SysParaService;
 import com.cjh.InventoryMng.utils.DateUtils;
+import com.cjh.InventoryMng.vo.GoodsUsedCountVO;
 import com.cjh.InventoryMng.vo.MemberBillInfoVO;
 import com.cjh.InventoryMng.vo.MemberOrderReportInfoVO;
 import com.cjh.InventoryMng.vo.MemberReduceInfoVO;
@@ -386,5 +390,54 @@ public class ReportController {
 		}
 		model.addAttribute("brandList", returnBrandList);
 		return "manager/supplier_bill_report";
+	}
+
+	@RequestMapping(value = "/useGoodsReportPage")
+	public String useGoodsReportPage(Model model) {
+		List<TSysParam> brandList = sysParaService.getAllBrand();
+		TSysParam all = new TSysParam();
+		all.setParamValue("全部");
+		all.setParamKey("0");
+		List<TSysParam> returnBrandList = Lists.newArrayList();
+		returnBrandList.add(all);
+		for (TSysParam e : brandList) {
+			returnBrandList.add(e);
+		}
+		model.addAttribute("brandList", returnBrandList);
+		return "manager/use_goods_report";
+	}
+
+	@RequestMapping(value = "/goods/queryUseGoods", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> queryUseGoods(@RequestBody Map<String, Object> reqMap)
+			throws IllegalAccessException, InvocationTargetException {
+		ResultMap resultMap = ResultMap.one();
+		Integer page = (Integer) reqMap.get("page");
+		Integer limit = (Integer) reqMap.get("limit");
+		String beginDate = (String) reqMap.get("beginDate");
+		String endDate = (String) reqMap.get("endDate");
+		String memberId = (String) reqMap.get("memberId");
+		String brandId = (String) reqMap.get("brandId");
+		String goodsName = (String) reqMap.get("goodsName");
+		Integer memberIdInt = null;
+		if (StringUtils.isEmpty(brandId)) {
+			brandId = null;
+		}
+		if (!StringUtils.isEmpty(memberId) && !memberId.equals("0")) {
+			memberIdInt = Integer.valueOf(memberId);
+		}
+		Page<VUseGoodsCount> useGoodsCountList = orderService.queryUseGoodsCount(memberIdInt, beginDate, endDate,
+				goodsName, page, limit);
+		List<GoodsUsedCountVO> returnList = Lists.newArrayList();
+		for (VUseGoodsCount vo : useGoodsCountList) {
+			GoodsUsedCountVO v = new GoodsUsedCountVO();
+			BeanUtils.copyProperties(v, vo);
+			v.setManufacturerName(sysParaService.getManufacturerName("" + vo.getManufacturerId()));
+			returnList.add(v);
+		}
+		resultMap.setDataList(returnList);
+		Map<String, Object> t = resultMap.toMap();
+		t.put("count", useGoodsCountList.getTotal());
+		return t;
 	}
 }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.cjh.InventoryMng.entity.TGoodsInfo;
 import com.cjh.InventoryMng.entity.TOrderInfo;
+import com.cjh.InventoryMng.entity.VUseGoodsCount;
 import com.cjh.InventoryMng.exception.BusinessException;
 import com.github.pagehelper.Page;
 
@@ -38,4 +39,6 @@ public interface OrderService {
 	Page<TGoodsInfo> queryMemberAvailableGoods(Integer memberId, int pageNo, int pageSize);
 
 	String getOrderContent(Integer memberId, String brandId, String orderDate);
+	
+	Page<VUseGoodsCount> queryUseGoodsCount(Integer memberId, String beginDate, String endDate, String goodsName,  int pageNo, int pageSize);
 }

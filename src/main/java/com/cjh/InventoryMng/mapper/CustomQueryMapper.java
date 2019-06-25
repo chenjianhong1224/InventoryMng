@@ -9,6 +9,7 @@ import com.cjh.InventoryMng.entity.VMemberBillInfo;
 import com.cjh.InventoryMng.entity.VMemberOrderInfoOrderBy;
 import com.cjh.InventoryMng.entity.VRoleResourceInfo;
 import com.cjh.InventoryMng.entity.VSuppplierBillInfo;
+import com.cjh.InventoryMng.entity.VUseGoodsCount;
 import com.cjh.InventoryMng.entity.VMemberSupplierMap;
 import com.github.pagehelper.Page;
 
@@ -35,4 +36,8 @@ public interface CustomQueryMapper {
 			@Param("brandId") String brandId, @Param("orderDate") String orderDate);
 
 	String queryMaxSettleDate();
+
+	Page<VUseGoodsCount> queryUseGoodsCount(@Param("memberId") Integer memberId,
+			@Param("beginDate") String beginDate, @Param("endDate") String endDate,
+			@Param("goodsName") String goodsName);
 }

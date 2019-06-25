@@ -118,6 +118,7 @@ public class AnalyzeController {
 		String isAgent = (String) reqMap.get("isAgent");
 		String profitRatio = (String) reqMap.get("profitRatio");
 		String discount = (String) reqMap.get("discount");
+		String orginPriceStr = (String) reqMap.get("orginPrice");
 		if (StringUtils.isEmpty(distributionFee)) {
 			return resultMap.toMap();
 		} else {
@@ -131,6 +132,18 @@ public class AnalyzeController {
 				double specialOffer = orginPrice * Double.valueOf(discount);
 				TejiaVO vo = new TejiaVO();
 				vo.setOrginPrice((new DecimalFormat("#.##").format(orginPrice)));
+				vo.setSpecialOffer((new DecimalFormat("#.##").format(specialOffer)));
+				List<TejiaVO> data = Lists.newArrayList();
+				data.add(vo);
+				resultMap.setDataList(data);
+			} else {
+				// 特价-特价*(配送费减免+保底)/起送价=成本*毛利
+				// 特价/原价=折扣
+				// 即特价/折扣=成本*毛利/(1-(配送费减免+保底)/起送价)
+				double specialOffer = Double.valueOf(primeCost) * Double.valueOf(profitRatio)
+						/ (1 - (Double.valueOf(distributionFee) + Double.valueOf(percent)) / Double.valueOf(atLeast));
+				TejiaVO vo = new TejiaVO();
+				vo.setOrginPrice(orginPriceStr);
 				vo.setSpecialOffer((new DecimalFormat("#.##").format(specialOffer)));
 				List<TejiaVO> data = Lists.newArrayList();
 				data.add(vo);

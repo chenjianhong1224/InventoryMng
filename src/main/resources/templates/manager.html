@@ -217,6 +217,18 @@
 				}
 			});				
 		}
+		function queryUseGoodsReport(){
+			$.ajax({
+				type : "post",
+				url : "/report/useGoodsReportPage",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});				
+		}		
 	</script>
 	<article class="layui-layout layui-layout-admin">
 		<div class="layui-header" th:include="header::header"></div>
@@ -232,6 +244,10 @@
 									href="javascript:;" onclick="queryHisOrderReport()">货款利润报表</a>
 							</dd>
 							<dd>
+								<a shiro:hasPermission="report:all" href="javascript:;"
+									onclick="queryUseGoodsReport()">商品消耗报表</a>
+							</dd>							
+							<dd>
 								<a shiro:hasPermission="report:memberBillReportPage"
 									href="javascript:;" onclick="queryMemberBill()">加盟商结算报表</a>
 							</dd>
@@ -240,7 +256,7 @@
 									onclick="querySupplierBill()">供应商结算报表</a>
 							</dd>
 						</dl></li>
-					<li class="layui-nav-item layui-nav-itemed"><a
+					<li class="layui-nav-item "><a
 						href="javascript:;">经营分析</a>
 						<dl class="layui-nav-child">
 							<dd>

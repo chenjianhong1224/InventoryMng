@@ -46,7 +46,8 @@
 								percent : $("#percent").val(),
 								isAgent : $("#isAgent").val(),
 								discount : $("#discount").val(),
-								profitRatio : $("#profitRatio").val()
+								profitRatio : $("#profitRatio").val(),
+								orginPrice : $("#orginPrice").val()
 							}
 						});
 					}
@@ -56,6 +57,23 @@
 					active[type] ? active[type].call(this) : '';
 				});
 			});
+			$(document).ready(function(){
+				 
+				$("#isAgent").change(function(){
+					
+					if($("#isAgent").val()=="1"){
+						$("#orginPriceLab").css("display", "none");
+						$("#percentLab").html("抽点");
+						$("#discountLab").css("display", "");
+					}else{
+						$("#orginPriceLab").css("display", "");
+						$("#percentLab").html("保底");
+						$("#discountLab").css("display", "none");
+					}
+					
+				});				 
+			});
+			
 		</script>
 		<div class="layui-inline mgr10">
 			<label class="layui-inline">配送费减免&nbsp;</label>
@@ -75,8 +93,14 @@
 				<input type="text" id="atLeast" size="6">
 			</div>
 		</div>
+		<div class="layui-inline mgr10" id="orginPriceLab">
+			<label class="layui-inline">原价&nbsp;</label>
+			<div class="layui-inline">
+				<input type="text" id="orginPrice" size="6">
+			</div>
+		</div>	
 		<div class="layui-inline mgr10">
-			<label class="layui-inline">抽点</label>
+			<label class="layui-inline" id="percentLab">保底</label>
 			<div class="layui-inline">
 				<input type="text" id="percent" size="6">
 			</div>
@@ -96,10 +120,10 @@
 				<input type="text" id="profitRatio" size="6">
 			</div>
 		</div>
-		<div class="layui-inline mgr10">
+		<div class="layui-inline mgr10" id="discountLab" style="display:none">
 			<label class="layui-inline">折扣</label>
 			<div class="layui-inline">
-				<input type="text" id="discount" size="6" value="9.8">
+				<input type="text" id="discount" size="6" value="0.98">
 			</div>
 		</div>					
 		<div class="layui-inline mgr10">
