@@ -10,14 +10,14 @@
 <link rel="stylesheet" th:href="@{/css/global.css}" />
 <script th:src="@{/layui/layui.js}"></script>
 <script th:src="@{/jquery/jquery.min.js}"></script>
-<script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
+<script src="https://echarts.baidu.com/build/dist/echarts.js"></script>
 <script th:src="@{/js/common.js}"></script>
 </head>
 <body class="layui-layout-body">
 	<script  th:inline="javascript">
 		require.config({
 			paths : {
-				echarts : 'http://echarts.baidu.com/build/dist'
+				echarts : 'https://echarts.baidu.com/build/dist'
 			}
 		});
 		// 使用
