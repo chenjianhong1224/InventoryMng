@@ -215,9 +215,9 @@
 			<activation>
 				<activeByDefault>true</activeByDefault>
 			</activation>
-			<!-- <properties>
+			<properties>
 				<profileActive>dev</profileActive>
-			</properties>   -->
+			</properties>
 		</profile>
 		<profile>
 			<id>test</id>
@@ -230,9 +230,7 @@
 			<properties>
 				<profileActive>prod</profileActive>
 			</properties>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
+			<!-- <activation> <activeByDefault>true</activeByDefault> </activation> -->
 		</profile>
 	</profiles>
 </project>
