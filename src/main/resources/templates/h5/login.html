@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<title>登录</title>
+<meta name="renderer" content="webkit">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" th:href="@{aui/css/aui.css}" />
+<script th:src="@{jquery/jquery.min.js}" charset="utf-8"></script>
+<script th:src="@{aui/script/aui-dialog.js}" charset="utf-8"></script>
+</head>
+<script>
+	var dialog = new auiDialog({})
+	$(document).ready(function() {
+		if ($("#errorInfo").html().length > 0) {
+			dialog.alert({
+				title : "错误提示",
+				msg : $("#errorInfo").html(),
+				buttons : [ '确定' ]
+			})
+		}
+	});
+	function login() {
+		$("#loginForm").submit();
+	}
+</script>
+<body>
+	<header class="aui-bar aui-bar-nav">欢迎访问犇腾供销系统</header>
+	<div class="aui-content aui-margin-b-15">
+		<form id="loginForm" action="/login" method="post">
+			<ul class="aui-list aui-form-list">
+				<li class="aui-list-item">
+					<div class="aui-list-item-inner">
+						<div class="aui-list-item-label">用户名</div>
+						<div class="aui-list-item-input">
+							<input type="text" name="username">
+						</div>
+					</div>
+				</li>
+				<li class="aui-list-item">
+					<div class="aui-list-item-inner">
+						<div class="aui-list-item-label">密码</div>
+						<div class="aui-list-item-input">
+							<input type="password" name="password">
+						</div>
+					</div>
+				</li>
+				<li class="aui-list-item"><img alt="验证码"
+					onclick="this.src='/validateCode/getCode?d='+new Date()*1"
+					src="/validateCode/getCode" /></li>
+				<li class="aui-list-item">
+					<div class="aui-list-item-inner">
+						<div class="aui-list-item-label">验证码</div>
+						<div class="aui-list-item-input">
+							<input type="text" name="validateCode">
+						</div>
+					</div>
+				</li>
+			</ul>
+			<div class="aui-btn aui-btn-info aui-btn-block aui-btn-outlined"
+				onclick="login()">登录</div>
+		</form>
+		<blockquote type="text" id="errorInfo" th:text="${error}"
+			style="display: none"></blockquote>
+	</div>
+</body>
+</html>
