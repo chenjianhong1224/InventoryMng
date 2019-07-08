@@ -40,7 +40,7 @@ function getBillBeginDate() {
 				+ (nowDate.getMonth() + 1) + "/01"));
 	} else if (nowDate.getDate() <= "10") {
 		return new Date(Date.parse(nowDate.getFullYear() + "/"
-				+ (nowDate.getMonth() + 1) + "/21"));
+				+ (nowDate.getMonth() ) + "/21"));
 	} else {
 		return new Date(Date.parse(nowDate.getFullYear() + "/"
 				+ (nowDate.getMonth() + 1) + "/11"));
@@ -53,7 +53,7 @@ function getBillEndDate() {
 		return new Date(Date.parse(nowDate.getFullYear() + "/"
 				+ (nowDate.getMonth() + 1) + "/10"));
 	} else if (nowDate.getDate() <= "10") {
-		return new Date(nowDate.getFullYear(), (nowDate.getMonth() + 1), 0);
+		return new Date(nowDate.getFullYear(), (nowDate.getMonth()), 0);
 	} else {
 		return new Date(Date.parse(nowDate.getFullYear() + "/"
 				+ (nowDate.getMonth() + 1) + "/20"));

@@ -495,73 +495,73 @@ public class TAccountRecordExample {
             return (Criteria) this;
         }
 
-        public Criteria andDescIsNull() {
-            addCriterion("desc is null");
+        public Criteria andApplyDescIsNull() {
+            addCriterion("apply_desc is null");
             return (Criteria) this;
         }
 
-        public Criteria andDescIsNotNull() {
-            addCriterion("desc is not null");
+        public Criteria andApplyDescIsNotNull() {
+            addCriterion("apply_desc is not null");
             return (Criteria) this;
         }
 
-        public Criteria andDescEqualTo(String value) {
-            addCriterion("desc =", value, "desc");
+        public Criteria andApplyDescEqualTo(String value) {
+            addCriterion("apply_desc =", value, "applyDesc");
             return (Criteria) this;
         }
 
-        public Criteria andDescNotEqualTo(String value) {
-            addCriterion("desc <>", value, "desc");
+        public Criteria andApplyDescNotEqualTo(String value) {
+            addCriterion("apply_desc <>", value, "applyDesc");
             return (Criteria) this;
         }
 
-        public Criteria andDescGreaterThan(String value) {
-            addCriterion("desc >", value, "desc");
+        public Criteria andApplyDescGreaterThan(String value) {
+            addCriterion("apply_desc >", value, "applyDesc");
             return (Criteria) this;
         }
 
-        public Criteria andDescGreaterThanOrEqualTo(String value) {
-            addCriterion("desc >=", value, "desc");
+        public Criteria andApplyDescGreaterThanOrEqualTo(String value) {
+            addCriterion("apply_desc >=", value, "applyDesc");
             return (Criteria) this;
         }
 
-        public Criteria andDescLessThan(String value) {
-            addCriterion("desc <", value, "desc");
+        public Criteria andApplyDescLessThan(String value) {
+            addCriterion("apply_desc <", value, "applyDesc");
             return (Criteria) this;
         }
 
-        public Criteria andDescLessThanOrEqualTo(String value) {
-            addCriterion("desc <=", value, "desc");
+        public Criteria andApplyDescLessThanOrEqualTo(String value) {
+            addCriterion("apply_desc <=", value, "applyDesc");
             return (Criteria) this;
         }
 
-        public Criteria andDescLike(String value) {
-            addCriterion("desc like", value, "desc");
+        public Criteria andApplyDescLike(String value) {
+            addCriterion("apply_desc like", value, "applyDesc");
             return (Criteria) this;
         }
 
-        public Criteria andDescNotLike(String value) {
-            addCriterion("desc not like", value, "desc");
+        public Criteria andApplyDescNotLike(String value) {
+            addCriterion("apply_desc not like", value, "applyDesc");
             return (Criteria) this;
         }
 
-        public Criteria andDescIn(List<String> values) {
-            addCriterion("desc in", values, "desc");
+        public Criteria andApplyDescIn(List<String> values) {
+            addCriterion("apply_desc in", values, "applyDesc");
             return (Criteria) this;
         }
 
-        public Criteria andDescNotIn(List<String> values) {
-            addCriterion("desc not in", values, "desc");
+        public Criteria andApplyDescNotIn(List<String> values) {
+            addCriterion("apply_desc not in", values, "applyDesc");
             return (Criteria) this;
         }
 
-        public Criteria andDescBetween(String value1, String value2) {
-            addCriterion("desc between", value1, value2, "desc");
+        public Criteria andApplyDescBetween(String value1, String value2) {
+            addCriterion("apply_desc between", value1, value2, "applyDesc");
             return (Criteria) this;
         }
 
-        public Criteria andDescNotBetween(String value1, String value2) {
-            addCriterion("desc not between", value1, value2, "desc");
+        public Criteria andApplyDescNotBetween(String value1, String value2) {
+            addCriterion("apply_desc not between", value1, value2, "applyDesc");
             return (Criteria) this;
         }
 
@@ -692,6 +692,76 @@ public class TAccountRecordExample {
 
         public Criteria andStatusNotBetween(Integer value1, Integer value2) {
             addCriterion("status not between", value1, value2, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyIsNull() {
+            addCriterion("why is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyIsNotNull() {
+            addCriterion("why is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyEqualTo(String value) {
+            addCriterion("why =", value, "why");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyNotEqualTo(String value) {
+            addCriterion("why <>", value, "why");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyGreaterThan(String value) {
+            addCriterion("why >", value, "why");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyGreaterThanOrEqualTo(String value) {
+            addCriterion("why >=", value, "why");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyLessThan(String value) {
+            addCriterion("why <", value, "why");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyLessThanOrEqualTo(String value) {
+            addCriterion("why <=", value, "why");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyLike(String value) {
+            addCriterion("why like", value, "why");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyNotLike(String value) {
+            addCriterion("why not like", value, "why");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyIn(List<String> values) {
+            addCriterion("why in", values, "why");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyNotIn(List<String> values) {
+            addCriterion("why not in", values, "why");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyBetween(String value1, String value2) {
+            addCriterion("why between", value1, value2, "why");
+            return (Criteria) this;
+        }
+
+        public Criteria andWhyNotBetween(String value1, String value2) {
+            addCriterion("why not between", value1, value2, "why");
             return (Criteria) this;
         }
     }

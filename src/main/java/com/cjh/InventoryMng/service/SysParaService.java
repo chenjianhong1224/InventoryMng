@@ -12,7 +12,11 @@ public interface SysParaService {
 	
 	List<TSysParam> getAllManufacturer();
 	
+	List<TSysParam> getAllAccountType();
+	
 	String getBrandName(String brandId);
+	
+	String getAccountRecordTypeName(String typeId);
 	
 	String getManufacturerName(String manufacturerId);
 	

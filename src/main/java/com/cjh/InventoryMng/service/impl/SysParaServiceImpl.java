@@ -102,4 +102,23 @@ public class SysParaServiceImpl implements SysParaService {
 		return bean;
 	}
 
+	@Override
+	public String getAccountRecordTypeName(String typeId) {
+		TSysParamExample example = new TSysParamExample();
+		example.createCriteria().andParamKeyEqualTo(typeId).andParamNameEqualTo(Constants.AccountRecordTypeParamName);
+		List<TSysParam> resultList = tSysParamMapper.selectByExample(example);
+		if (CollectionUtils.isEmpty(resultList)) {
+			return null;
+		}
+		return resultList.get(0).getParamValue();
+	}
+
+	@Override
+	public List<TSysParam> getAllAccountType() {
+		TSysParamExample example = new TSysParamExample();
+		example.createCriteria().andParamNameEqualTo(Constants.AccountRecordTypeParamName);
+		List<TSysParam> resultList = tSysParamMapper.selectByExample(example);
+		return resultList;
+	}
+
 }

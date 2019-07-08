@@ -8,6 +8,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -32,10 +33,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import com.cjh.InventoryMng.bean.PlatformProfitImportBean;
 import com.cjh.InventoryMng.bean.UserInfo;
 import com.cjh.InventoryMng.bean.PlatformProfitImportBean.ProfitBean;
+import com.cjh.InventoryMng.entity.TAccountRecord;
 import com.cjh.InventoryMng.entity.TMemberInfo;
 import com.cjh.InventoryMng.entity.TPlatformProfit;
 import com.cjh.InventoryMng.entity.TSysParam;
@@ -46,8 +50,10 @@ import com.cjh.InventoryMng.service.OrderService;
 import com.cjh.InventoryMng.service.ProfitService;
 import com.cjh.InventoryMng.service.SupplierService;
 import com.cjh.InventoryMng.service.SysParaService;
+import com.cjh.InventoryMng.service.UserService;
 import com.cjh.InventoryMng.utils.DateUtils;
 import com.cjh.InventoryMng.utils.ExcelUtils;
+import com.cjh.InventoryMng.vo.ApplyAccountRecordVO;
 import com.cjh.InventoryMng.vo.MemberOrderInfoVO;
 import com.cjh.InventoryMng.vo.PlatformProfitVO;
 import com.cjh.InventoryMng.vo.ResultMap;
@@ -74,6 +80,9 @@ public class FinancialController {
 
 	@Autowired
 	private FinancialService financialService;
+
+	@Autowired
+	private UserService userService;
 
 	@Autowired
 	private OrderService orderSerice;
@@ -591,5 +600,90 @@ public class FinancialController {
 		} finally {
 			toClient.close();
 		}
+	}
+
+	@RequestMapping(value = "/queryAccountRecordsPage")
+	public String queryAccountRecordsPage(Model model) {
+		List<TSysParam> brandList = sysParaService.getAllAccountType();
+		TSysParam all = new TSysParam();
+		List<TSysParam> returnBrandList = Lists.newArrayList();
+		for (TSysParam e : brandList) {
+			returnBrandList.add(e);
+		}
+		model.addAttribute("typeList", returnBrandList);
+		return "manager/financial_account_record";
+	}
+
+	@RequestMapping(value = "/queryAccountRecords", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> queryAccountRecords(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		Integer page = (Integer) reqMap.get("page");
+		Integer limit = (Integer) reqMap.get("limit");
+		String beginDate = (String) reqMap.get("beginDate");
+		String endDate = (String) reqMap.get("endDate");
+		String desc = (String) reqMap.get("desc");
+		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
+		try {
+			Page<TAccountRecord> records = financialService.queryTAccountRecord(beginDate, endDate, desc, creator, page,
+					limit);
+			List<ApplyAccountRecordVO> returnVOList = Lists.newArrayList();
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			for (TAccountRecord tAccountRecord : records) {
+				ApplyAccountRecordVO vo = new ApplyAccountRecordVO();
+				vo.setApprover(userService.getUserName(tAccountRecord.getRecordUserId()));
+				vo.setAmount(new DecimalFormat("#.##").format((double) (tAccountRecord.getAmount()) / 100));
+				vo.setCreateStaff(tAccountRecord.getCreateStaff());
+				vo.setCreateTime(sdf.format(tAccountRecord.getCreateTime()));
+				vo.setDesc(tAccountRecord.getApplyDesc());
+				vo.setId(tAccountRecord.getId());
+				vo.setStatus(tAccountRecord.getStatus() == 1 ? "通过" : (tAccountRecord.getStatus() == 0 ? "待审批" : "驳回"));
+				vo.setTheDate(tAccountRecord.getTheDate());
+				vo.setType(sysParaService.getAccountRecordTypeName(tAccountRecord.getType()));
+				vo.setWhy(tAccountRecord.getWhy());
+				returnVOList.add(vo);
+			}
+			resultMap.setDataList(returnVOList);
+			Map<String, Object> t = resultMap.toMap();
+			t.put("count", records.getTotal());
+			return t;
+		} catch (ParseException e) {
+			e.printStackTrace();
+			resultMap.setFailed();
+			resultMap.setMessage("出现异常");
+		}
+		return resultMap.toMap();
+	}
+
+	@RequestMapping(value = "/newAccountRecordApply", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> newAccountRecordApply(HttpServletRequest httpServletRequest) throws IOException {
+		ResultMap resultMap = ResultMap.one();
+		CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(
+				httpServletRequest.getSession().getServletContext());
+		if (multipartResolver.isMultipart(httpServletRequest)) {
+			MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) httpServletRequest;
+			String type = multiRequest.getParameter("applyType");
+			String amountStr = multiRequest.getParameter("amount");
+			int amount = (int) (Double.valueOf(amountStr) * 100);
+			String desc = multiRequest.getParameter("applyDesc");
+			String theDate = multiRequest.getParameter("theDate");
+			byte[] file1 = null;
+			byte[] file2 = null;
+			String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
+			Iterator<String> iterator = multiRequest.getFileNames();
+			while (iterator.hasNext()) {
+				MultipartFile file = multiRequest.getFile(iterator.next());
+				if (file != null) {
+					if ("file1".equals(file.getName())) {
+						file1 = file.getBytes();
+					} else {
+						file2 = file.getBytes();
+					}
+				}
+			}
+			financialService.newTAccountRecord(creator, theDate, type, desc, amount, file1, file2);
+		}
+		return resultMap.toMap();
 	}
 }
