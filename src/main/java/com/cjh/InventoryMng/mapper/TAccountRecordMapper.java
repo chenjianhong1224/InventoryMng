@@ -17,7 +17,7 @@ public interface TAccountRecordMapper {
 
     int insertSelective(TAccountRecordWithBLOBs record);
 
-    Page<TAccountRecordWithBLOBs> selectByExampleWithBLOBs(TAccountRecordExample example);
+    List<TAccountRecordWithBLOBs> selectByExampleWithBLOBs(TAccountRecordExample example);
 
     Page<TAccountRecord> selectByExample(TAccountRecordExample example);
 

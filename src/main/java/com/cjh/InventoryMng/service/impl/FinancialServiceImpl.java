@@ -1,5 +1,6 @@
 package com.cjh.InventoryMng.service.impl;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -7,14 +8,19 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.cjh.InventoryMng.constants.Constants.EnumOpType;
+import com.cjh.InventoryMng.entity.TAccountRecord;
+import com.cjh.InventoryMng.entity.TAccountRecordExample;
+import com.cjh.InventoryMng.entity.TAccountRecordWithBLOBs;
 import com.cjh.InventoryMng.entity.TFinanicalOpLog;
 import com.cjh.InventoryMng.entity.TGoodsInfo;
 import com.cjh.InventoryMng.entity.TMemberReduce;
 import com.cjh.InventoryMng.entity.TOrderInfo;
 import com.cjh.InventoryMng.entity.TOrderInfoExample;
 import com.cjh.InventoryMng.exception.BusinessException;
+import com.cjh.InventoryMng.mapper.TAccountRecordMapper;
 import com.cjh.InventoryMng.mapper.TFinanicalOpLogMapper;
 import com.cjh.InventoryMng.mapper.TGoodsInfoMapper;
 import com.cjh.InventoryMng.mapper.TMemberInfoMapper;
@@ -22,6 +28,7 @@ import com.cjh.InventoryMng.mapper.TMemberReduceMapper;
 import com.cjh.InventoryMng.mapper.TOrderInfoMapper;
 import com.cjh.InventoryMng.service.FinancialService;
 import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 
 @Service
 @Transactional
@@ -41,6 +48,9 @@ public class FinancialServiceImpl implements FinancialService {
 
 	@Autowired
 	private TMemberReduceMapper tMemberReduceMapper;
+
+	@Autowired
+	private TAccountRecordMapper tAccountRecordMapper;
 
 	@Override
 	public boolean newMemberOrder(String operator, Integer memberId, String memberName, Integer goodId, double buyNum,
@@ -198,5 +208,36 @@ public class FinancialServiceImpl implements FinancialService {
 		opLogRecord.setOpDesc(opDesc);
 		tFinanicalOpLogMapper.insert(opLogRecord);
 		return true;
+	}
+
+	@Override
+	public Page<TAccountRecord> queryTAccountRecord(String beginDate, String endDate, String desc, String userId,
+			int pageNo, int pageSize) throws ParseException {
+		TAccountRecordExample example = new TAccountRecordExample();
+		PageHelper.startPage(pageNo, pageSize);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		if (StringUtils.isEmpty(desc)) {
+			desc = "";
+		}
+		example.createCriteria().andApplyDescLike("%" + desc + "%").andCreateStaffEqualTo(userId)
+				.andCreateTimeGreaterThanOrEqualTo(sdf.parse(beginDate))
+				.andCreateTimeLessThanOrEqualTo(sdf.parse(endDate));
+		return tAccountRecordMapper.selectByExample(example);
+	}
+
+	@Override
+	public boolean newTAccountRecord(String creator, String theDate, String type, String desc, Integer amount,
+			byte[] file1, byte[] file2) {
+		TAccountRecordWithBLOBs record = new TAccountRecordWithBLOBs();
+		record.setAmount(amount);
+		record.setApplyDesc(desc);
+		record.setCreateStaff(creator);
+		record.setCreateTime(new Date());
+		record.setFile1(file1);
+		record.setFile2(file2);
+		record.setStatus(0);
+		record.setTheDate(theDate);
+		record.setType(type);
+		return 1 == tAccountRecordMapper.insertSelective(record);
 	}
 }

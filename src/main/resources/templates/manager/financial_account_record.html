@@ -1,0 +1,268 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div class="layui-main mgt10">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 22px;
+}
+</style>
+		<script type="text/html" id="opBar">
+			<a class="layui-btn layui-btn-xs" lay-event="download1">附件1</a>&nbsp;
+			<a class="layui-btn layui-btn-xs" lay-event="download2">附件2</a>
+		</script>
+		<script type="text/javascript">
+			var addApplys;
+			$(function() {
+				addApplys = $("#add-apply").html();
+				$("#add-apply").html("");
+				layui.use('form', function() {
+					var form = layui.form;
+					form.render('select', 'form1');
+				});
+			});
+			layui.use('laydate', function() {
+
+				var laydate = layui.laydate;
+
+				//执行一个laydate实例
+				laydate.render({
+					elem : '#beginTime' //指定元素
+					,
+					value : getBillBeginDate(),
+					trigger : 'click',
+
+				});
+				laydate.render({
+					elem : '#endTime' //指定元素
+					,
+					value : getBillEndDate(),
+					trigger : 'click',
+
+				});
+			});
+		</script>
+		<script type="text/javascript">
+			layui.use('table',
+					function() {
+						var table = layui.table;
+						//第一个实例
+						table
+								.render({
+									elem : '#accountRecords',
+									url : '/financial/queryAccountRecords' //数据接口
+									,
+									contentType : 'application/json',
+									method : 'post',
+									page : true //开启分页
+									,
+									where : {
+										beginDate : getBillBeginDate().format(
+												"yyyy-MM-dd"),
+										endDate : getBillEndDate().format(
+												"yyyy-MM-dd"),
+									},
+									cols : [ [ //表头
+									{
+										field : 'id',
+										title : 'ID',
+										width : 60,
+										sort : true,
+									}, {
+										field : 'createStaff',
+										title : 'createStaff',
+										width : 60,
+										sort : true,
+									}, {
+										field : 'type',
+										title : '报销类型',
+										width : 90,
+									}, {
+										field : 'amount',
+										title : '金额',
+										width : 80
+									}, {
+										field : 'theDate',
+										title : '报销日期',
+										width : 110
+									}, {
+										field : 'desc',
+										title : '事由',
+										width : 160
+									}, {
+										field : 'recordUser',
+										title : '审批人',
+										width : 80
+									}, {
+										field : 'status',
+										title : '审批状态',
+										width : 90
+									}, {
+										field : 'createTime',
+										title : '申请时间',
+										width : 180
+									}, {
+										field : 'why',
+										title : '拒绝原因',
+										width : 140
+									}, {
+										field : 'file',
+										title : '附件',
+										width : 140,
+										toolbar : "#opBar",
+									} ] ],
+									done : function(res, curr, count) {
+										$("[data-field='createStaff']").css(
+												'display', 'none');
+										$("[data-field='id']").css('display',
+												'none');
+									}
+								});
+						var $ = layui.$, active = {
+							reload : function() {
+								//执行重载
+								table.reload('accountRecords', {
+									page : {
+										curr : 1
+									//重新从第 1 页开始
+									},
+									where : {
+										beginDate : $("#beginTime").val(),
+										endDate : $("#endTime").val(),
+									}
+								});
+							}
+						};
+						$('#queryButton').on('click', function() {
+							var type = $(this).data('type');
+							active[type] ? active[type].call(this) : '';
+						});
+					});
+			function onAddBtn() {
+				layer.open({
+					type : 1,
+					title : "新建申请",
+					closeBtn : false,
+					shift : 2,
+					area : [ '490px', '560px' ],
+					shadeClose : true,
+					content : $("#open-main"),
+					success : function(layero, index) {
+						$("#open-main").html("");
+						$("#open-main").html(addApplys);
+						layui.laydate.render({
+							elem : '#theDate' //指定元素
+							,
+							value : new Date(),
+							trigger : 'click',
+
+						});
+						var form = layui.form;
+						form.render('select', 'form1');
+					},
+					yes : function() {
+					}
+				});
+			}
+			function CloseWin() {
+				layer.close(layer.index);
+			}
+			function newApply() {
+				$("#applyform1").submit();
+			}
+		</script>
+		<label class="layui-inline mgr10">申请事由</label>
+		<div class="layui-inline mgr10">
+			<input type="text" id="desc" name="desc" required
+				lay-verify="required" placeholder="请输入申请事由" autocomplete="off"
+				class="layui-input">
+		</div>
+		<div class="layui-inline mgr10">
+			<label>开始时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="beginTime">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label>结束时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="endTime">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="queryButton"
+				data-type="reload">查询</button>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="addButton"
+				onclick="onAddBtn()">新增</button>
+		</div>
+		<div>
+			<table id="accountRecords" lay-filter="accountRecords"></table>
+		</div>
+	</div>
+	<!-- 新增申请框 -->
+	<div id="add-apply" style="display: none;">
+		<form class="layui-form" action="/financial/newAccountRecordApply" lay-filter="form1" id="applyform1" method="post" enctype="multipart/form-data">
+
+			<div class="layui-form-item mgt30">
+				<label class="layui-form-label">报销类型</label>
+				<div class="layui-input-block" style="width: 100px">
+					<select id="applyType" name="applyType" lay-filter="applyType"
+						class="layui-select" lay-search>
+						<option th:each="type : ${typeList}"
+							th:value="
+						${type.paramKey}" th:text="${type.paramValue}">全部</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="layui-form-item center mgt30">
+				<label class="layui-form-label">报销金额（单位元）</label>
+				<div class="layui-input-block">
+					<input type="text" id="amount" name="amount" required value=""
+						style="width: 100px" lay-verify="required" autocomplete="off"
+						class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item center mgt20">
+				<label class="layui-form-label">事由</label>
+				<div class="layui-input-block">
+					<input type="text" id="applyDesc" name="applyDesc" required value=""
+						style="width: 280px" lay-verify="required" autocomplete="off"
+						class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item center mgt30">
+				<label class="layui-form-label">报销日期</label>
+				<div class="layui-input-block">
+					<input type="text" id="theDate" name="theDate" class="layui-input"
+						style="width: 180px">
+				</div>
+			</div>
+			<div class="layui-form-item center mgt30">
+				<label class="layui-form-label">附件1</label>
+				<div class="layui-input-block">
+					<input type="file" name="file1" class="mgt10" />
+				</div>
+			</div>
+			<div class="layui-form-item center mgt30">
+				<label class="layui-form-label">附件2</label>
+				<div class="layui-input-block">
+					<input type="file" name="file2" class="mgt10" />
+				</div>
+			</div>
+		</form>
+		<div class="layui-form-item mgt30">
+			<div class="layui-input-block">
+				<button class="layui-btn" lay-submit lay-filter="save"
+					onclick="newApply()">立即提交</button>
+				<button type="reset" class="layui-btn layui-btn-primary"
+					id="closeBtn" onclick="CloseWin()">关闭</button>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

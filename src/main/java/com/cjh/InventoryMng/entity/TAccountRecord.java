@@ -15,11 +15,13 @@ public class TAccountRecord {
 
     private String theDate;
 
-    private String desc;
+    private String applyDesc;
 
     private String recordUserId;
 
     private Integer status;
+
+    private String why;
 
     public Integer getId() {
         return id;
@@ -69,12 +71,12 @@ public class TAccountRecord {
         this.theDate = theDate == null ? null : theDate.trim();
     }
 
-    public String getDesc() {
-        return desc;
+    public String getApplyDesc() {
+        return applyDesc;
     }
 
-    public void setDesc(String desc) {
-        this.desc = desc == null ? null : desc.trim();
+    public void setApplyDesc(String applyDesc) {
+        this.applyDesc = applyDesc == null ? null : applyDesc.trim();
     }
 
     public String getRecordUserId() {
@@ -91,5 +93,13 @@ public class TAccountRecord {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public String getWhy() {
+        return why;
+    }
+
+    public void setWhy(String why) {
+        this.why = why == null ? null : why.trim();
     }
 }

@@ -8,9 +8,10 @@
     <result column="type" jdbcType="VARCHAR" property="type" />
     <result column="amount" jdbcType="INTEGER" property="amount" />
     <result column="the_date" jdbcType="VARCHAR" property="theDate" />
-    <result column="desc" jdbcType="VARCHAR" property="desc" />
+    <result column="apply_desc" jdbcType="VARCHAR" property="applyDesc" />
     <result column="record_user_id" jdbcType="VARCHAR" property="recordUserId" />
     <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="why" jdbcType="VARCHAR" property="why" />
   </resultMap>
   <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.cjh.InventoryMng.entity.TAccountRecordWithBLOBs">
     <result column="file1" jdbcType="LONGVARBINARY" property="file1" />
@@ -75,7 +76,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, create_time, create_staff, type, amount, the_date, desc, record_user_id, status
+    id, create_time, create_staff, type, amount, the_date, apply_desc, record_user_id, 
+    status, why
   </sql>
   <sql id="Blob_Column_List">
     file1, file2
@@ -129,13 +131,13 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into t_account_record (create_time, create_staff, type, 
-      amount, the_date, desc, 
-      record_user_id, status, file1, 
-      file2)
+      amount, the_date, apply_desc, 
+      record_user_id, status, why, 
+      file1, file2)
     values (#{createTime,jdbcType=TIMESTAMP}, #{createStaff,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, 
-      #{amount,jdbcType=INTEGER}, #{theDate,jdbcType=VARCHAR}, #{desc,jdbcType=VARCHAR}, 
-      #{recordUserId,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{file1,jdbcType=LONGVARBINARY}, 
-      #{file2,jdbcType=LONGVARBINARY})
+      #{amount,jdbcType=INTEGER}, #{theDate,jdbcType=VARCHAR}, #{applyDesc,jdbcType=VARCHAR}, 
+      #{recordUserId,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{why,jdbcType=VARCHAR}, 
+      #{file1,jdbcType=LONGVARBINARY}, #{file2,jdbcType=LONGVARBINARY})
   </insert>
   <insert id="insertSelective" parameterType="com.cjh.InventoryMng.entity.TAccountRecordWithBLOBs">
     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
@@ -158,14 +160,17 @@
       <if test="theDate != null">
         the_date,
       </if>
-      <if test="desc != null">
-        desc,
+      <if test="applyDesc != null">
+        apply_desc,
       </if>
       <if test="recordUserId != null">
         record_user_id,
       </if>
       <if test="status != null">
         status,
+      </if>
+      <if test="why != null">
+        why,
       </if>
       <if test="file1 != null">
         file1,
@@ -190,14 +195,17 @@
       <if test="theDate != null">
         #{theDate,jdbcType=VARCHAR},
       </if>
-      <if test="desc != null">
-        #{desc,jdbcType=VARCHAR},
+      <if test="applyDesc != null">
+        #{applyDesc,jdbcType=VARCHAR},
       </if>
       <if test="recordUserId != null">
         #{recordUserId,jdbcType=VARCHAR},
       </if>
       <if test="status != null">
         #{status,jdbcType=INTEGER},
+      </if>
+      <if test="why != null">
+        #{why,jdbcType=VARCHAR},
       </if>
       <if test="file1 != null">
         #{file1,jdbcType=LONGVARBINARY},
@@ -234,14 +242,17 @@
       <if test="record.theDate != null">
         the_date = #{record.theDate,jdbcType=VARCHAR},
       </if>
-      <if test="record.desc != null">
-        desc = #{record.desc,jdbcType=VARCHAR},
+      <if test="record.applyDesc != null">
+        apply_desc = #{record.applyDesc,jdbcType=VARCHAR},
       </if>
       <if test="record.recordUserId != null">
         record_user_id = #{record.recordUserId,jdbcType=VARCHAR},
       </if>
       <if test="record.status != null">
         status = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.why != null">
+        why = #{record.why,jdbcType=VARCHAR},
       </if>
       <if test="record.file1 != null">
         file1 = #{record.file1,jdbcType=LONGVARBINARY},
@@ -262,9 +273,10 @@
       type = #{record.type,jdbcType=VARCHAR},
       amount = #{record.amount,jdbcType=INTEGER},
       the_date = #{record.theDate,jdbcType=VARCHAR},
-      desc = #{record.desc,jdbcType=VARCHAR},
+      apply_desc = #{record.applyDesc,jdbcType=VARCHAR},
       record_user_id = #{record.recordUserId,jdbcType=VARCHAR},
       status = #{record.status,jdbcType=INTEGER},
+      why = #{record.why,jdbcType=VARCHAR},
       file1 = #{record.file1,jdbcType=LONGVARBINARY},
       file2 = #{record.file2,jdbcType=LONGVARBINARY}
     <if test="_parameter != null">
@@ -279,9 +291,10 @@
       type = #{record.type,jdbcType=VARCHAR},
       amount = #{record.amount,jdbcType=INTEGER},
       the_date = #{record.theDate,jdbcType=VARCHAR},
-      desc = #{record.desc,jdbcType=VARCHAR},
+      apply_desc = #{record.applyDesc,jdbcType=VARCHAR},
       record_user_id = #{record.recordUserId,jdbcType=VARCHAR},
-      status = #{record.status,jdbcType=INTEGER}
+      status = #{record.status,jdbcType=INTEGER},
+      why = #{record.why,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -304,14 +317,17 @@
       <if test="theDate != null">
         the_date = #{theDate,jdbcType=VARCHAR},
       </if>
-      <if test="desc != null">
-        desc = #{desc,jdbcType=VARCHAR},
+      <if test="applyDesc != null">
+        apply_desc = #{applyDesc,jdbcType=VARCHAR},
       </if>
       <if test="recordUserId != null">
         record_user_id = #{recordUserId,jdbcType=VARCHAR},
       </if>
       <if test="status != null">
         status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="why != null">
+        why = #{why,jdbcType=VARCHAR},
       </if>
       <if test="file1 != null">
         file1 = #{file1,jdbcType=LONGVARBINARY},
@@ -329,9 +345,10 @@
       type = #{type,jdbcType=VARCHAR},
       amount = #{amount,jdbcType=INTEGER},
       the_date = #{theDate,jdbcType=VARCHAR},
-      desc = #{desc,jdbcType=VARCHAR},
+      apply_desc = #{applyDesc,jdbcType=VARCHAR},
       record_user_id = #{recordUserId,jdbcType=VARCHAR},
       status = #{status,jdbcType=INTEGER},
+      why = #{why,jdbcType=VARCHAR},
       file1 = #{file1,jdbcType=LONGVARBINARY},
       file2 = #{file2,jdbcType=LONGVARBINARY}
     where id = #{id,jdbcType=INTEGER}
@@ -343,9 +360,10 @@
       type = #{type,jdbcType=VARCHAR},
       amount = #{amount,jdbcType=INTEGER},
       the_date = #{theDate,jdbcType=VARCHAR},
-      desc = #{desc,jdbcType=VARCHAR},
+      apply_desc = #{applyDesc,jdbcType=VARCHAR},
       record_user_id = #{recordUserId,jdbcType=VARCHAR},
-      status = #{status,jdbcType=INTEGER}
+      status = #{status,jdbcType=INTEGER},
+      why = #{why,jdbcType=VARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
 </mapper>
