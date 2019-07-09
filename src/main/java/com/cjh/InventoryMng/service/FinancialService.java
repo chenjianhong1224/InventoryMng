@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.util.Date;
 
 import com.cjh.InventoryMng.entity.TAccountRecord;
+import com.cjh.InventoryMng.entity.TAccountRecordWithBLOBs;
 import com.cjh.InventoryMng.exception.BusinessException;
 import com.github.pagehelper.Page;
 
@@ -23,7 +24,9 @@ public interface FinancialService {
 
 	Page<TAccountRecord> queryTAccountRecord(String beginDate, String endDate, String desc, String userId, int pageNo,
 			int pageSize) throws ParseException;
-	
-	boolean newTAccountRecord(String creator, String theDate, String type, String desc, Integer amount, byte[] file1,
-			byte[] file2);
+
+	TAccountRecordWithBLOBs queryTAccountRecord(Integer id);
+
+	boolean newTAccountRecord(String creator, String theDate, String type, String desc, Integer amount,
+			String file1Name, byte[] file1, String file2Name, byte[] file2);
 }

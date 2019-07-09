@@ -23,6 +23,10 @@ public class TAccountRecord {
 
     private String why;
 
+    private String file1Name;
+
+    private String file2Name;
+
     public Integer getId() {
         return id;
     }
@@ -101,5 +105,21 @@ public class TAccountRecord {
 
     public void setWhy(String why) {
         this.why = why == null ? null : why.trim();
+    }
+
+    public String getFile1Name() {
+        return file1Name;
+    }
+
+    public void setFile1Name(String file1Name) {
+        this.file1Name = file1Name == null ? null : file1Name.trim();
+    }
+
+    public String getFile2Name() {
+        return file2Name;
+    }
+
+    public void setFile2Name(String file2Name) {
+        this.file2Name = file2Name == null ? null : file2Name.trim();
     }
 }

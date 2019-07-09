@@ -241,6 +241,18 @@
 				}
 			});		
 		}
+		function showApproveAccountRecord(){
+			$.ajax({
+				type : "post",
+				url : "/financial/approveAccountRecordsPage",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});		
+		}
 	</script>
 	<article class="layui-layout layui-layout-admin">
 		<div class="layui-header" th:include="header::header"></div>
@@ -299,7 +311,12 @@
 							<dd>
 								<a href="javascript:;" onclick="showAccountRecord()">报销申请</a>
 							</dd>
-						</dl>						
+						</dl>	
+						<dl class="layui-nav-child">
+							<dd>
+								<a href="javascript:;" onclick="showApproveAccountRecord()">报销审批</a>
+							</dd>
+						</dl>					
 						</li>
 					<li shiro:hasPermission="sys:all" class="layui-nav-item"><a
 						href="javascript:;">系统管理</a>

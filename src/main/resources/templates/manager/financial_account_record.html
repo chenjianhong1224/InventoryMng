@@ -45,101 +45,110 @@
 			});
 		</script>
 		<script type="text/javascript">
-			layui.use('table',
-					function() {
-						var table = layui.table;
-						//第一个实例
-						table
-								.render({
-									elem : '#accountRecords',
-									url : '/financial/queryAccountRecords' //数据接口
-									,
-									contentType : 'application/json',
-									method : 'post',
-									page : true //开启分页
-									,
-									where : {
-										beginDate : getBillBeginDate().format(
-												"yyyy-MM-dd"),
-										endDate : getBillEndDate().format(
-												"yyyy-MM-dd"),
-									},
-									cols : [ [ //表头
-									{
-										field : 'id',
-										title : 'ID',
-										width : 60,
-										sort : true,
-									}, {
-										field : 'createStaff',
-										title : 'createStaff',
-										width : 60,
-										sort : true,
-									}, {
-										field : 'type',
-										title : '报销类型',
-										width : 90,
-									}, {
-										field : 'amount',
-										title : '金额',
-										width : 80
-									}, {
-										field : 'theDate',
-										title : '报销日期',
-										width : 110
-									}, {
-										field : 'desc',
-										title : '事由',
-										width : 160
-									}, {
-										field : 'recordUser',
-										title : '审批人',
-										width : 80
-									}, {
-										field : 'status',
-										title : '审批状态',
-										width : 90
-									}, {
-										field : 'createTime',
-										title : '申请时间',
-										width : 180
-									}, {
-										field : 'why',
-										title : '拒绝原因',
-										width : 140
-									}, {
-										field : 'file',
-										title : '附件',
-										width : 140,
-										toolbar : "#opBar",
-									} ] ],
-									done : function(res, curr, count) {
-										$("[data-field='createStaff']").css(
-												'display', 'none');
-										$("[data-field='id']").css('display',
-												'none');
-									}
-								});
-						var $ = layui.$, active = {
-							reload : function() {
-								//执行重载
-								table.reload('accountRecords', {
-									page : {
-										curr : 1
-									//重新从第 1 页开始
-									},
-									where : {
-										beginDate : $("#beginTime").val(),
-										endDate : $("#endTime").val(),
-									}
-								});
+			layui.use('table', function() {
+				var table = layui.table;
+				//第一个实例
+				table.render({
+					elem : '#accountRecords',
+					url : '/financial/queryAccountRecords' //数据接口
+					,
+					contentType : 'application/json',
+					method : 'post',
+					page : true //开启分页
+					,
+					where : {
+						beginDate : getBillBeginDate().format("yyyy-MM-dd"),
+						endDate : getBillEndDate().format("yyyy-MM-dd"),
+					},
+					cols : [ [ //表头
+					{
+						field : 'id',
+						title : 'ID',
+						width : 60,
+						sort : true,
+					}, {
+						field : 'createStaff',
+						title : 'createStaff',
+						width : 60,
+						sort : true,
+					}, {
+						field : 'type',
+						title : '报销类型',
+						width : 100,
+					}, {
+						field : 'amount',
+						title : '金额',
+						width : 80
+					}, {
+						field : 'theDate',
+						title : '报销日期',
+						width : 110
+					}, {
+						field : 'desc',
+						title : '事由',
+						width : 160
+					}, {
+						field : 'recordUser',
+						title : '审批人',
+						width : 80
+					}, {
+						field : 'status',
+						title : '审批状态',
+						width : 90
+					}, {
+						field : 'createTime',
+						title : '申请时间',
+						width : 170
+					}, {
+						field : 'why',
+						title : '拒绝原因',
+						width : 140
+					}, {
+						field : 'file',
+						title : '附件',
+						width : 140,
+						toolbar : "#opBar",
+					} ] ],
+					done : function(res, curr, count) {
+						$("[data-field='createStaff']").css('display', 'none');
+						$("[data-field='id']").css('display', 'none');
+					}
+				});
+				var $ = layui.$, active = {
+					reload : function() {
+						//执行重载
+						table.reload('accountRecords', {
+							page : {
+								curr : 1
+							//重新从第 1 页开始
+							},
+							where : {
+								beginDate : $("#beginTime").val(),
+								endDate : $("#endTime").val(),
 							}
-						};
-						$('#queryButton').on('click', function() {
-							var type = $(this).data('type');
-							active[type] ? active[type].call(this) : '';
 						});
-					});
+					}
+				};
+				$('#queryButton').on('click', function() {
+					var type = $(this).data('type');
+					active[type] ? active[type].call(this) : '';
+				});
+				table.on('tool(accountRecords)', function(obj) {
+					var data = obj.data; //获得当前行数据
+					var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+					var tr = obj.tr; //获得当前行 tr 的DOM对象
+					if (layEvent == 'download1') {
+						onDownloadBtn(data, "file1");
+					} else if (layEvent == 'download2') {
+						onDownloadBtn(data, "file2");
+					}
+				});
+				function onDownloadBtn(data, name) {
+					var url = '/financial/downloadAccountRecordFile?id='
+							+ data.id + '&fileName=' + name;
+					window.open(url, 'top');
+				}
+			});
 			function onAddBtn() {
 				layer.open({
 					type : 1,
@@ -170,7 +179,35 @@
 				layer.close(layer.index);
 			}
 			function newApply() {
-				$("#applyform1").submit();
+				var reg = /^[0-9]+(.[0-9]{2})?$/;
+				if (!reg.test($("#amount").val())) {
+					alert("请输入正确报销金额");
+					return false;
+				}
+				if($("#applyDesc").val().length==0){
+					alert("请填写事由");
+					return false;
+				}
+				var targetUrl = $("#applyform1").attr("action");
+				var data = new FormData($("#applyform1")[0]);
+				$.ajax({
+					type : 'post',
+					url : targetUrl,
+					cache : false, //上传文件不需缓存
+					processData : false, //需设置为false。因为data值是FormData对象，不需要对数据做处理
+					contentType : false, //需设置为false。因为是FormData对象，且已经声明了属性enctype="multipart/form-data"
+					data : data,
+					success : function(data) {
+						alert('提交成功');
+						CloseWin();
+						$("#queryButton").click();
+					},
+					error : function() {
+						alert("提交失败，可能上传附件过大，请确保在1M以内");
+						CloseWin();
+						$("#queryButton").click();
+					}
+				});
 			}
 		</script>
 		<label class="layui-inline mgr10">申请事由</label>
@@ -205,7 +242,9 @@
 	</div>
 	<!-- 新增申请框 -->
 	<div id="add-apply" style="display: none;">
-		<form class="layui-form" action="/financial/newAccountRecordApply" lay-filter="form1" id="applyform1" method="post" enctype="multipart/form-data">
+		<form class="layui-form" action="/financial/newAccountRecordApply"
+			lay-filter="form1" id="applyform1" method="post"
+			enctype="multipart/form-data">
 
 			<div class="layui-form-item mgt30">
 				<label class="layui-form-label">报销类型</label>
@@ -230,9 +269,9 @@
 			<div class="layui-form-item center mgt20">
 				<label class="layui-form-label">事由</label>
 				<div class="layui-input-block">
-					<input type="text" id="applyDesc" name="applyDesc" required value=""
-						style="width: 280px" lay-verify="required" autocomplete="off"
-						class="layui-input">
+					<input type="text" id="applyDesc" name="applyDesc" required
+						value="" style="width: 280px" lay-verify="required"
+						autocomplete="off" class="layui-input">
 				</div>
 			</div>
 			<div class="layui-form-item center mgt30">

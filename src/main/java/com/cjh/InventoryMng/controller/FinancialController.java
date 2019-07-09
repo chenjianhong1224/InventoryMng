@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -40,6 +41,7 @@ import com.cjh.InventoryMng.bean.PlatformProfitImportBean;
 import com.cjh.InventoryMng.bean.UserInfo;
 import com.cjh.InventoryMng.bean.PlatformProfitImportBean.ProfitBean;
 import com.cjh.InventoryMng.entity.TAccountRecord;
+import com.cjh.InventoryMng.entity.TAccountRecordWithBLOBs;
 import com.cjh.InventoryMng.entity.TMemberInfo;
 import com.cjh.InventoryMng.entity.TPlatformProfit;
 import com.cjh.InventoryMng.entity.TSysParam;
@@ -670,6 +672,8 @@ public class FinancialController {
 			String theDate = multiRequest.getParameter("theDate");
 			byte[] file1 = null;
 			byte[] file2 = null;
+			String file1Name = null;
+			String file2Name = null;
 			String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
 			Iterator<String> iterator = multiRequest.getFileNames();
 			while (iterator.hasNext()) {
@@ -677,13 +681,55 @@ public class FinancialController {
 				if (file != null) {
 					if ("file1".equals(file.getName())) {
 						file1 = file.getBytes();
+						file1Name = file.getOriginalFilename();
 					} else {
 						file2 = file.getBytes();
+						file2Name = file.getOriginalFilename();
 					}
 				}
 			}
-			financialService.newTAccountRecord(creator, theDate, type, desc, amount, file1, file2);
+			financialService.newTAccountRecord(creator, theDate, type, desc, amount, file1Name, file1, file2Name,
+					file2);
 		}
 		return resultMap.toMap();
+	}
+
+	@RequestMapping(value = "/downloadAccountRecordFile")
+	public void downloadAccountRecordFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		String id = request.getParameter("id");
+		String fileName = request.getParameter("fileName");
+		TAccountRecordWithBLOBs tAccountRecord = financialService.queryTAccountRecord(Integer.valueOf(id));
+		String userAgent = request.getHeader("User-Agent");
+		try {
+			byte[] bfile = null;
+			if ("file1".equals(fileName)) {
+				bfile = tAccountRecord.getFile1();
+				fileName = tAccountRecord.getFile1Name();
+			} else {
+				bfile = tAccountRecord.getFile2();
+				fileName = tAccountRecord.getFile2Name();
+			}
+			// 针对IE或者以IE为内核的浏览器：
+			if (userAgent.contains("MSIE") || userAgent.contains("Trident")) {
+				fileName = java.net.URLEncoder.encode(fileName, "UTF-8");
+			} else {
+				// 非IE浏览器的处理：
+				fileName = new String(fileName.getBytes("UTF-8"), "ISO-8859-1");
+			}
+			if (bfile != null && bfile.length != 0) {
+				output(fileName, bfile, response);
+			} else {
+				response.setContentType("text/html;charset=utf-8");
+				PrintWriter out = response.getWriter();
+				String html = "<html><script>function emptyAlert(){alert(\"无附件\"); window.close(); }</script><body onload=\"emptyAlert()\"></body></html>";
+				out.println(html);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("downloadAccountRecordFile 出现异常", e);
+			response.setStatus(500);
+			response.sendError(500);
+		}
+		log.info("downloadAccountRecordFile end...");
 	}
 }

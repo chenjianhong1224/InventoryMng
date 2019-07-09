@@ -227,17 +227,24 @@ public class FinancialServiceImpl implements FinancialService {
 
 	@Override
 	public boolean newTAccountRecord(String creator, String theDate, String type, String desc, Integer amount,
-			byte[] file1, byte[] file2) {
+			String file1Name, byte[] file1, String file2Name, byte[] file2) {
 		TAccountRecordWithBLOBs record = new TAccountRecordWithBLOBs();
 		record.setAmount(amount);
 		record.setApplyDesc(desc);
 		record.setCreateStaff(creator);
 		record.setCreateTime(new Date());
+		record.setFile1Name(file1Name);
 		record.setFile1(file1);
+		record.setFile2Name(file2Name);
 		record.setFile2(file2);
 		record.setStatus(0);
 		record.setTheDate(theDate);
 		record.setType(type);
 		return 1 == tAccountRecordMapper.insertSelective(record);
+	}
+
+	@Override
+	public TAccountRecordWithBLOBs queryTAccountRecord(Integer id) {
+		return tAccountRecordMapper.selectByPrimaryKey(id);
 	}
 }
