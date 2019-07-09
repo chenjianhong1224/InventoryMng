@@ -10,11 +10,15 @@ public interface SysParaService {
 	
 	List<TSysParam> getAllBrand();
 	
+	List<TSysParam> getAllCost();
+	
 	List<TSysParam> getAllManufacturer();
 	
 	List<TSysParam> getAllAccountType();
 	
 	String getBrandName(String brandId);
+	
+	String getCostName(String typeId);
 	
 	String getAccountRecordTypeName(String typeId);
 	

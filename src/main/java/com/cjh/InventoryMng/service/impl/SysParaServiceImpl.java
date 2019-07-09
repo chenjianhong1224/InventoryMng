@@ -121,4 +121,23 @@ public class SysParaServiceImpl implements SysParaService {
 		return resultList;
 	}
 
+	@Override
+	public List<TSysParam> getAllCost() {
+		TSysParamExample example = new TSysParamExample();
+		example.createCriteria().andParamNameEqualTo(Constants.CostTypeParamName);
+		List<TSysParam> resultList = tSysParamMapper.selectByExample(example);
+		return resultList;
+	}
+
+	@Override
+	public String getCostName(String typeId) {
+		TSysParamExample example = new TSysParamExample();
+		example.createCriteria().andParamKeyEqualTo(typeId).andParamNameEqualTo(Constants.CostTypeParamName);
+		List<TSysParam> resultList = tSysParamMapper.selectByExample(example);
+		if (CollectionUtils.isEmpty(resultList)) {
+			return null;
+		}
+		return resultList.get(0).getParamValue();
+	}
+
 }

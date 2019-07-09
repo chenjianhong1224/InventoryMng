@@ -42,6 +42,7 @@ import com.cjh.InventoryMng.bean.UserInfo;
 import com.cjh.InventoryMng.bean.PlatformProfitImportBean.ProfitBean;
 import com.cjh.InventoryMng.entity.TAccountRecord;
 import com.cjh.InventoryMng.entity.TAccountRecordWithBLOBs;
+import com.cjh.InventoryMng.entity.TCostRecord;
 import com.cjh.InventoryMng.entity.TMemberInfo;
 import com.cjh.InventoryMng.entity.TPlatformProfit;
 import com.cjh.InventoryMng.entity.TSysParam;
@@ -56,6 +57,7 @@ import com.cjh.InventoryMng.service.UserService;
 import com.cjh.InventoryMng.utils.DateUtils;
 import com.cjh.InventoryMng.utils.ExcelUtils;
 import com.cjh.InventoryMng.vo.ApplyAccountRecordVO;
+import com.cjh.InventoryMng.vo.CostRecordVO;
 import com.cjh.InventoryMng.vo.MemberOrderInfoVO;
 import com.cjh.InventoryMng.vo.PlatformProfitVO;
 import com.cjh.InventoryMng.vo.ResultMap;
@@ -606,14 +608,26 @@ public class FinancialController {
 
 	@RequestMapping(value = "/queryAccountRecordsPage")
 	public String queryAccountRecordsPage(Model model) {
-		List<TSysParam> brandList = sysParaService.getAllAccountType();
+		List<TSysParam> accountTypeList = sysParaService.getAllAccountType();
 		TSysParam all = new TSysParam();
-		List<TSysParam> returnBrandList = Lists.newArrayList();
-		for (TSysParam e : brandList) {
-			returnBrandList.add(e);
+		List<TSysParam> returnAccountTypeList = Lists.newArrayList();
+		for (TSysParam e : accountTypeList) {
+			returnAccountTypeList.add(e);
 		}
-		model.addAttribute("typeList", returnBrandList);
+		model.addAttribute("typeList", returnAccountTypeList);
 		return "manager/financial_account_record";
+	}
+
+	@RequestMapping(value = "/approveAccountRecordsPage")
+	public String approveAccountRecordsPage(Model model) {
+		List<TSysParam> accountTypeList = sysParaService.getAllAccountType();
+		TSysParam all = new TSysParam();
+		List<TSysParam> returnAccountTypeList = Lists.newArrayList();
+		for (TSysParam e : accountTypeList) {
+			returnAccountTypeList.add(e);
+		}
+		model.addAttribute("typeList", returnAccountTypeList);
+		return "manager/financial_approve_account_record";
 	}
 
 	@RequestMapping(value = "/queryAccountRecords", method = RequestMethod.POST)
@@ -630,12 +644,12 @@ public class FinancialController {
 			Page<TAccountRecord> records = financialService.queryTAccountRecord(beginDate, endDate, desc, creator, page,
 					limit);
 			List<ApplyAccountRecordVO> returnVOList = Lists.newArrayList();
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
 			for (TAccountRecord tAccountRecord : records) {
 				ApplyAccountRecordVO vo = new ApplyAccountRecordVO();
 				vo.setApprover(userService.getUserName(tAccountRecord.getRecordUserId()));
 				vo.setAmount(new DecimalFormat("#.##").format((double) (tAccountRecord.getAmount()) / 100));
-				vo.setCreateStaff(tAccountRecord.getCreateStaff());
+				vo.setCreateStaff(userService.getUserName(tAccountRecord.getCreateStaff()));
 				vo.setCreateTime(sdf.format(tAccountRecord.getCreateTime()));
 				vo.setDesc(tAccountRecord.getApplyDesc());
 				vo.setId(tAccountRecord.getId());
@@ -694,6 +708,27 @@ public class FinancialController {
 		return resultMap.toMap();
 	}
 
+	@RequestMapping(value = "/approveAccountRecordApply", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> approveAccountRecordApply(@RequestBody Map<String, Object> reqMap) throws IOException {
+		ResultMap resultMap = ResultMap.one();
+		Integer id = (Integer) reqMap.get("id");
+		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
+		financialService.approveAccountRecord(Integer.valueOf(id), creator);
+		return resultMap.toMap();
+	}
+
+	@RequestMapping(value = "/rejectAccountRecordApply", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> rejectAccountRecordApply(@RequestBody Map<String, Object> reqMap) throws IOException {
+		ResultMap resultMap = ResultMap.one();
+		Integer id = (Integer) reqMap.get("id");
+		String why = (String) reqMap.get("why");
+		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
+		financialService.rejectAccountRecord(Integer.valueOf(id), creator, why);
+		return resultMap.toMap();
+	}
+
 	@RequestMapping(value = "/downloadAccountRecordFile")
 	public void downloadAccountRecordFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String id = request.getParameter("id");
@@ -731,5 +766,106 @@ public class FinancialController {
 			response.sendError(500);
 		}
 		log.info("downloadAccountRecordFile end...");
+	}
+
+	@RequestMapping(value = "/costPage")
+	public String costPage(Model model) {
+		List<TSysParam> costList = sysParaService.getAllCost();
+		TSysParam all = new TSysParam();
+		all.setParamValue("全部");
+		all.setParamKey("0");
+		List<TSysParam> returnCostList = Lists.newArrayList();
+		returnCostList.add(all);
+		for (TSysParam e : costList) {
+			returnCostList.add(e);
+		}
+		model.addAttribute("costList", returnCostList);
+		return "manager/cost_record";
+	}
+
+	@RequestMapping(value = "/queryCost", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> queryCost(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		Integer page = (Integer) reqMap.get("page");
+		Integer limit = (Integer) reqMap.get("limit");
+		String beginDate = (String) reqMap.get("beginDate");
+		String endDate = (String) reqMap.get("endDate");
+		String costTypeId = (String) reqMap.get("costTypeId");
+		try {
+			Page<TCostRecord> costList = financialService.queryTCostRecord(beginDate, endDate, costTypeId,
+					Integer.valueOf(page), Integer.valueOf(limit));
+			List<CostRecordVO> returnVOList = Lists.newArrayList();
+			double costAmount = 0;
+			for (TCostRecord cost : costList) {
+				CostRecordVO vo = new CostRecordVO();
+				vo.setCostDesc(cost.getCostDesc());
+				vo.setCostTime(cost.getCostTime());
+				vo.setId(cost.getId());
+				vo.setCostType(cost.getType());
+				vo.setCostName(sysParaService.getCostName(cost.getType()));
+				vo.setAmount(new DecimalFormat("#.##").format((double) (cost.getAmount()) / 100));
+				returnVOList.add(vo);
+				costAmount += cost.getAmount();
+			}
+			resultMap.setDataList(returnVOList);
+			Map<String, Object> t = resultMap.toMap();
+			t.put("count", costList.getTotal());
+			t.put("amount", new DecimalFormat("#.##").format((double) (costAmount) / 100));
+			return t;
+		} catch (ParseException e) {
+			e.printStackTrace();
+			resultMap.setFailed();
+			resultMap.setMessage("出现异常");
+		}
+		return resultMap.toMap();
+	}
+
+	@RequestMapping(value = "/newCost", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> newCost(@RequestBody Map<String, Object> reqMap) throws IOException {
+		ResultMap resultMap = ResultMap.one();
+		String costTypeId = (String) reqMap.get("costTypeId");
+		String costAmount = (String) reqMap.get("costAmount");
+		String costDesc = (String) reqMap.get("costDesc");
+		String costDate = (String) reqMap.get("costDate");
+		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
+		try {
+			if (!financialService.newCost(creator, costTypeId, costDesc, Integer.valueOf(costAmount), costDate)) {
+				resultMap.setFailed();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.setFailed();
+			resultMap.setMessage("异常" + e.getMessage());
+			return resultMap.toMap();
+		}
+		return resultMap.toMap();
+	}
+
+	@RequestMapping(value = "/modifyCost", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> modifyCost(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		String id = (String) reqMap.get("id");
+		String costAmount = (String) reqMap.get("costAmount");
+		String costDesc = (String) reqMap.get("costDesc");
+		String costDate = (String) reqMap.get("costDate");
+		String costType = (String) reqMap.get("costType");
+		if (StringUtils.isEmpty(costAmount)) {
+			costAmount = "0";
+		}
+		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
+		try {
+			if (!financialService.modifyCost(Integer.valueOf(id), creator, costType, costDesc, Integer.valueOf(costAmount), costDate)) {
+				resultMap.setFailed();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.setFailed();
+			resultMap.setMessage("异常" + e.getMessage());
+			return resultMap.toMap();
+		}
+		return resultMap.toMap();
 	}
 }

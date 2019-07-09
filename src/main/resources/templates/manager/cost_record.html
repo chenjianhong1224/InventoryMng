@@ -1,0 +1,391 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div class="layui-main mgt10">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 20px;
+}
+</style>
+		<script type="text/html" id="opBar">
+			<a class="layui-btn layui-btn-xs" lay-event="modify">修改</a>
+		</script>
+		<script type="text/javascript">
+			layui.use('laydate', function() {
+
+				var laydate = layui.laydate;
+
+				//执行一个laydate实例
+				laydate.render({
+					elem : '#beginTime' //指定元素
+					,
+					value : getBillBeginDate()
+				});
+				laydate.render({
+					elem : '#endTime' //指定元素
+					,
+					value : getBillEndDate()
+				});
+				laydate.render({
+					elem : '#costDate' //指定元素
+					,
+					value : new Date().format("yyyy-MM-dd")
+				});
+			});
+		</script>
+		<script type="text/javascript">		
+			var addCosts;
+			var modifyCosts;
+			$(function() {
+				addCosts = $("#add-cost").html();
+				$("#add-cost").html("");
+				modifyCosts = $("#modify-cost").html();
+				$("#modify-cost").html("");
+			});
+			layui.use('table', function() {
+				var table = layui.table;
+				//第一个实例
+				table
+						.render({
+							elem : '#costReport',
+							url : '/financial/queryCost' //数据接口
+							,
+							contentType : 'application/json',
+							method : 'post',
+							page : true //开启分页
+							,
+							where : {
+								beginDate : getBillBeginDate().format("yyyy-MM-dd"),
+								endDate : getBillEndDate().format("yyyy-MM-dd"),
+								costTypeId : document.getElementById("cost").value
+							},
+							cols : [ [ //表头
+							{
+								field : 'id',
+								title : 'ID',
+								width : 60,
+							},{
+								field : 'costName',
+								title : '成本类型',
+								width : 120,
+							}, {
+								field : 'amount',
+								title : '金额',
+								width : 120,
+							},{
+								field : 'costDesc',
+								title : '原由',
+								width : 360,
+							}, {
+								field : 'costTime',
+								title : '时间',
+								width : 120
+							},{
+								field : 'op',
+								title : '操作',
+								toolbar : "#opBar",
+							} ] ],
+							done : function(res, curr, count) {
+								if (res.message != "success") {
+									alert(res.message);
+									return;
+								}
+								$('#amount').html(res.amount);
+							}
+						});
+				var $ = layui.$, active = {
+					reload : function() {
+						//执行重载
+						table.reload('costReport', {
+							page : {
+								curr : 1
+							//重新从第 1 页开始
+							},
+							where : {
+								beginDate : $("#beginTime").val(),
+								endDate : $("#endTime").val(),
+								costTypeId : $("#cost").val()
+							}
+						});
+					}
+				};
+				$('#queryButton').on('click', function() {
+					var type = $(this).data('type');
+					active[type] ? active[type].call(this) : '';
+				});
+				table.on('tool(costReport)', function(obj) {
+					var data = obj.data; //获得当前行数据
+					var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+					var tr = obj.tr; //获得当前行 tr 的DOM对象
+					if (layEvent == 'modify') {
+						onModifyBtn(data);
+					}
+				});
+				function onModifyBtn(data) {
+					$("#costId").val("");
+					layer.open({
+						type : 1,
+						title : "修改成本",
+						closeBtn : false,
+						shift : 2,
+						area :  [ '420px', '470px' ],
+						shadeClose : true,
+						content : $("#open-main"),
+						success : function(layero, index) {
+							$("#open-main").html("");
+							$("#open-main").html(modifyCosts);
+							$("#costAmount3").val(parseFloat(data.amount)*100);
+							$("#costDesc3").val(data.costDesc);
+							$("#costId").val(data.id);
+							var cost3 = $("#cost3").find("option");
+							for (var i = 0; i < cost3.length; i++) {
+								if (cost3.eq(i).text() == data.costName) {
+									$("#cost3").get(0).selectedIndex = i;
+								}
+							}
+							layui.laydate.render({
+								elem : '#costDate3' //指定元素
+								,
+								value : data.costTime,trigger: 'click',
+								
+							});
+						},
+						yes : function() {
+						}
+					});
+				}
+			});
+			function CloseWin() {
+				layer.close(layer.index);
+			}
+			function onAddBtn() {
+				layer.open({
+					type : 1,
+					title : "新建成本",
+					closeBtn : false,
+					shift : 2,
+					area : [ '420px', '470px' ],
+					shadeClose : true,
+					content : $("#open-main"),
+					success : function(layero, index) {
+						$("#open-main").html("");
+						$("#open-main").html(addCosts);
+						layui.form.render('select', 'form2');
+						layui.laydate.render({
+							elem : '#costDate2' //指定元素
+							,
+							value : new Date().format("yyyy-MM-dd"),trigger: 'click',
+							
+						});
+					},
+					yes : function() {
+					}
+				});
+			}
+			function newCost() {
+				var costTypeId = $("#cost2").val();
+				if(costTypeId == '0'){
+					alert("请选择类型");
+					return;
+				}
+				var re = /^[1-9]+\.?[0-9]*]*$/; 
+				var costAmount = $("#costAmount2").val();
+				if (!re.test(costAmount)) {
+				　　alert("请输入正确的金额");
+				　　return;
+				}
+				$.ajax({
+					url : '/financial/newCost',
+					type : "post",
+					dataType : "json",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+						costTypeId : costTypeId,
+						costAmount : costAmount,
+						costDesc :  $("#costDesc").val(),
+						costDate : $("#costDate2").val()
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							alert("添加成功");
+							CloseWin();
+							$('#queryButton').click();
+						} else {
+							alert("系统异常: " + result.message);
+						}
+					}
+				});
+			}
+			function modifyCost(){
+				var costId = $("#costId").val();
+				var re2 = /^[0-9]+\.?[0-9]*]*$/; 
+				var costAmount = $("#costAmount3").val() + "";
+				if (!re2.test(costAmount)) {
+					alert("请输入正确的金额");
+					return;
+				}
+				$.ajax({
+					url : '/financial/modifyCost',
+					type : "post",
+					dataType : "json",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+						id : costId,
+						costAmount : $("#costAmount3").val(),
+						costDesc : $("#costDesc3").val(),
+						costDate : $("#costDate3").val(),
+						costType : $("#cost3").val(),
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							alert("修改成功");
+							CloseWin();
+							$('#queryButton').click();
+						} else {
+							alert("系统异常: " + result.message);
+						}
+					},
+					error : function(){
+						alert("系统异常");
+					}
+				});
+			}
+		</script>
+		<div class="layui-inline mgr10">
+			<label class="layui-inline mgr10">类型选择框</label>
+			<div class="layui-inline mgr10">
+				<select id="cost" name="cost" lay-filter="cost">
+					<option th:each="cost : ${costList}"
+						th:value="
+						${cost.paramKey}" th:text="${cost.paramValue}">全部</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label>开始时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="beginTime" size="10" maxlength="10">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label>结束时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="endTime" size="10" maxlength="10">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="queryButton"
+				data-type="reload">查询</button>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="newButton"
+				onclick="onAddBtn()">新增</button>
+		</div>		
+		<div>
+			<table id="costReport" lay-filter="costReport"></table>
+		</div>
+		<div class="layui-inline">
+			<label>合计:&nbsp;<span id="amount"></span></label>
+		</div>
+		<!-- 新增成本记录框 -->
+		<div id="add-cost" style="display: none;">
+			<div class="layui-form-item mgt30">
+				<label class="layui-form-label">类型</label>
+				<div class="layui-input-block">
+					<select id="cost2" name="cost2" lay-filter="cost2" class="layui-select">
+						<option th:each="cost : ${costList}"
+							th:value="
+						${cost.paramKey}"
+							th:text="${cost.paramValue}">全部</option>
+					</select>
+				</div>
+			</div>
+			<form class="layui-form" action="" lay-filter="form2">
+				<div class="layui-form-item center mgt30">
+					<label class="layui-form-label">金额（单位分）</label>
+					<div class="layui-input-block">
+						<input type="text" id="costAmount2" required value=""
+							style="width: 100px" lay-verify="required" autocomplete="off"
+							class="layui-input">
+					</div>
+				</div>
+				<div class="layui-form-item center mgt20">
+					<label class="layui-form-label">事由</label>
+					<div class="layui-input-block">
+						<input type="text" id="costDesc" required value=""
+							style="width: 280px" lay-verify="required" autocomplete="off"
+							class="layui-input">
+					</div>
+				</div>
+				<div class="layui-form-item center mgt30">
+					<label class="layui-form-label">日期</label>
+					<div class="layui-input-block">
+						<input type="text" id="costDate2" class="layui-input"
+							style="width: 180px">
+					</div>
+				</div>
+			</form>
+			<div class="layui-form-item mgt30" >
+				<div class="layui-input-block">
+					<button class="layui-btn" lay-submit lay-filter="save"
+						onclick="newCost()">立即提交</button>
+					<button type="reset" class="layui-btn layui-btn-primary"
+						id="closeBtn" onclick="CloseWin()">关闭</button>
+				</div>
+			</div>
+		</div>
+		<!-- 修改成本记录框 -->
+		<div id="modify-cost" style="display: none;">
+			<div class="layui-form-item mgt30">
+				<label class="layui-form-label">类型</label>
+				<div class="layui-input-block">
+					<select id="cost3" name="cost3" lay-filter="cost3" class="layui-select">
+						<option th:each="cost : ${costList}"
+							th:value="
+						${cost.paramKey}"
+							th:text="${cost.paramValue}">全部</option>
+					</select>
+				</div>
+			</div>
+			<form class="layui-form" action="" lay-filter="form2">
+				<div class="layui-form-item center mgt30">
+					<label class="layui-form-label">金额（单位分）</label>
+					<div class="layui-input-block">
+						<input type="text" id="costAmount3" required value=""
+							style="width: 100px" lay-verify="required" autocomplete="off"
+							class="layui-input">
+					</div>
+				</div>
+				<div class="layui-form-item center mgt20">
+					<label class="layui-form-label">事由</label>
+					<div class="layui-input-block">
+						<input type="text" id="costDesc3" required value=""
+							style="width: 280px" lay-verify="required" autocomplete="off"
+							class="layui-input">
+					</div>
+				</div>
+				<div class="layui-form-item center mgt30">
+					<label class="layui-form-label">日期</label>
+					<div class="layui-input-block">
+						<input type="text" id="costDate3" class="layui-input"
+							style="width: 180px"><input type="text" id="costId"
+						style="display: none">
+					</div>
+				</div>
+			</form>
+			<div class="layui-form-item mgt30" >
+				<div class="layui-input-block">
+					<button class="layui-btn"  
+						onclick="modifyCost()">立即提交</button>
+					<button type="reset" class="layui-btn layui-btn-primary"
+						id="closeBtn" onclick="CloseWin()">关闭</button>
+				</div>
+			</div>
+		</div>		
+	</div>
+</body>
+</html>

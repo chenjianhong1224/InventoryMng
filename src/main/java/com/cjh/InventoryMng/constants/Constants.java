@@ -11,9 +11,11 @@ public class Constants {
 	public static String OrderReceiveEmailParamName = "orderReceiveEmail";
 	
 	public static String AccountRecordTypeParamName = "accountRecordType";
+	
+	public static String CostTypeParamName = "costType";
 
 	public enum EnumOpType {
-		NEW_ORDER, UPDATE_ORDER, NEW_REDUCE, UPDATE_REDUCE;
+		NEW_ORDER, UPDATE_ORDER, NEW_REDUCE, UPDATE_REDUCE, NEW_COST, UPDATE_COST;
 	}
 
 }

@@ -253,6 +253,18 @@
 				}
 			});		
 		}
+		function showCost(){
+			$.ajax({
+				type : "post",
+				url : "/financial/costPage",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});		
+		}
 	</script>
 	<article class="layui-layout layui-layout-admin">
 		<div class="layui-header" th:include="header::header"></div>
@@ -260,7 +272,7 @@
 			<div class="layui-side-scroll">
 				<ul class="layui-nav layui-nav-tree" lay-filter="test">
 					<!-- 侧边导航: <ul class="layui-nav layui-nav-tree layui-nav-side"> -->
-					<li class="layui-nav-item layui-nav-itemed"><a
+					<li class="layui-nav-item"><a
 						href="javascript:;">报表</a>
 						<dl class="layui-nav-child">
 							<dd>
@@ -316,8 +328,13 @@
 							<dd>
 								<a href="javascript:;" onclick="showApproveAccountRecord()">报销审批</a>
 							</dd>
-						</dl>					
-						</li>
+						</dl>	
+						<dl class="layui-nav-child">
+							<dd>
+								<a href="javascript:;" onclick="showCost()">成本记录</a>
+							</dd>
+						</dl>										
+					</li>
 					<li shiro:hasPermission="sys:all" class="layui-nav-item"><a
 						href="javascript:;">系统管理</a>
 						<dl class="layui-nav-child">

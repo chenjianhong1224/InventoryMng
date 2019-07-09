@@ -14,6 +14,8 @@ import com.cjh.InventoryMng.constants.Constants.EnumOpType;
 import com.cjh.InventoryMng.entity.TAccountRecord;
 import com.cjh.InventoryMng.entity.TAccountRecordExample;
 import com.cjh.InventoryMng.entity.TAccountRecordWithBLOBs;
+import com.cjh.InventoryMng.entity.TCostRecord;
+import com.cjh.InventoryMng.entity.TCostRecordExample;
 import com.cjh.InventoryMng.entity.TFinanicalOpLog;
 import com.cjh.InventoryMng.entity.TGoodsInfo;
 import com.cjh.InventoryMng.entity.TMemberReduce;
@@ -21,6 +23,7 @@ import com.cjh.InventoryMng.entity.TOrderInfo;
 import com.cjh.InventoryMng.entity.TOrderInfoExample;
 import com.cjh.InventoryMng.exception.BusinessException;
 import com.cjh.InventoryMng.mapper.TAccountRecordMapper;
+import com.cjh.InventoryMng.mapper.TCostRecordMapper;
 import com.cjh.InventoryMng.mapper.TFinanicalOpLogMapper;
 import com.cjh.InventoryMng.mapper.TGoodsInfoMapper;
 import com.cjh.InventoryMng.mapper.TMemberInfoMapper;
@@ -51,6 +54,9 @@ public class FinancialServiceImpl implements FinancialService {
 
 	@Autowired
 	private TAccountRecordMapper tAccountRecordMapper;
+
+	@Autowired
+	private TCostRecordMapper tCostRecordMapper;
 
 	@Override
 	public boolean newMemberOrder(String operator, Integer memberId, String memberName, Integer goodId, double buyNum,
@@ -246,5 +252,104 @@ public class FinancialServiceImpl implements FinancialService {
 	@Override
 	public TAccountRecordWithBLOBs queryTAccountRecord(Integer id) {
 		return tAccountRecordMapper.selectByPrimaryKey(id);
+	}
+
+	@Override
+	public boolean approveAccountRecord(Integer id, String approveUserId) {
+		TAccountRecordWithBLOBs record = new TAccountRecordWithBLOBs();
+		record.setId(id);
+		record.setRecordUserId(approveUserId);
+		record.setStatus(1);
+		return 1 == tAccountRecordMapper.updateByPrimaryKeySelective(record);
+	}
+
+	@Override
+	public boolean rejectAccountRecord(Integer id, String approveUserId, String why) {
+		TAccountRecordWithBLOBs record = new TAccountRecordWithBLOBs();
+		record.setId(id);
+		record.setRecordUserId(approveUserId);
+		record.setStatus(2);
+		record.setWhy(why);
+		return 1 == tAccountRecordMapper.updateByPrimaryKeySelective(record);
+	}
+
+	@Override
+	public Page<TCostRecord> queryTCostRecord(String beginDate, String endDate, String type, int pageNo, int pageSize)
+			throws ParseException {
+		TCostRecordExample example = new TCostRecordExample();
+		if ((!StringUtils.isEmpty(type)) && (!type.equals("0"))) {
+			example.createCriteria().andTypeEqualTo(type).andCostTimeGreaterThanOrEqualTo(beginDate)
+					.andCostTimeLessThanOrEqualTo(endDate);
+		} else {
+			example.createCriteria().andCostTimeGreaterThanOrEqualTo(beginDate).andCostTimeLessThanOrEqualTo(endDate);
+		}
+		return tCostRecordMapper.selectByExample(example);
+	}
+
+	@Override
+	public boolean newCost(String creator, String type, String costDesc, Integer amount, String costDate) {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		Date now = new Date();
+		TCostRecord record = new TCostRecord();
+		record.setAmount(amount);
+		record.setCostDesc(costDesc);
+		record.setType(type);
+		record.setCostTime(costDate);
+		record.setCreateTime(now);
+		record.setCreator(creator);
+		tCostRecordMapper.insert(record);
+		TFinanicalOpLog opLogRecord = new TFinanicalOpLog();
+		opLogRecord.setOperator(creator);
+		opLogRecord.setOpDate(sdf.format(new Date()));
+		opLogRecord.setOpTime(now);
+		opLogRecord.setOpRecordId(record.getId());
+		opLogRecord.setOpType(EnumOpType.NEW_COST.ordinal());
+		String opDesc = opLogRecord.getOpDate() + " " + creator + "因" + costDesc + "新增:" + amount + "金额" + type
+				+ "的成本, 记录id为" + record.getId();
+		opLogRecord.setOpDesc(opDesc);
+		tFinanicalOpLogMapper.insert(opLogRecord);
+		return true;
+	}
+
+	@Override
+	public boolean modifyCost(int id, String updater, String type, String costDesc, Integer amount, String costDate) {
+		TCostRecord costRecord = tCostRecordMapper.selectByPrimaryKey(id);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		Date now = new Date();
+		if (costRecord != null) {
+			TCostRecord record = new TCostRecord();
+			record.setUpdater(updater);
+			record.setUpdateTime(now);
+			record.setType(type);
+			record.setAmount(amount);
+			record.setCostDesc(costDesc);
+			record.setCostTime(costDate);
+			record.setId(costRecord.getId());
+			tCostRecordMapper.updateByPrimaryKeySelective(record);
+			String m = updater + "修改成本记录:";
+			if (!type.equals(costRecord.getType())) {
+				m += " 类型由" + costRecord.getType() + "改变为" + type;
+			}
+			if (!costDesc.equals(costRecord.getCostDesc())) {
+				m += " 原因由" + costRecord.getCostDesc() + "改变为" + costDesc;
+			}
+			if (amount != (costRecord.getAmount())) {
+				m += " 金额由" + costRecord.getAmount() + "改变为" + amount;
+			}
+			if (!costDate.equals(costRecord.getCostTime())) {
+				m += " 时间由" + costRecord.getCostTime() + "改变为" + costDate;
+			}
+
+			TFinanicalOpLog opLogRecord = new TFinanicalOpLog();
+			opLogRecord.setOperator(updater);
+			opLogRecord.setOpDate(sdf.format(now));
+			opLogRecord.setOpTime(now);
+			opLogRecord.setOpRecordId(costRecord.getId());
+			opLogRecord.setOpType(EnumOpType.UPDATE_COST.ordinal());
+			opLogRecord.setOpDesc(m);
+			tFinanicalOpLogMapper.insert(opLogRecord);
+			return true;
+		}
+		return false;
 	}
 }

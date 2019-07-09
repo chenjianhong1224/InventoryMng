@@ -29,6 +29,7 @@ import com.cjh.InventoryMng.bean.UserInfo;
 import com.cjh.InventoryMng.entity.TSysParam;
 import com.cjh.InventoryMng.service.ProfitService;
 import com.cjh.InventoryMng.service.SysParaService;
+import com.cjh.InventoryMng.utils.JudgeRequestDeviceUtil;
 import com.cjh.InventoryMng.vo.ResultMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -57,14 +58,20 @@ public class LoginController {
 			error = "登录失败";
 		}
 		model.addAttribute("error", error);
+		if (JudgeRequestDeviceUtil.isMobileDevice(request.getHeader("user-agent"))) {
+			return "h5/login";
+		}
 		return "login";
 	}
 
 	@RequestMapping(value = "/index")
-	public String index(ModelMap map, HttpSession httpSession) {
+	public String index(ModelMap map, HttpSession httpSession, HttpServletRequest request) {
 		UserInfo userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipals().getPrimaryPrincipal();
 		map.put("userName", userInfo.gettUserInfo().getUserName());
 		if (userInfo.gettUserInfo().getUserType() == 1) {
+			if (JudgeRequestDeviceUtil.isMobileDevice(request.getHeader("user-agent"))) {
+				return "h5/index";
+			}
 			List<TSysParam> manufacturers = sysParaService.getAllManufacturer();
 			List<TSysParam> returnManufacturers = Lists.newArrayList();
 			TSysParam tSysParam = new TSysParam();

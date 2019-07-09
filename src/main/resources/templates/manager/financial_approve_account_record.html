@@ -13,15 +13,15 @@
 			<a class="layui-btn layui-btn-xs" lay-event="download1">附件1</a>&nbsp;
 			<a class="layui-btn layui-btn-xs" lay-event="download2">附件2</a>
 		</script>
+		<script type="text/html" id="checkBar">
+  			<input type="checkbox" lay-event="selectApply" lay-ignore/>
+		</script>
 		<script type="text/javascript">
-			var addApplys;
+			var addReject;
+			var myMap = new Map();
 			$(function() {
-				addApplys = $("#add-apply").html();
-				$("#add-apply").html("");
-				layui.use('form', function() {
-					var form = layui.form;
-					form.render('select', 'form1');
-				});
+				addReject = $("#add-reject").html();
+				$("#add-reject").html("");
 			});
 			layui.use('laydate', function() {
 
@@ -67,10 +67,14 @@
 						width : 60,
 						sort : true,
 					}, {
+						field : 'check',
+						title : '',
+						width : 45,
+						toolbar : "#checkBar"
+					}, {
 						field : 'createStaff',
-						title : 'createStaff',
-						width : 60,
-						sort : true,
+						title : '报销人',
+						width : 100,
 					}, {
 						field : 'type',
 						title : '报销类型',
@@ -78,44 +82,44 @@
 					}, {
 						field : 'amount',
 						title : '金额',
-						width : 80
+						width : 70
 					}, {
 						field : 'theDate',
 						title : '报销日期',
-						width : 110
+						width : 105
 					}, {
 						field : 'desc',
 						title : '事由',
-						width : 160
+						width : 130
 					}, {
 						field : 'recordUser',
 						title : '审批人',
 						width : 80
 					}, {
 						field : 'status',
-						title : '审批状态',
-						width : 90
+						title : '状态',
+						width : 80
 					}, {
 						field : 'createTime',
 						title : '申请时间',
-						width : 170
+						width : 145
 					}, {
 						field : 'why',
 						title : '拒绝原因',
-						width : 140
+						width : 120
 					}, {
 						field : 'file',
 						title : '附件',
-						width : 140,
+						width : 130,
 						toolbar : "#opBar",
 					} ] ],
 					done : function(res, curr, count) {
-						$("[data-field='createStaff']").css('display', 'none');
 						$("[data-field='id']").css('display', 'none');
 					}
 				});
 				var $ = layui.$, active = {
 					reload : function() {
+						myMap = new Map();
 						//执行重载
 						table.reload('accountRecords', {
 							page : {
@@ -131,6 +135,7 @@
 					}
 				};
 				$('#queryButton').on('click', function() {
+					myMap = new Map();
 					var type = $(this).data('type');
 					active[type] ? active[type].call(this) : '';
 				});
@@ -143,34 +148,43 @@
 					} else if (layEvent == 'download2') {
 						onDownloadBtn(data, "file2");
 					}
-				});
+					if (layEvent == 'selectApply') {
+						var flag = $(tr).find("input:eq(0)").prop('checked');
+						if(flag){
+							myMap.set(data.id, data.status);
+						}else{
+							delete myMap[data.id];
+						}
+					}
+				});			
 				function onDownloadBtn(data, name) {
 					var url = '/financial/downloadAccountRecordFile?id='
 							+ data.id + '&fileName=' + name;
 					window.open(url, 'top');
 				}
 			});
-			function onAddBtn() {
+			function onRejectBtn() {
+				if(myMap.size != 1){
+					alert("请选中一条记录");
+					return;
+				}
+				var id;
+				for (var item of myMap.keys()) id = item;
+				if(myMap.get(id) != "待审批"){
+					alert("已不允许审批");
+					return;
+				}
 				layer.open({
 					type : 1,
-					title : "新建申请",
+					title : "拒绝原因填写",
 					closeBtn : false,
 					shift : 2,
-					area : [ '490px', '560px' ],
+					area : [ '490px', '260px' ],
 					shadeClose : true,
 					content : $("#open-main"),
 					success : function(layero, index) {
 						$("#open-main").html("");
-						$("#open-main").html(addApplys);
-						layui.laydate.render({
-							elem : '#theDate' //指定元素
-							,
-							value : new Date(),
-							trigger : 'click',
-
-						});
-						var form = layui.form;
-						form.render('select', 'form1');
+						$("#open-main").html(addReject);
 					},
 					yes : function() {
 					}
@@ -179,34 +193,67 @@
 			function CloseWin() {
 				layer.close(layer.index);
 			}
-			function newApply() {
-				var reg = /^[0-9]+(.[0-9]{2})?$/;
-				if (!reg.test($("#amount").val())) {
-					alert("请输入正确报销金额");
+			function newReject() {
+				if ($("#why").val().length == 0) {
+					alert("请填写拒绝原因");
 					return false;
 				}
-				if($("#applyDesc").val().length==0){
-					alert("请填写事由");
-					return false;
+				var id;
+				for (var item of myMap.keys()) id = item;
+				if(myMap.get(id) != "待审批"){
+					alert("已不允许审批");
+					return;
 				}
-				var targetUrl = $("#applyform1").attr("action");
-				var data = new FormData($("#applyform1")[0]);
+				CloseWin();
 				$.ajax({
-					type : 'post',
-					url : targetUrl,
-					cache : false, //上传文件不需缓存
-					processData : false, //需设置为false。因为data值是FormData对象，不需要对数据做处理
-					contentType : false, //需设置为false。因为是FormData对象，且已经声明了属性enctype="multipart/form-data"
-					data : data,
-					success : function(data) {
-						alert('提交成功');
-						CloseWin();
+					type : "post",
+					url : "/financial/rejectAccountRecordApply",
+					contentType : "application/json",
+					data : JSON.stringify({
+						id : id,
+						why : $("#why").val()
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							alert("操作成功");
+						} else {
+							alert("系统异常: " + result.message);
+						}
 						$("#queryButton").click();
 					},
 					error : function() {
-						alert("提交失败，可能上传附件过大，请确保在1M以内");
-						CloseWin();
+						alert("系统错误");
+					}
+				});
+			}
+			function onApproveBtn() {
+				if(myMap.size != 1){
+					alert("请选中一条记录");
+					return;
+				}
+				var id;
+				for (var item of myMap.keys()) id = item;
+				if(myMap.get(id) != "待审批"){
+					alert("已不允许审批");
+					return;
+				}
+				$.ajax({
+					type : "post",
+					url : "/financial/approveAccountRecordApply",
+					contentType : "application/json",
+					data : JSON.stringify({
+						id : id
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							alert("操作成功");
+						} else {
+							alert("系统异常: " + result.message);
+						}
 						$("#queryButton").click();
+					},
+					error : function() {
+						alert("系统错误");
 					}
 				});
 			}
@@ -233,72 +280,33 @@
 			<button class="layui-btn layui-btn-radius" id="queryButton"
 				data-type="reload">查询</button>
 		</div>
-		<div class="layui-inline mgr10">
-			<button class="layui-btn layui-btn-radius" id="addButton"
-				onclick="onAddBtn()">新增</button>
-		</div>
 		<div>
 			<table id="accountRecords" lay-filter="accountRecords"></table>
 		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="approveButton" onclick="onApproveBtn()">同意</button>
+			<button class="layui-btn layui-btn-radius" id="rejectButton"
+				onclick="onRejectBtn()">拒绝</button>
+		</div>
 	</div>
-	<!-- 新增申请框 -->
-	<div id="add-apply" style="display: none;">
-		<form class="layui-form" action="/financial/newAccountRecordApply"
-			lay-filter="form1" id="applyform1" method="post"
-			enctype="multipart/form-data">
-
-			<div class="layui-form-item mgt30">
-				<label class="layui-form-label">报销类型</label>
-				<div class="layui-input-block" style="width: 100px">
-					<select id="applyType" name="applyType" lay-filter="applyType"
-						class="layui-select" lay-search>
-						<option th:each="type : ${typeList}"
-							th:value="
-						${type.paramKey}" th:text="${type.paramValue}">全部</option>
-					</select>
-				</div>
+	<!-- 新增拒绝框 -->
+	<div id="add-reject" style="display: none;">
+		<div class="layui-form-item center mgt20">
+			<label class="layui-form-label">拒绝原因</label>
+			<div class="layui-input-block">
+				<input type="text" id="why" name="why" required value=""
+					style="width: 280px" lay-verify="required" autocomplete="off"
+					class="layui-input">
 			</div>
-
-			<div class="layui-form-item center mgt30">
-				<label class="layui-form-label">报销金额（单位元）</label>
-				<div class="layui-input-block">
-					<input type="text" id="amount" name="amount" required value=""
-						style="width: 100px" lay-verify="required" autocomplete="off"
-						class="layui-input">
-				</div>
-			</div>
-			<div class="layui-form-item center mgt20">
-				<label class="layui-form-label">事由</label>
-				<div class="layui-input-block">
-					<input type="text" id="applyDesc" name="applyDesc" required
-						value="" style="width: 280px" lay-verify="required"
-						autocomplete="off" class="layui-input">
-				</div>
-			</div>
-			<div class="layui-form-item center mgt30">
-				<label class="layui-form-label">报销日期</label>
-				<div class="layui-input-block">
-					<input type="text" id="theDate" name="theDate" class="layui-input"
-						style="width: 180px">
-				</div>
-			</div>
-			<div class="layui-form-item center mgt30">
-				<label class="layui-form-label">附件1</label>
-				<div class="layui-input-block">
-					<input type="file" name="file1" class="mgt10" />
-				</div>
-			</div>
-			<div class="layui-form-item center mgt30">
-				<label class="layui-form-label">附件2</label>
-				<div class="layui-input-block">
-					<input type="file" name="file2" class="mgt10" />
-				</div>
-			</div>
-		</form>
+		</div>
+		<div class="layui-form-item center mgt30" style="display: none;">
+			<input type="text" id="applyId" name="applyId" class="layui-input"
+				style="width: 180px">
+		</div>
 		<div class="layui-form-item mgt30">
 			<div class="layui-input-block">
 				<button class="layui-btn" lay-submit lay-filter="save"
-					onclick="newApply()">立即提交</button>
+					onclick="newReject()">立即提交</button>
 				<button type="reset" class="layui-btn layui-btn-primary"
 					id="closeBtn" onclick="CloseWin()">关闭</button>
 			</div>

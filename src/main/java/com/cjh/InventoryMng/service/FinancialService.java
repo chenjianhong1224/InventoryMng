@@ -5,6 +5,7 @@ import java.util.Date;
 
 import com.cjh.InventoryMng.entity.TAccountRecord;
 import com.cjh.InventoryMng.entity.TAccountRecordWithBLOBs;
+import com.cjh.InventoryMng.entity.TCostRecord;
 import com.cjh.InventoryMng.exception.BusinessException;
 import com.github.pagehelper.Page;
 
@@ -26,7 +27,18 @@ public interface FinancialService {
 			int pageSize) throws ParseException;
 
 	TAccountRecordWithBLOBs queryTAccountRecord(Integer id);
+	
+	boolean approveAccountRecord(Integer id, String approveUserId);
+	
+	boolean rejectAccountRecord(Integer id, String approveUserId, String why);
 
 	boolean newTAccountRecord(String creator, String theDate, String type, String desc, Integer amount,
 			String file1Name, byte[] file1, String file2Name, byte[] file2);
+	
+	Page<TCostRecord> queryTCostRecord(String beginDate, String endDate, String type, int pageNo, int pageSize)
+			throws ParseException;
+	
+	boolean newCost(String creator, String type, String costDesc, Integer amount, String costDate);
+	
+	boolean modifyCost(int id, String updater, String type, String costDesc, Integer amount, String costDate);
 }
