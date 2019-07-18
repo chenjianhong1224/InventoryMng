@@ -31,14 +31,14 @@
 				laydate.render({
 					elem : '#beginTime' //指定元素
 					,
-					value : getBillBeginDate(),
+					value : getBeginMonthDate(),
 					trigger : 'click',
 
 				});
 				laydate.render({
 					elem : '#endTime' //指定元素
 					,
-					value : getBillEndDate(),
+					value : getEndMonthDate(),
 					trigger : 'click',
 
 				});
@@ -57,8 +57,8 @@
 					page : true //开启分页
 					,
 					where : {
-						beginDate : getBillBeginDate().format("yyyy-MM-dd"),
-						endDate : getBillEndDate().format("yyyy-MM-dd"),
+						beginDate : getBeginMonthDate().format("yyyy-MM-dd"),
+						endDate : getEndMonthDate().format("yyyy-MM-dd"),
 					},
 					cols : [ [ //表头
 					{
@@ -88,9 +88,9 @@
 						title : '事由',
 						width : 160
 					}, {
-						field : 'recordUser',
+						field : 'approver',
 						title : '审批人',
-						width : 80
+						width : 100
 					}, {
 						field : 'status',
 						title : '审批状态',
@@ -98,11 +98,11 @@
 					}, {
 						field : 'createTime',
 						title : '申请时间',
-						width : 170
+						width : 130
 					}, {
 						field : 'why',
 						title : '拒绝原因',
-						width : 140
+						width : 120
 					}, {
 						field : 'file',
 						title : '附件',

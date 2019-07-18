@@ -59,3 +59,14 @@ function getBillEndDate() {
 				+ (nowDate.getMonth() + 1) + "/20"));
 	}
 }
+
+function getBeginMonthDate(){
+	var nowDate = new Date();
+	return new Date(Date.parse(nowDate.getFullYear() + "/"
+			+ (nowDate.getMonth() + 1) + "/01"));
+}
+
+function getEndMonthDate(){
+	var nowDate = new Date();
+	return new Date(nowDate.getFullYear(), (nowDate.getMonth()+ 1), 0);
+}

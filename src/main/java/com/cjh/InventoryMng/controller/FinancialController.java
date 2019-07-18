@@ -640,11 +640,12 @@ public class FinancialController {
 		String endDate = (String) reqMap.get("endDate");
 		String desc = (String) reqMap.get("desc");
 		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
+		int approvedAmount = 0;
 		try {
 			Page<TAccountRecord> records = financialService.queryTAccountRecord(beginDate, endDate, desc, creator, page,
 					limit);
 			List<ApplyAccountRecordVO> returnVOList = Lists.newArrayList();
-			SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+			SimpleDateFormat sdf = new SimpleDateFormat("MM-dd HH:mm:ss");
 			for (TAccountRecord tAccountRecord : records) {
 				ApplyAccountRecordVO vo = new ApplyAccountRecordVO();
 				vo.setApprover(userService.getUserName(tAccountRecord.getRecordUserId()));
@@ -654,7 +655,10 @@ public class FinancialController {
 				vo.setDesc(tAccountRecord.getApplyDesc());
 				vo.setId(tAccountRecord.getId());
 				vo.setStatus(tAccountRecord.getStatus() == 1 ? "通过" : (tAccountRecord.getStatus() == 0 ? "待审批" : "驳回"));
-				vo.setTheDate(tAccountRecord.getTheDate());
+				if (tAccountRecord.getStatus() == 1) {
+					approvedAmount += tAccountRecord.getAmount();
+				}
+				vo.setTheDate(tAccountRecord.getTheDate().substring(2));
 				vo.setType(sysParaService.getAccountRecordTypeName(tAccountRecord.getType()));
 				vo.setWhy(tAccountRecord.getWhy());
 				returnVOList.add(vo);
@@ -662,6 +666,7 @@ public class FinancialController {
 			resultMap.setDataList(returnVOList);
 			Map<String, Object> t = resultMap.toMap();
 			t.put("count", records.getTotal());
+			t.put("approvedAmount", new DecimalFormat("#.##").format((double) (approvedAmount) / 100));
 			return t;
 		} catch (ParseException e) {
 			e.printStackTrace();

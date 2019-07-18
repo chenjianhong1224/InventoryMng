@@ -21,12 +21,12 @@
 				laydate.render({
 					elem : '#beginTime' //指定元素
 					,
-					value : getBillBeginDate()
+					value : getBeginMonthDate()
 				});
 				laydate.render({
 					elem : '#endTime' //指定元素
 					,
-					value : getBillEndDate()
+					value : getEndMonthDate()
 				});
 				laydate.render({
 					elem : '#costDate' //指定元素
@@ -57,8 +57,8 @@
 							page : true //开启分页
 							,
 							where : {
-								beginDate : getBillBeginDate().format("yyyy-MM-dd"),
-								endDate : getBillEndDate().format("yyyy-MM-dd"),
+								beginDate : getBeginMonthDate().format("yyyy-MM-dd"),
+								endDate : getEndMonthDate().format("yyyy-MM-dd"),
 								costTypeId : document.getElementById("cost").value
 							},
 							cols : [ [ //表头

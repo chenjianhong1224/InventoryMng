@@ -6,7 +6,7 @@
 		<style type="text/css">
 .layui-table-cell {
 	height: auto;
-	line-height: 22px;
+	line-height: 17px;
 }
 </style>
 		<script type="text/html" id="opBar">
@@ -31,14 +31,14 @@
 				laydate.render({
 					elem : '#beginTime' //指定元素
 					,
-					value : getBillBeginDate(),
+					value : getBeginMonthDate(),
 					trigger : 'click',
 
 				});
 				laydate.render({
 					elem : '#endTime' //指定元素
 					,
-					value : getBillEndDate(),
+					value : getEndMonthDate(),
 					trigger : 'click',
 
 				});
@@ -57,8 +57,8 @@
 					page : true //开启分页
 					,
 					where : {
-						beginDate : getBillBeginDate().format("yyyy-MM-dd"),
-						endDate : getBillEndDate().format("yyyy-MM-dd"),
+						beginDate : getBeginMonthDate().format("yyyy-MM-dd"),
+						endDate : getEndMonthDate().format("yyyy-MM-dd"),
 					},
 					cols : [ [ //表头
 					{
@@ -82,27 +82,27 @@
 					}, {
 						field : 'amount',
 						title : '金额',
-						width : 70
+						width : 80
 					}, {
 						field : 'theDate',
 						title : '报销日期',
-						width : 105
+						width : 95
 					}, {
 						field : 'desc',
 						title : '事由',
 						width : 130
 					}, {
-						field : 'recordUser',
+						field : 'approver',
 						title : '审批人',
-						width : 80
+						width : 100
 					}, {
 						field : 'status',
 						title : '状态',
-						width : 80
+						width : 75
 					}, {
 						field : 'createTime',
 						title : '申请时间',
-						width : 145
+						width : 130
 					}, {
 						field : 'why',
 						title : '拒绝原因',
@@ -115,6 +115,7 @@
 					} ] ],
 					done : function(res, curr, count) {
 						$("[data-field='id']").css('display', 'none');
+						$("#approvedAmount").html("已审批通过金额："+res.approvedAmount);
 					}
 				});
 				var $ = layui.$, active = {
@@ -153,7 +154,7 @@
 						if(flag){
 							myMap.set(data.id, data.status);
 						}else{
-							delete myMap[data.id];
+							myMap.delete(data.id);
 						}
 					}
 				});			
@@ -283,10 +284,16 @@
 		<div>
 			<table id="accountRecords" lay-filter="accountRecords"></table>
 		</div>
-		<div class="layui-inline mgr10">
-			<button class="layui-btn layui-btn-radius" id="approveButton" onclick="onApproveBtn()">同意</button>
-			<button class="layui-btn layui-btn-radius" id="rejectButton"
-				onclick="onRejectBtn()">拒绝</button>
+		<div class="layui-container">
+			<div>
+			<button class="layui-btn layui-btn-radius" id="approveButton" style="float: left;"
+				onclick="onApproveBtn()">同意</button>
+			<button class="layui-btn layui-btn-radius" id="rejectButton" style="float: left;"
+							onclick="onRejectBtn()">拒绝</button>
+			</div>
+			<div style="float: right">
+			<label id="approvedAmount" style="text-align:justify;margin-right:50px" ></label>
+			</div>
 		</div>
 	</div>
 	<!-- 新增拒绝框 -->

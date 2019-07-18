@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class HttpsConfig {
 
-	
+	//@Bean
 	public EmbeddedServletContainerFactory servletContainer() {
 		TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory() {
 			@Override
@@ -29,7 +29,7 @@ public class HttpsConfig {
 		return tomcat;
 	}
 
-	
+	//@Bean
 	public Connector httpConnector() {
 		Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
 		connector.setScheme("http");
