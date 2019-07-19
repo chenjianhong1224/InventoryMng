@@ -1,0 +1,249 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div class="layui-main mgt10">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 17px;
+}
+</style>
+		<script type="text/html" id="opBar">
+			<a class="layui-btn layui-btn-xs" lay-event="update">调整库存</a>
+		</script>
+		<script type="text/javascript">
+			var addStock;
+			$(function() {
+				layui.use('form', function() {
+					var form = layui.form;
+					form.render('select', 'form2');
+				});
+				addStock = $("#add-stock").html();
+				$("#add-stock").html("");
+			});
+		</script>
+		<script type="text/javascript">
+			layui.use('table', function() {
+				var table = layui.table;
+				//第一个实例
+				table.render({
+					elem : '#stockInfos',
+					url : '/analyze/queryStockInfos' //数据接口
+					,
+					contentType : 'application/json',
+					method : 'post',
+					page : true //开启分页
+					,
+					where : {},
+					cols : [ [ //表头
+					{
+						field : 'id',
+						title : 'ID',
+						width : 60,
+						sort : true,
+					}, {
+						field : 'goodId',
+						title : '商品ID',
+						width : 100,
+					}, {
+						field : 'goodsName',
+						title : '商品名称',
+						width : 100,
+					}, {
+						field : 'supplierName',
+						title : '供应商名称',
+						width : 100,
+					}, {
+						field : 'count',
+						title : '数量',
+						width : 80
+					}, {
+						field : 'op',
+						title : '操作',
+						toolbar : "#opBar",
+					} ] ],
+					done : function(res, curr, count) {
+						$("[data-field='id']").css('display', 'none');
+						$("[data-field='goodId']").css('display', 'none');
+					}
+				});
+				var $ = layui.$, active = {
+					reload : function() {
+						myMap = new Map();
+						//执行重载
+						table.reload('stockInfos', {
+							page : {
+								curr : 1
+							//重新从第 1 页开始
+							},
+							where : {
+								goodsName : $("#goodsName").val()
+							}
+						});
+					}
+				};
+				$('#queryButton').on('click', function() {
+					var type = $(this).data('type');
+					active[type] ? active[type].call(this) : '';
+				});
+				table.on('tool(stockInfos)', function(obj) {
+					var data = obj.data; //获得当前行数据
+					var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+					var tr = obj.tr; //获得当前行 tr 的DOM对象
+					if (layEvent == 'update') {
+					}
+				});
+			});
+			function changeSupplier(){
+				if($("#supplier").val() == '0'){
+					$("#member2").html("");
+					$("#member2").html("<option value=\"0\">全部</option>");
+					layui.form.render('select', 'form2');
+					return;
+				}
+				$.ajax({
+					url : '/public/queryGoodsOfSupplier',
+					type : "post",
+					dataType : "json",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+						supplierId : $("#supplier").val()
+					}),
+					success : function(result) {
+						var option = "<option value='0'>全部</option>";
+						if (result.code == 0) {
+							$("#goods").html("");
+							$.each(result.data, function(key, val) {
+								option += "<option value='" + val.id + "'>";
+								option += val.goodName + "</option>";
+							});
+							$("#goods").html(option);
+							layui.form.render('select', 'form2');
+						}
+					}
+				});
+			}			
+			function newButtionClick() {
+				layer.open({
+					type : 1,
+					title : "新增库存记录",
+					closeBtn : false,
+					shift : 2,
+					area : [ '380px', '460px' ],
+					shadeClose : true,
+					content : $("#open-main"),
+					success : function(layero, index) {
+						layui.form.render('select', 'form2');
+
+						$("#open-main").html("");
+						$("#open-main").html(addStock);
+					},
+					yes : function() {
+					}
+				});
+			}
+			function CloseWin() {
+				layer.close(layer.index);
+			}
+			function newStock() {
+				if ($("#count").val().length == 0) {
+					alert("请填写数量");
+					return false;
+				}
+				if (!(/^[1-9]+([0-9]*)$/.test($("#count").val()))) {
+					alert("请填写正确的正整数");
+					return false;
+				}
+				if ($("#goods").val() =="0") {
+					alert("请选择商品");
+					return false;
+				}
+				$.ajax({
+					type : "post",
+					url : "/analyze/newStock",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+						goodsId : $("#goods").val(),
+						count : $("#count").val()
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							alert("添加成功");
+						} else {
+							alert("系统异常: " + result.message);
+						}
+						$("#queryButton").click();
+					},
+					error : function() {
+						alert("系统错误");
+					}
+				});
+				CloseWin();
+			}
+		</script>
+		<label class="layui-inline mgr10">商品名称</label>
+		<div class="layui-inline mgr10">
+			<input type="text" id="goodsName" name="goodsName" required
+				lay-verify="required" placeholder="请输入商品名称" autocomplete="off"
+				class="layui-input">
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="queryButton"
+				data-type="reload">查询</button>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="newButton"
+				onclick="newButtionClick()">新增库存记录</button>
+		</div>
+		<div>
+			<table id="stockInfos" lay-filter="stockInfos"></table>
+		</div>
+	</div>
+	<!-- 新增库存框 -->
+	<div id="add-stock" style="display: none;">
+		<div class="layui-form-item mgt30">
+			<label class="layui-form-label">供应商</label>
+			<div class="layui-input-block">
+				<select id="supplier" name="supplier"  
+					class="layui-select" onchange="changeSupplier()">
+					<option th:each="supplier : ${supplierList}"
+						th:value="
+						${supplier.id}"
+						th:text="${supplier.supplierName}">全部</option>
+				</select>
+			</div>
+		</div>
+		<form class="layui-form" action="" lay-filter="form2">		
+		
+		<div class="layui-form-item mgt30">
+			<label class="layui-form-label">商品</label>
+			<div class="layui-input-block" style="width:160px">
+				<select id="goods" name="goods"  
+					class="layui-select" lay-search>
+					<option value="0">全部</option>
+				</select>
+			</div>
+		</div>
+		</form>
+		<div class="layui-form-item center mgt20">
+			<label class="layui-form-label">数量</label>
+			<div class="layui-input-block">
+				<input type="text" id="count" name="count" required value=""
+					style="width: 180px" lay-verify="required" autocomplete="off"
+					class="layui-input">
+			</div>
+		</div>
+		<div class="layui-form-item mgt30">
+			<div class="layui-input-block">
+				<button class="layui-btn" lay-submit lay-filter="save"
+					onclick="newStock()">立即提交</button>
+				<button type="reset" class="layui-btn layui-btn-primary"
+					id="closeBtn" onclick="CloseWin()">关闭</button>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -18,6 +18,7 @@ import com.cjh.InventoryMng.entity.TRoleInfo;
 import com.cjh.InventoryMng.entity.TSupplier;
 import com.cjh.InventoryMng.entity.TSysParam;
 import com.cjh.InventoryMng.service.AuthorizationService;
+import com.cjh.InventoryMng.service.GoodsService;
 import com.cjh.InventoryMng.service.MemberService;
 import com.cjh.InventoryMng.service.OrderService;
 import com.cjh.InventoryMng.service.SupplierService;
@@ -31,22 +32,25 @@ import com.google.common.collect.Lists;
 @Controller
 @RequestMapping(value = "/public")
 public class PublicController {
-	
+
 	@Autowired
 	private OrderService orderService;
-	
+
 	@Autowired
 	private AuthorizationService authorizationService;
 
 	@Autowired
 	private MemberService memberService;
-	
+
 	@Autowired
 	private SysParaService sysParaService;
-	
+
 	@Autowired
 	private SupplierService supplierService;
-	
+
+	@Autowired
+	private GoodsService goodsService;
+
 	@RequestMapping(value = "/queryMemberAvailableGoods", method = RequestMethod.POST)
 	@ResponseBody
 	public Map<String, Object> queryMemberAvailableGoods(@RequestBody Map<String, Object> reqMap) {
@@ -62,7 +66,7 @@ public class PublicController {
 		resultMap.setDataList(returnList);
 		return resultMap.toMap();
 	}
-	
+
 	@RequestMapping(value = "/queryMemberByBrand", method = RequestMethod.POST)
 	@ResponseBody
 	public Map<String, Object> getMemberByBrand(@RequestBody Map<String, Object> reqMap) {
@@ -86,7 +90,6 @@ public class PublicController {
 		resultMap.setDataList(list);
 		return resultMap.toMap();
 	}
-	
 
 	@RequestMapping(value = "/querySuppliers")
 	@ResponseBody
@@ -113,7 +116,7 @@ public class PublicController {
 		t.put("count", supplierList.getTotal());
 		return t;
 	}
-	
+
 	@RequestMapping(value = "/queryMember", method = RequestMethod.POST)
 	@ResponseBody
 	public Map<String, Object> queryMember(@RequestBody Map<String, Object> reqMap) {
@@ -138,5 +141,22 @@ public class PublicController {
 		Map<String, Object> t = resultMap.toMap();
 		t.put("count", memberInfoList.getTotal());
 		return t;
+	}
+
+	@RequestMapping(value = "/queryGoodsOfSupplier")
+	@ResponseBody
+	public Map<String, Object> queryGoodsOfSupplier(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		String supplierId = (String) reqMap.get("supplierId");
+		List<TGoodsInfo> list = goodsService.queryGoodsListBySupplier(Integer.valueOf(supplierId), 1);
+		List<GoodsOptionVO> returnList = Lists.newArrayList();
+		for (TGoodsInfo tGoodsInfo : list) {
+			GoodsOptionVO vo = new GoodsOptionVO();
+			vo.setId(tGoodsInfo.getId());
+			vo.setGoodName(tGoodsInfo.getGoodName());
+			returnList.add(vo);
+		}
+		resultMap.setDataList(returnList);
+		return resultMap.toMap();
 	}
 }

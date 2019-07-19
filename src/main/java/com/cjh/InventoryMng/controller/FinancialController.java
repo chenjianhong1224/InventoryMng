@@ -367,8 +367,13 @@ public class FinancialController {
 				for (int j = beginCellnum; (j < beginCellnum + 9) && (j < totalCells); j++) {
 					Row nowRow = book.getSheetAt(0).getRow(i);
 					bean.setBrandName(name);
-					nowRow.getCell(j).setCellType(CellType.STRING);
+					if (nowRow.getCell(j) != null) {
+						nowRow.getCell(j).setCellType(CellType.STRING);
+					}
 					try {
+						if(nowRow.getCell(j) == null){
+							continue;
+						}
 						if (i % 15 == 0 && j % 9 == 0) {
 							bean.setMemberName(nowRow.getCell(j).getStringCellValue());
 							break;

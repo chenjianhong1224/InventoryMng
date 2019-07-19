@@ -309,9 +309,26 @@
 			AND a.member_id = #{memberId, jdbcType=INTEGER}
 		</if>
 		<if test="goodsName != null">
-			AND b.good_name like CONCAT('%', #{goodsName, jdbcType=INTEGER},'%')
+			AND b.good_name like CONCAT('%', #{goodsName, jdbcType=VARCHAR},'%')
 		</if>
 		group by a.good_id ) c order by  c.num desc, c.id
+	</select>
+	
+	<resultMap id="VStockInfo" type="com.cjh.InventoryMng.entity.VStockInfo">
+		<result column="id" jdbcType="INTEGER" property="id" />
+		<result column="good_id" jdbcType="INTEGER" property="goodsId" />
+		<result column="good_name" jdbcType="VARCHAR" property="goodsName" />
+		<result column="supplier_id" jdbcType="INTEGER" property="supplierId" />
+		<result column="supplier_name" jdbcType="VARCHAR" property="supplierName" />
+		<result column="count" jdbcType="INTEGER" property="count" />
+		<result column="status" jdbcType="INTEGER" property="status" />
+	</resultMap>
+	<select id="queryStockInfoByGoodsName" resultMap="VStockInfo">
+		 select a.id, b.id, b.good_name, c.id, c.supplier_name, a.count, a.status
+		 	 from t_stock_info a, t_goods_info b, t_supplier c
+				where a.good_id = b.id and b.supplier_id = c.id
+				and b.good_name like CONCAT('%', #{goodsName, jdbcType=VARCHAR},'%')
+				order by a.id
 	</select>
 	
 </mapper>

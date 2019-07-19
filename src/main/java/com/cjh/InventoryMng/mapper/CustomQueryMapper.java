@@ -8,6 +8,7 @@ import com.cjh.InventoryMng.entity.TGoodsInfo;
 import com.cjh.InventoryMng.entity.VMemberBillInfo;
 import com.cjh.InventoryMng.entity.VMemberOrderInfoOrderBy;
 import com.cjh.InventoryMng.entity.VRoleResourceInfo;
+import com.cjh.InventoryMng.entity.VStockInfo;
 import com.cjh.InventoryMng.entity.VSuppplierBillInfo;
 import com.cjh.InventoryMng.entity.VUseGoodsCount;
 import com.cjh.InventoryMng.entity.VMemberSupplierMap;
@@ -40,4 +41,6 @@ public interface CustomQueryMapper {
 	Page<VUseGoodsCount> queryUseGoodsCount(@Param("memberId") Integer memberId,
 			@Param("beginDate") String beginDate, @Param("endDate") String endDate,
 			@Param("goodsName") String goodsName);
+	
+	Page<VStockInfo> queryStockInfoByGoodsName(@Param("goodsName") String goodsName);
 }

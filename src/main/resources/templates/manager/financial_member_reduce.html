@@ -96,21 +96,9 @@
 				laydate.render({
 					elem : '#orderBeginTime' //指定元素
 					,
-					value : getBillBeginDate(),trigger: 'click',
+					value : getBillBeginDate().format("yyyy-MM-dd"),trigger: 'click',
 					
-				});
-				laydate.render({
-					elem : '#reduceDate' //指定元素
-					,
-					value : new Date(),trigger: 'click',
-					
-				});
-				laydate.render({
-					elem : '#reduceDate2' //指定元素
-					,
-					value : new Date(),trigger: 'click',
-					
-				});				
+				});		
 			});
 		</script>
 		<script type="text/javascript">
@@ -249,7 +237,6 @@
 							elem : '#reduceDate2' //指定元素
 							,
 							value : new Date(),trigger: 'click',
-							
 						});
 					},
 					yes : function() {
@@ -352,7 +339,7 @@
 			</div>
 		</div>
 		<div class="layui-inline mgr10">
-			<label>订购时间:</label>
+			<label>减免时间:</label>
 			<div class="layui-input-inline">
 				<input type="text" id="orderBeginTime">
 			</div>

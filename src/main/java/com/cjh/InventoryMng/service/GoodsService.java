@@ -26,5 +26,7 @@ public interface GoodsService {
 	TGoodsInfo queryGoods(int goodsId);
 
 	boolean deleteGoods(Integer id);
+	
+	List<TGoodsInfo> queryGoodsListBySupplier(int supplerId, int status);
 
 }

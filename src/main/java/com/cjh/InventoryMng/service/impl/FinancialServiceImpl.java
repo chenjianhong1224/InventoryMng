@@ -21,6 +21,8 @@ import com.cjh.InventoryMng.entity.TGoodsInfo;
 import com.cjh.InventoryMng.entity.TMemberReduce;
 import com.cjh.InventoryMng.entity.TOrderInfo;
 import com.cjh.InventoryMng.entity.TOrderInfoExample;
+import com.cjh.InventoryMng.entity.TStockInfo;
+import com.cjh.InventoryMng.entity.TStockInfoExample;
 import com.cjh.InventoryMng.exception.BusinessException;
 import com.cjh.InventoryMng.mapper.TAccountRecordMapper;
 import com.cjh.InventoryMng.mapper.TCostRecordMapper;
@@ -29,6 +31,7 @@ import com.cjh.InventoryMng.mapper.TGoodsInfoMapper;
 import com.cjh.InventoryMng.mapper.TMemberInfoMapper;
 import com.cjh.InventoryMng.mapper.TMemberReduceMapper;
 import com.cjh.InventoryMng.mapper.TOrderInfoMapper;
+import com.cjh.InventoryMng.mapper.TStockInfoMapper;
 import com.cjh.InventoryMng.service.FinancialService;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -58,113 +61,157 @@ public class FinancialServiceImpl implements FinancialService {
 	@Autowired
 	private TCostRecordMapper tCostRecordMapper;
 
+	@Autowired
+	private TStockInfoMapper tStockMapper;
+
 	@Override
 	public boolean newMemberOrder(String operator, Integer memberId, String memberName, Integer goodId, double buyNum,
 			String orderDate) throws BusinessException, Exception {
-		TGoodsInfo goodsInfo = tGoodsInfoMapper.selectByPrimaryKey(goodId);
-		String opDesc = "";
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-		Date now = new Date();
-		if (goodsInfo != null && goodsInfo.getStatus() == 1) {
-			TOrderInfoExample example = new TOrderInfoExample();
-			example.createCriteria().andGoodIdEqualTo(goodId).andMemberIdEqualTo(memberId)
-					.andOrderDateEqualTo(orderDate);
-			Page<TOrderInfo> orders = tOrderInfoMapper.selectByExample(example);
-			TOrderInfo record = null;
-			if (CollectionUtils.isEmpty(orders)) {
-				record = new TOrderInfo();
-				record.setGoodId(goodId);
-				record.setMemberId(memberId);
-				record.setMemberPrice(goodsInfo.getMemberPrice());
-				record.setNum(buyNum);
-				record.setSupplierid(goodsInfo.getSupplierId());
-				record.setOrderDate(orderDate);
-				record.setOrderTime(sdf.parse(orderDate));
-				record.setPurchasePrice(goodsInfo.getPurchasePrice()
-						+ (goodsInfo.getServicePrice() == null ? 0 : goodsInfo.getServicePrice()));
-				record.setStatus(1);
-				if (goodsInfo.getServiceId() != null) {
-					record.setServiceId(goodsInfo.getServiceId());
+		synchronized (this.getClass()) {
+			TGoodsInfo goodsInfo = tGoodsInfoMapper.selectByPrimaryKey(goodId);
+			String opDesc = "";
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			Date now = new Date();
+			if (goodsInfo != null && goodsInfo.getStatus() == 1) {
+				
+				TStockInfoExample stockExample = new TStockInfoExample();
+				stockExample.createCriteria().andGoodIdEqualTo(goodId);
+				Page<TStockInfo> tStockInfoList = tStockMapper.selectByExample(stockExample);
+				boolean needCheckStock = false;
+				TStockInfo tStockRecord = null;
+				if (!CollectionUtils.isEmpty(tStockInfoList)) {
+					needCheckStock = true;
+					tStockRecord = tStockInfoList.get(0);
+					if (tStockRecord.getCount() < buyNum) {
+						throw new BusinessException("没有足够的库存");
+					}
 				}
-				if (goodsInfo.getServicePrice() != null) {
-					record.setServicePrice(goodsInfo.getServicePrice());
+				
+				TOrderInfoExample example = new TOrderInfoExample();
+				example.createCriteria().andGoodIdEqualTo(goodId).andMemberIdEqualTo(memberId)
+						.andOrderDateEqualTo(orderDate);
+				Page<TOrderInfo> orders = tOrderInfoMapper.selectByExample(example);
+				TOrderInfo record = null;
+				if (CollectionUtils.isEmpty(orders)) {
+					record = new TOrderInfo();
+					record.setGoodId(goodId);
+					record.setMemberId(memberId);
+					record.setMemberPrice(goodsInfo.getMemberPrice());
+					record.setNum(buyNum);
+					record.setSupplierid(goodsInfo.getSupplierId());
+					record.setOrderDate(orderDate);
+					record.setOrderTime(sdf.parse(orderDate));
+					record.setPurchasePrice(goodsInfo.getPurchasePrice()
+							+ (goodsInfo.getServicePrice() == null ? 0 : goodsInfo.getServicePrice()));
+					record.setStatus(1);
+					if (goodsInfo.getServiceId() != null) {
+						record.setServiceId(goodsInfo.getServiceId());
+					}
+					if (goodsInfo.getServicePrice() != null) {
+						record.setServicePrice(goodsInfo.getServicePrice());
+					}
+					int insertSucc = tOrderInfoMapper.insert(record);
+					opDesc = orderDate + " " + operator + "代替" + memberName + "新增:" + buyNum + "件"
+							+ goodsInfo.getGoodName() + "， 记录id为" + record.getId();
+				} else {
+					record = orders.get(0);
+					double oldNum = record.getNum();
+					int oldStatus = record.getStatus();
+					record.setOrderDate(orderDate);
+					record.setOrderTime(sdf.parse(orderDate));
+					record.setNum(buyNum);
+					record.setStatus(1);
+					tOrderInfoMapper.updateByPrimaryKey(record);
+					opDesc = orderDate + " " + operator + "代替" + memberName + "更改:" + goodsInfo.getGoodName() + "由原来"
+							+ (oldStatus == 1 ? "生效" : "失效") + oldNum + "件变为" + buyNum + "件" + "， 记录id为"
+							+ record.getId();
 				}
-				int insertSucc = tOrderInfoMapper.insert(record);
-				opDesc = orderDate + " " + operator + "代替" + memberName + "新增:" + buyNum + "件" + goodsInfo.getGoodName()
-						+ "， 记录id为" + record.getId();
+				TFinanicalOpLog opLogRecord = new TFinanicalOpLog();
+				opLogRecord.setOperator(operator);
+				opLogRecord.setOpDate(sdf.format(now));
+				opLogRecord.setOpTime(now);
+				opLogRecord.setOpRecordId(record.getId());
+				opLogRecord.setOpType(EnumOpType.NEW_ORDER.ordinal());
+				opLogRecord.setOpDesc(opDesc);
+				tFinanicalOpLogMapper.insert(opLogRecord);
+				if (needCheckStock) {
+					tStockRecord.setCount(tStockRecord.getCount() - ((int) buyNum));
+					tStockMapper.updateByPrimaryKey(tStockRecord);
+				}
+				return true;
 			} else {
-				record = orders.get(0);
-				double oldNum = record.getNum();
-				int oldStatus = record.getStatus();
-				record.setOrderDate(orderDate);
-				record.setOrderTime(sdf.parse(orderDate));
-				record.setNum(buyNum);
-				record.setStatus(1);
-				tOrderInfoMapper.updateByPrimaryKey(record);
-				opDesc = orderDate + " " + operator + "代替" + memberName + "更改:" + goodsInfo.getGoodName() + "由原来"
-						+ (oldStatus == 1 ? "生效" : "失效") + oldNum + "件变为" + buyNum + "件" + "， 记录id为" + record.getId();
+				return false;
 			}
-			TFinanicalOpLog opLogRecord = new TFinanicalOpLog();
-			opLogRecord.setOperator(operator);
-			opLogRecord.setOpDate(sdf.format(now));
-			opLogRecord.setOpTime(now);
-			opLogRecord.setOpRecordId(record.getId());
-			opLogRecord.setOpType(EnumOpType.NEW_ORDER.ordinal());
-			opLogRecord.setOpDesc(opDesc);
-			tFinanicalOpLogMapper.insert(opLogRecord);
-			return true;
-		} else {
-			return false;
 		}
 	}
 
 	@Override
 	public boolean modifyOrder(String operator, Integer id, Integer purchasePrice, double buyNum, Integer memberPrice,
 			Integer servicePrice, String orderDate) throws BusinessException, Exception {
-		TOrderInfo orderInfo = tOrderInfoMapper.selectByPrimaryKey(id);
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-		Date now = new Date();
-		if (orderInfo != null) {
-			int oldStatus = orderInfo.getStatus();
-			int oldPurchasePrice = orderInfo.getPurchasePrice();
-			int oldMemberPrice = orderInfo.getMemberPrice();
-			Integer oldServicePrice = orderInfo.getServicePrice();
-			orderInfo.setPurchasePrice(purchasePrice);
-			orderInfo.setMemberPrice(memberPrice);
-			orderInfo.setServicePrice(servicePrice);
-			orderInfo.setNum(buyNum);
-			orderInfo.setOrderDate(orderDate);
-			orderInfo.setOrderTime(sdf.parse(orderDate));
-			if (buyNum == 0) {
-				orderInfo.setStatus(0);
-			}
-			String m = (orderInfo.getStatus() > oldStatus || orderInfo.getStatus() == 1) ? "" : "变失效";
-			if (oldPurchasePrice != orderInfo.getPurchasePrice()) {
-				m += " 采购价由" + oldPurchasePrice + "变" + orderInfo.getPurchasePrice();
-			}
-			if (oldMemberPrice != orderInfo.getMemberPrice()) {
-				m += " 加盟价由" + oldMemberPrice + "变" + orderInfo.getMemberPrice();
-			}
-			if (oldServicePrice != null && oldServicePrice != orderInfo.getServicePrice()) {
-				m += " 代仓价由" + oldServicePrice + "变" + orderInfo.getServicePrice();
-			}
-			tOrderInfoMapper.updateByPrimaryKey(orderInfo);
+		synchronized (this.getClass()) {
+			TOrderInfo orderInfo = tOrderInfoMapper.selectByPrimaryKey(id);
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			Date now = new Date();
+			if (orderInfo != null) {
+				
+				TStockInfoExample stockExample = new TStockInfoExample();
+				stockExample.createCriteria().andGoodIdEqualTo(orderInfo.getGoodId());
+				Page<TStockInfo> tStockInfoList = tStockMapper.selectByExample(stockExample);
+				boolean needCheckStock = false;
+				TStockInfo tStockRecord = null;
+				if (!CollectionUtils.isEmpty(tStockInfoList)) {
+					needCheckStock = true;
+					tStockRecord = tStockInfoList.get(0);
+					if (tStockRecord.getCount() < buyNum) {
+						throw new BusinessException("没有足够的库存");
+					}
+				}
+				
+				int oldStatus = orderInfo.getStatus();
+				int oldPurchasePrice = orderInfo.getPurchasePrice();
+				int oldMemberPrice = orderInfo.getMemberPrice();
+				Integer oldServicePrice = orderInfo.getServicePrice();
+				orderInfo.setPurchasePrice(purchasePrice);
+				orderInfo.setMemberPrice(memberPrice);
+				orderInfo.setServicePrice(servicePrice);
+				orderInfo.setNum(buyNum);
+				orderInfo.setOrderDate(orderDate);
+				orderInfo.setOrderTime(sdf.parse(orderDate));
+				if (buyNum == 0) {
+					orderInfo.setStatus(0);
+				}
+				String m = (orderInfo.getStatus() > oldStatus || orderInfo.getStatus() == 1) ? "" : "变失效";
+				if (oldPurchasePrice != orderInfo.getPurchasePrice()) {
+					m += " 采购价由" + oldPurchasePrice + "变" + orderInfo.getPurchasePrice();
+				}
+				if (oldMemberPrice != orderInfo.getMemberPrice()) {
+					m += " 加盟价由" + oldMemberPrice + "变" + orderInfo.getMemberPrice();
+				}
+				if (oldServicePrice != null && oldServicePrice != orderInfo.getServicePrice()) {
+					m += " 代仓价由" + oldServicePrice + "变" + orderInfo.getServicePrice();
+				}
+				tOrderInfoMapper.updateByPrimaryKey(orderInfo);
 
-			TFinanicalOpLog opLogRecord = new TFinanicalOpLog();
-			opLogRecord.setOperator(operator);
-			opLogRecord.setOpDate(sdf.format(now));
-			opLogRecord.setOpTime(now);
-			opLogRecord.setOpRecordId(orderInfo.getId());
-			opLogRecord.setOpType(EnumOpType.NEW_ORDER.ordinal());
-			String opDesc = orderDate + " " + operator + "代替"
-					+ tMemberInfoMapper.selectByPrimaryKey(orderInfo.getMemberId()).getMemberName() + "更改:"
-					+ tGoodsInfoMapper.selectByPrimaryKey(orderInfo.getGoodId()).getGoodName() + m + "， 记录id为"
-					+ orderInfo.getId();
-			opLogRecord.setOpDesc(opDesc);
-			tFinanicalOpLogMapper.insert(opLogRecord);
-			return true;
+				TFinanicalOpLog opLogRecord = new TFinanicalOpLog();
+				opLogRecord.setOperator(operator);
+				opLogRecord.setOpDate(sdf.format(now));
+				opLogRecord.setOpTime(now);
+				opLogRecord.setOpRecordId(orderInfo.getId());
+				opLogRecord.setOpType(EnumOpType.NEW_ORDER.ordinal());
+				String opDesc = orderDate + " " + operator + "代替"
+						+ tMemberInfoMapper.selectByPrimaryKey(orderInfo.getMemberId()).getMemberName() + "更改:"
+						+ tGoodsInfoMapper.selectByPrimaryKey(orderInfo.getGoodId()).getGoodName() + m + "， 记录id为"
+						+ orderInfo.getId();
+				opLogRecord.setOpDesc(opDesc);
+				tFinanicalOpLogMapper.insert(opLogRecord);
+				if (needCheckStock) {
+					tStockRecord.setCount(tStockRecord.getCount() - ((int) buyNum));
+					tStockMapper.updateByPrimaryKey(tStockRecord);
+				}
+				return true;
+			}
+			return false;
 		}
-		return false;
 	}
 
 	@Override

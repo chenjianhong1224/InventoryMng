@@ -16,12 +16,15 @@ import org.springframework.util.StringUtils;
 import com.cjh.InventoryMng.entity.TGoodsInfo;
 import com.cjh.InventoryMng.entity.TOrderInfo;
 import com.cjh.InventoryMng.entity.TOrderInfoExample;
+import com.cjh.InventoryMng.entity.TStockInfo;
+import com.cjh.InventoryMng.entity.TStockInfoExample;
 import com.cjh.InventoryMng.entity.VMemberOrderInfoOrderBy;
 import com.cjh.InventoryMng.entity.VUseGoodsCount;
 import com.cjh.InventoryMng.exception.BusinessException;
 import com.cjh.InventoryMng.mapper.CustomQueryMapper;
 import com.cjh.InventoryMng.mapper.TGoodsInfoMapper;
 import com.cjh.InventoryMng.mapper.TOrderInfoMapper;
+import com.cjh.InventoryMng.mapper.TStockInfoMapper;
 import com.cjh.InventoryMng.service.OrderService;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -40,65 +43,95 @@ public class OrderServiceImpl implements OrderService {
 	@Autowired
 	private CustomQueryMapper customQueryMapper;
 
+	@Autowired
+	private TStockInfoMapper tStockMapper;
+
 	@Override
 	public double order(Integer memberId, Integer goodId, double buyNum, String orderDate, Date orderTime)
 			throws BusinessException {
-		TGoodsInfo goodsInfo = tGoodsInfoMapper.selectByPrimaryKey(goodId);
-		if (goodsInfo != null && goodsInfo.getStatus() == 1) {
-			TOrderInfoExample example = new TOrderInfoExample();
-			example.createCriteria().andGoodIdEqualTo(goodId).andMemberIdEqualTo(memberId)
-					.andOrderDateEqualTo(orderDate);
-			Page<TOrderInfo> orders = tOrderInfoMapper.selectByExample(example);
-			if (CollectionUtils.isEmpty(orders)) {
-				if (buyNum <= 0) {
-					throw new BusinessException("减少订购数失败");
+		synchronized (this.getClass()) {
+			TGoodsInfo goodsInfo = tGoodsInfoMapper.selectByPrimaryKey(goodId);
+			if (goodsInfo != null && goodsInfo.getStatus() == 1) {
+				TStockInfoExample stockExample = new TStockInfoExample();
+				stockExample.createCriteria().andGoodIdEqualTo(goodId);
+				Page<TStockInfo> tStockInfoList = tStockMapper.selectByExample(stockExample);
+				boolean needCheckStock = false;
+				TStockInfo tStockRecord = null;
+				if (!CollectionUtils.isEmpty(tStockInfoList)) {
+					needCheckStock = true;
+					tStockRecord = tStockInfoList.get(0);
+					if (tStockRecord.getCount() < buyNum) {
+						throw new BusinessException("没有足够的库存");
+					}
 				}
-				TOrderInfo record = new TOrderInfo();
-				record.setGoodId(goodId);
-				record.setMemberId(memberId);
-				record.setMemberPrice(goodsInfo.getMemberPrice());
-				record.setNum(buyNum);
-				record.setSupplierid(goodsInfo.getSupplierId());
-				Date now = new Date();
-				record.setOrderDate(orderDate);
-				record.setOrderTime(now);
-				record.setPurchasePrice(goodsInfo.getPurchasePrice()
-						+ (goodsInfo.getServicePrice() == null ? 0 : goodsInfo.getServicePrice()));
-				record.setStatus(1);
-				if (goodsInfo.getServiceId() != null) {
-					record.setServiceId(goodsInfo.getServiceId());
-				}
-				if (goodsInfo.getServicePrice() != null) {
-					record.setServicePrice(goodsInfo.getServicePrice());
-				}
-				int insertSucc = tOrderInfoMapper.insert(record);
-				return buyNum;
-			} else {
-				TOrderInfo tOrderInfo = orders.get(0);
-				if (tOrderInfo.getStatus() == 0) {
+
+				TOrderInfoExample example = new TOrderInfoExample();
+				example.createCriteria().andGoodIdEqualTo(goodId).andMemberIdEqualTo(memberId)
+						.andOrderDateEqualTo(orderDate);
+				Page<TOrderInfo> orders = tOrderInfoMapper.selectByExample(example);
+				if (CollectionUtils.isEmpty(orders)) {
 					if (buyNum <= 0) {
 						throw new BusinessException("减少订购数失败");
 					}
-					tOrderInfo.setStatus(1);
-					tOrderInfo.setOrderTime(orderTime);
-					tOrderInfo.setNum(buyNum);
-					int updateSucc = tOrderInfoMapper.updateByPrimaryKey(tOrderInfo);
+					TOrderInfo record = new TOrderInfo();
+					record.setGoodId(goodId);
+					record.setMemberId(memberId);
+					record.setMemberPrice(goodsInfo.getMemberPrice());
+					record.setNum(buyNum);
+					record.setSupplierid(goodsInfo.getSupplierId());
+					Date now = new Date();
+					record.setOrderDate(orderDate);
+					record.setOrderTime(now);
+					record.setPurchasePrice(goodsInfo.getPurchasePrice()
+							+ (goodsInfo.getServicePrice() == null ? 0 : goodsInfo.getServicePrice()));
+					record.setStatus(1);
+					if (goodsInfo.getServiceId() != null) {
+						record.setServiceId(goodsInfo.getServiceId());
+					}
+					if (goodsInfo.getServicePrice() != null) {
+						record.setServicePrice(goodsInfo.getServicePrice());
+					}
+					int insertSucc = tOrderInfoMapper.insert(record);
+					if (needCheckStock) {
+						tStockRecord.setCount(tStockRecord.getCount() - ((int) buyNum));
+						tStockMapper.updateByPrimaryKey(tStockRecord);
+					}
 					return buyNum;
 				} else {
-					tOrderInfo.setOrderTime(orderTime);
-					if (tOrderInfo.getNum() + buyNum < 0) {
-						throw new BusinessException("减少订购数失败");
+					TOrderInfo tOrderInfo = orders.get(0);
+					if (tOrderInfo.getStatus() == 0) {
+						if (buyNum <= 0) {
+							throw new BusinessException("减少订购数失败");
+						}
+						tOrderInfo.setStatus(1);
+						tOrderInfo.setOrderTime(orderTime);
+						tOrderInfo.setNum(buyNum);
+						int updateSucc = tOrderInfoMapper.updateByPrimaryKey(tOrderInfo);
+						if (needCheckStock) {
+							tStockRecord.setCount(tStockRecord.getCount() + ((int) buyNum));
+							tStockMapper.updateByPrimaryKey(tStockRecord);
+						}
+						return buyNum;
+					} else {
+						tOrderInfo.setOrderTime(orderTime);
+						if (tOrderInfo.getNum() + buyNum < 0) {
+							throw new BusinessException("减少订购数失败");
+						}
+						if (tOrderInfo.getNum() + buyNum == 0) {
+							tOrderInfo.setStatus(0);
+						}
+						tOrderInfo.setNum(tOrderInfo.getNum() + buyNum);
+						int updateSucc = tOrderInfoMapper.updateByPrimaryKey(tOrderInfo);
+						if (needCheckStock) {
+							tStockRecord.setCount(tStockRecord.getCount() - ((int) buyNum));
+							tStockMapper.updateByPrimaryKey(tStockRecord);
+						}
+						return tOrderInfo.getNum();
 					}
-					if (tOrderInfo.getNum() + buyNum == 0) {
-						tOrderInfo.setStatus(0);
-					}
-					tOrderInfo.setNum(tOrderInfo.getNum() + buyNum);
-					int updateSucc = tOrderInfoMapper.updateByPrimaryKey(tOrderInfo);
-					return tOrderInfo.getNum();
 				}
+			} else {
+				throw new BusinessException("商品目前不可订购");
 			}
-		} else {
-			throw new BusinessException("商品目前不可订购");
 		}
 	}
 
@@ -273,7 +306,8 @@ public class OrderServiceImpl implements OrderService {
 
 	@Override
 	public String getOrderContent(Integer memberId, String brandId, String orderDate) {
-		Page<VMemberOrderInfoOrderBy> list = customQueryMapper.queryMemberOrderInfoOrderBy(memberId, brandId, orderDate);
+		Page<VMemberOrderInfoOrderBy> list = customQueryMapper.queryMemberOrderInfoOrderBy(memberId, brandId,
+				orderDate);
 		int lastMemberId = -1;
 		String lastSupplierName = "";
 		Map<String, String> sendContentMap = Maps.newHashMap();

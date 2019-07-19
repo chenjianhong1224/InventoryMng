@@ -217,6 +217,18 @@
 				}
 			});				
 		}
+		function analyzeStock(){
+			$.ajax({
+				type : "post",
+				url : "/analyze/analyzeStockPage",
+				success : function(result) {
+					$("#rightContent").html(result);
+				},
+				error : function() {
+					alert("系统错误");
+				}
+			});				
+		}		
 		function queryUseGoodsReport(){
 			$.ajax({
 				type : "post",
@@ -301,6 +313,9 @@
 							<dd>
 								<a href="javascript:;" onclick="analyzeTejia()">特价分析</a>
 							</dd>
+							<dd>
+								<a href="javascript:;" onclick="analyzeStock()">库存分析</a>
+							</dd>		
 						</dl></li>	
 					<li shiro:hasPermission="financial:query" class="layui-nav-item"><a
 						href="javascript:;">账务管理</a>

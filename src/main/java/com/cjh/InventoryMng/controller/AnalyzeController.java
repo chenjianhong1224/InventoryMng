@@ -4,6 +4,8 @@ import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.shiro.SecurityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -12,15 +14,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.cjh.InventoryMng.bean.UserInfo;
+import com.cjh.InventoryMng.entity.TSupplier;
+import com.cjh.InventoryMng.entity.TSysParam;
+import com.cjh.InventoryMng.entity.VStockInfo;
+import com.cjh.InventoryMng.service.StockInfoService;
+import com.cjh.InventoryMng.service.SupplierService;
 import com.cjh.InventoryMng.vo.ManjianVO;
 import com.cjh.InventoryMng.vo.ResultMap;
 import com.cjh.InventoryMng.vo.TejiaVO;
+import com.github.pagehelper.Page;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 @Controller
 @RequestMapping(value = "/analyze")
 public class AnalyzeController {
+
+	@Autowired
+	private StockInfoService stockService;
+
+	@Autowired
+	private SupplierService supplierService;
 
 	@RequestMapping(value = "/analyzeManjianPage")
 	public String analyzeManjianPage(Model model) {
@@ -153,6 +168,63 @@ public class AnalyzeController {
 				data.add(vo);
 				resultMap.setDataList(data);
 			}
+		}
+		return resultMap.toMap();
+	}
+
+	@RequestMapping(value = "/analyzeStockPage")
+	public String analyzeStockPage(Model model) {
+		List<TSupplier> list = supplierService.getAllSupplier();
+		TSupplier all = new TSupplier();
+		all.setSupplierName("全部");
+		all.setId(0);
+		List<TSupplier> returnSupplierList = Lists.newArrayList();
+		returnSupplierList.add(all);
+		for (TSupplier e : list) {
+			returnSupplierList.add(e);
+		}
+		model.addAttribute("supplierList", returnSupplierList);
+		return "analyze/analyze_stock";
+	}
+
+	@RequestMapping(value = "/queryStockInfos")
+	@ResponseBody
+	public Map<String, Object> queryStockInfos(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		Integer page = (Integer) reqMap.get("page");
+		Integer limit = (Integer) reqMap.get("limit");
+		String goodsName = (String) reqMap.get("goodsName");
+		if(StringUtils.isEmpty(goodsName)){
+			goodsName = "";
+		}
+		Page<VStockInfo> returnList = stockService.queryStockInfo(goodsName, page, limit);
+		resultMap.setDataList(returnList);
+		Map<String, Object> t = resultMap.toMap();
+		t.put("count", returnList.getTotal());
+		return t;
+	}
+
+	@RequestMapping(value = "/newStock", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> newOrder(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		String goodsId = (String) reqMap.get("goodsId");
+		String count = (String) reqMap.get("count");
+		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
+		try {
+			if (null != stockService.queryStockInfoByGoodsId(Integer.valueOf(goodsId))) {
+				resultMap.setFailed();
+				resultMap.setMessage("该商品已经有库存记录了，请修改，不必新增");
+				return resultMap.toMap();
+			}
+			if (!stockService.newStockInfo(creator, Integer.valueOf(goodsId), Integer.valueOf(count))) {
+				resultMap.setFailed();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.setFailed();
+			resultMap.setMessage("异常" + e.getMessage());
+			return resultMap.toMap();
 		}
 		return resultMap.toMap();
 	}

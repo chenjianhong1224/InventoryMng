@@ -127,4 +127,11 @@ public class GoodsServiceImpl implements GoodsService {
 		return false;
 	}
 
+	@Override
+	public List<TGoodsInfo> queryGoodsListBySupplier(int supplerId, int status) {
+		TGoodsInfoExample example = new TGoodsInfoExample();
+		example.createCriteria().andSupplierIdEqualTo(supplerId).andStatusEqualTo(status);
+		return tGoodsInfoMapper.selectByExample(example);
+	}
+
 }
