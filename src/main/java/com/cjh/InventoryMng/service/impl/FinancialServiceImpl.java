@@ -73,7 +73,7 @@ public class FinancialServiceImpl implements FinancialService {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 			Date now = new Date();
 			if (goodsInfo != null && goodsInfo.getStatus() == 1) {
-				
+
 				TStockInfoExample stockExample = new TStockInfoExample();
 				stockExample.createCriteria().andGoodIdEqualTo(goodId);
 				Page<TStockInfo> tStockInfoList = tStockMapper.selectByExample(stockExample);
@@ -86,7 +86,7 @@ public class FinancialServiceImpl implements FinancialService {
 						throw new BusinessException("没有足够的库存");
 					}
 				}
-				
+
 				TOrderInfoExample example = new TOrderInfoExample();
 				example.createCriteria().andGoodIdEqualTo(goodId).andMemberIdEqualTo(memberId)
 						.andOrderDateEqualTo(orderDate);
@@ -153,7 +153,7 @@ public class FinancialServiceImpl implements FinancialService {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 			Date now = new Date();
 			if (orderInfo != null) {
-				
+
 				TStockInfoExample stockExample = new TStockInfoExample();
 				stockExample.createCriteria().andGoodIdEqualTo(orderInfo.getGoodId());
 				Page<TStockInfo> tStockInfoList = tStockMapper.selectByExample(stockExample);
@@ -166,7 +166,7 @@ public class FinancialServiceImpl implements FinancialService {
 						throw new BusinessException("没有足够的库存");
 					}
 				}
-				
+
 				int oldStatus = orderInfo.getStatus();
 				int oldPurchasePrice = orderInfo.getPurchasePrice();
 				int oldMemberPrice = orderInfo.getMemberPrice();
@@ -398,5 +398,20 @@ public class FinancialServiceImpl implements FinancialService {
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public Page<TAccountRecord> queryTAccountRecord(String beginDate, String endDate, String desc, int pageNo,
+			int pageSize) throws ParseException {
+		TAccountRecordExample example = new TAccountRecordExample();
+		PageHelper.startPage(pageNo, pageSize);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		if (StringUtils.isEmpty(desc)) {
+			desc = "";
+		}
+		example.createCriteria().andApplyDescLike("%" + desc + "%")
+				.andCreateTimeGreaterThanOrEqualTo(sdf.parse(beginDate))
+				.andCreateTimeLessThanOrEqualTo(sdf.parse(endDate));
+		return tAccountRecordMapper.selectByExample(example);
 	}
 }

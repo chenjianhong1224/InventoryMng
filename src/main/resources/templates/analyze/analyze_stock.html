@@ -14,6 +14,7 @@
 		</script>
 		<script type="text/javascript">
 			var addStock;
+			var modifyStock;
 			$(function() {
 				layui.use('form', function() {
 					var form = layui.form;
@@ -21,6 +22,8 @@
 				});
 				addStock = $("#add-stock").html();
 				$("#add-stock").html("");
+				modifyStock = $("#modify-stock").html();
+				$("#modify-stock").html("");
 			});
 		</script>
 		<script type="text/javascript">
@@ -92,11 +95,27 @@
 					var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
 					var tr = obj.tr; //获得当前行 tr 的DOM对象
 					if (layEvent == 'update') {
+						layer.open({
+							type : 1,
+							title : "调整库存记录",
+							closeBtn : false,
+							shift : 2,
+							area : [ '380px', '360px' ],
+							shadeClose : true,
+							content : $("#open-main"),
+							success : function(layero, index) {
+								$("#open-main").html("");
+								$("#open-main").html(modifyStock);
+								$("#stockId").val(data.id);
+							},
+							yes : function() {
+							}
+						});
 					}
 				});
 			});
-			function changeSupplier(){
-				if($("#supplier").val() == '0'){
+			function changeSupplier() {
+				if ($("#supplier").val() == '0') {
 					$("#member2").html("");
 					$("#member2").html("<option value=\"0\">全部</option>");
 					layui.form.render('select', 'form2');
@@ -124,7 +143,7 @@
 						}
 					}
 				});
-			}			
+			}
 			function newButtionClick() {
 				layer.open({
 					type : 1,
@@ -156,7 +175,7 @@
 					alert("请填写正确的正整数");
 					return false;
 				}
-				if ($("#goods").val() =="0") {
+				if ($("#goods").val() == "0") {
 					alert("请选择商品");
 					return false;
 				}
@@ -172,6 +191,40 @@
 					success : function(result) {
 						if (result.code == 0) {
 							alert("添加成功");
+						} else {
+							alert("系统异常: " + result.message);
+						}
+						$("#queryButton").click();
+					},
+					error : function() {
+						alert("系统错误");
+					}
+				});
+				CloseWin();
+			}
+			function modifyTheStock() {
+				if ($("#updateCount").val().length == 0) {
+					alert("请填写数量");
+					return false;
+				}
+				if (!(/^[1-9]+([0-9]*)$/.test($("#updateCount").val()))) {
+					alert("请填写正确的正整数");
+					return false;
+				}
+
+				$.ajax({
+					type : "post",
+					url : "/analyze/modifyStock",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+						updateCount : $("#updateCount").val(),
+						stockId : $("#stockId").val(),
+						op_type : $("#op_type").val()
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							alert("调整成功");
 						} else {
 							alert("系统异常: " + result.message);
 						}
@@ -207,8 +260,8 @@
 		<div class="layui-form-item mgt30">
 			<label class="layui-form-label">供应商</label>
 			<div class="layui-input-block">
-				<select id="supplier" name="supplier"  
-					class="layui-select" onchange="changeSupplier()">
+				<select id="supplier" name="supplier" class="layui-select"
+					onchange="changeSupplier()">
 					<option th:each="supplier : ${supplierList}"
 						th:value="
 						${supplier.id}"
@@ -216,17 +269,16 @@
 				</select>
 			</div>
 		</div>
-		<form class="layui-form" action="" lay-filter="form2">		
-		
-		<div class="layui-form-item mgt30">
-			<label class="layui-form-label">商品</label>
-			<div class="layui-input-block" style="width:160px">
-				<select id="goods" name="goods"  
-					class="layui-select" lay-search>
-					<option value="0">全部</option>
-				</select>
+		<form class="layui-form" action="" lay-filter="form2">
+
+			<div class="layui-form-item mgt30">
+				<label class="layui-form-label">商品</label>
+				<div class="layui-input-block" style="width: 160px">
+					<select id="goods" name="goods" class="layui-select" lay-search>
+						<option value="0">全部</option>
+					</select>
+				</div>
 			</div>
-		</div>
 		</form>
 		<div class="layui-form-item center mgt20">
 			<label class="layui-form-label">数量</label>
@@ -240,6 +292,35 @@
 			<div class="layui-input-block">
 				<button class="layui-btn" lay-submit lay-filter="save"
 					onclick="newStock()">立即提交</button>
+				<button type="reset" class="layui-btn layui-btn-primary"
+					id="closeBtn" onclick="CloseWin()">关闭</button>
+			</div>
+		</div>
+	</div>
+	<!-- 修改库存框 -->
+	<div id="modify-stock" style="display: none;">
+		<div class="layui-form-item mgt30">
+			<label class="layui-form-label">操作</label>
+			<div class="layui-input-block ">
+				<select id="op_type" name="op_type" class="mgt10">
+					<option value="1">增加库存</option>
+					<option value="2">减少库存</option>
+					<option value="3">全量更新库存</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item center mgt20">
+			<label class="layui-form-label">数量</label>
+			<div class="layui-input-block">
+				<input type="text" id="updateCount" name="updateCount" required
+					value="" style="width: 180px" lay-verify="required"
+					autocomplete="off" class="layui-input"> <input type="text"
+					id="stockId" name="stockId" style="display: none">
+			</div>
+		</div>
+		<div class="layui-form-item mgt30">
+			<div class="layui-input-block">
+				<button class="layui-btn" onclick="modifyTheStock()">立即提交</button>
 				<button type="reset" class="layui-btn layui-btn-primary"
 					id="closeBtn" onclick="CloseWin()">关闭</button>
 			</div>

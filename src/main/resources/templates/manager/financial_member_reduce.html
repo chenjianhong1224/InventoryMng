@@ -98,7 +98,13 @@
 					,
 					value : getBillBeginDate().format("yyyy-MM-dd"),trigger: 'click',
 					
-				});		
+				});	
+				laydate.render({
+					elem : '#orderEndTime' //指定元素
+					,
+					value : getBillEndDate().format("yyyy-MM-dd"),trigger: 'click',
+					
+				});
 			});
 		</script>
 		<script type="text/javascript">
@@ -115,7 +121,7 @@
 					,
 					where : {
 						beginDate : getBillBeginDate().format("yyyy-MM-dd"),
-						endDate : getBillBeginDate().format("yyyy-MM-dd"),
+						endDate : getBillEndDate().format("yyyy-MM-dd"),
 					},
 					cols : [ [ //表头
 					{
@@ -166,7 +172,7 @@
 							},
 							where : {
 								beginDate : $("#orderBeginTime").val(),
-								endDate : $("#orderBeginTime").val(),
+								endDate : $("#orderEndTime").val(),
 								memberId : $("#member").val(),
 								brandId : $("#brand").val(),
 							}
@@ -252,7 +258,7 @@
 					alert("请选择加盟商");
 					return;
 				}
-				var re = /^[1-9]+\.?[0-9]*]*$/; 
+				var re = /^-?[1-9]+\.?[0-9]*]*$/; 
 				var reduceAmount = $("#reduceAmount2").val();
 				if (!re.test(reduceAmount)) {
 				　　alert("请输入正确的金额");
@@ -342,6 +348,9 @@
 			<label>减免时间:</label>
 			<div class="layui-input-inline">
 				<input type="text" id="orderBeginTime">
+			</div>&nbsp;至&nbsp;
+			<div class="layui-input-inline">
+				<input type="text" id="orderEndTime">
 			</div>
 		</div>
 		<div class="layui-inline mgr10">

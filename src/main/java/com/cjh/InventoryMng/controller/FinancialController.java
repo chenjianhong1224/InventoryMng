@@ -399,6 +399,7 @@ public class FinancialController {
 							profitBean.setElemeProfit((int) (Double.valueOf(profit) * 100));
 						}
 					} catch (Exception e) {
+						log.error("导入平台营收失败", e);
 						resultMap.setFailed();
 						resultMap.setMessage("第" + i + "行" + "第" + j + "列格式有误");
 						in.close();
@@ -638,6 +639,52 @@ public class FinancialController {
 	@RequestMapping(value = "/queryAccountRecords", method = RequestMethod.POST)
 	@ResponseBody
 	public Map<String, Object> queryAccountRecords(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		Integer page = (Integer) reqMap.get("page");
+		Integer limit = (Integer) reqMap.get("limit");
+		String beginDate = (String) reqMap.get("beginDate");
+		String endDate = (String) reqMap.get("endDate");
+		String desc = (String) reqMap.get("desc");
+		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
+		int approvedAmount = 0;
+		try {
+			Page<TAccountRecord> records = financialService.queryTAccountRecord(beginDate, endDate, desc, creator, page,
+					limit);
+			List<ApplyAccountRecordVO> returnVOList = Lists.newArrayList();
+			SimpleDateFormat sdf = new SimpleDateFormat("MM-dd HH:mm:ss");
+			for (TAccountRecord tAccountRecord : records) {
+				ApplyAccountRecordVO vo = new ApplyAccountRecordVO();
+				vo.setApprover(userService.getUserName(tAccountRecord.getRecordUserId()));
+				vo.setAmount(new DecimalFormat("#.##").format((double) (tAccountRecord.getAmount()) / 100));
+				vo.setCreateStaff(userService.getUserName(tAccountRecord.getCreateStaff()));
+				vo.setCreateTime(sdf.format(tAccountRecord.getCreateTime()));
+				vo.setDesc(tAccountRecord.getApplyDesc());
+				vo.setId(tAccountRecord.getId());
+				vo.setStatus(tAccountRecord.getStatus() == 1 ? "通过" : (tAccountRecord.getStatus() == 0 ? "待审批" : "驳回"));
+				if (tAccountRecord.getStatus() == 1) {
+					approvedAmount += tAccountRecord.getAmount();
+				}
+				vo.setTheDate(tAccountRecord.getTheDate().substring(2));
+				vo.setType(sysParaService.getAccountRecordTypeName(tAccountRecord.getType()));
+				vo.setWhy(tAccountRecord.getWhy());
+				returnVOList.add(vo);
+			}
+			resultMap.setDataList(returnVOList);
+			Map<String, Object> t = resultMap.toMap();
+			t.put("count", records.getTotal());
+			t.put("approvedAmount", new DecimalFormat("#.##").format((double) (approvedAmount) / 100));
+			return t;
+		} catch (ParseException e) {
+			e.printStackTrace();
+			resultMap.setFailed();
+			resultMap.setMessage("出现异常");
+		}
+		return resultMap.toMap();
+	}
+	
+	@RequestMapping(value = "/queryAllAccountRecords", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> queryAllAccountRecords(@RequestBody Map<String, Object> reqMap) {
 		ResultMap resultMap = ResultMap.one();
 		Integer page = (Integer) reqMap.get("page");
 		Integer limit = (Integer) reqMap.get("limit");

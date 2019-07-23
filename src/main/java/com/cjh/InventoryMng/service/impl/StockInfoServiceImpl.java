@@ -37,7 +37,6 @@ public class StockInfoServiceImpl implements StockInfoService {
 
 	@Override
 	public boolean newStockInfo(String opId, int goodsId, int count) {
-		TGoodsInfo goods = tGoodsInfoMapper.selectByPrimaryKey(goodsId);
 		TStockInfo record = new TStockInfo();
 		record.setCount(count);
 		record.setGoodId(goodsId);
@@ -55,6 +54,16 @@ public class StockInfoServiceImpl implements StockInfoService {
 			return null;
 		}
 		return list.get(0);
+	}
+
+	@Override
+	public boolean modifyStockInfo(String opId, TStockInfo info) {
+		return 1 == tStockMapper.updateByPrimaryKey(info);
+	}
+
+	@Override
+	public TStockInfo queryStockInfoById(int stockId) {
+		return tStockMapper.selectByPrimaryKey(stockId);
 	}
 
 }

@@ -10,6 +10,10 @@ public interface StockInfoService {
 	
 	boolean newStockInfo(String opId, int goodsId, int count);
 	
+	boolean modifyStockInfo(String opId, TStockInfo info);
+	
 	TStockInfo queryStockInfoByGoodsId(int goodsId);
+	
+	TStockInfo queryStockInfoById(int stockId);
 
 }

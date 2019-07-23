@@ -66,7 +66,12 @@ public class LoginController {
 
 	@RequestMapping(value = "/index")
 	public String index(ModelMap map, HttpSession httpSession, HttpServletRequest request) {
-		UserInfo userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipals().getPrimaryPrincipal();
+		UserInfo userInfo = null;
+		try{
+			userInfo = (UserInfo) SecurityUtils.getSubject().getPrincipals().getPrimaryPrincipal();
+		}catch(Exception e){
+			return "redirect:/login";
+		}
 		map.put("userName", userInfo.gettUserInfo().getUserName());
 		if (userInfo.gettUserInfo().getUserType() == 1) {
 			if (JudgeRequestDeviceUtil.isMobileDevice(request.getHeader("user-agent"))) {

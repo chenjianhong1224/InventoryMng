@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.cjh.InventoryMng.bean.UserInfo;
+import com.cjh.InventoryMng.entity.TStockInfo;
 import com.cjh.InventoryMng.entity.TSupplier;
 import com.cjh.InventoryMng.entity.TSysParam;
 import com.cjh.InventoryMng.entity.VStockInfo;
@@ -194,7 +195,7 @@ public class AnalyzeController {
 		Integer page = (Integer) reqMap.get("page");
 		Integer limit = (Integer) reqMap.get("limit");
 		String goodsName = (String) reqMap.get("goodsName");
-		if(StringUtils.isEmpty(goodsName)){
+		if (StringUtils.isEmpty(goodsName)) {
 			goodsName = "";
 		}
 		Page<VStockInfo> returnList = stockService.queryStockInfo(goodsName, page, limit);
@@ -206,7 +207,7 @@ public class AnalyzeController {
 
 	@RequestMapping(value = "/newStock", method = RequestMethod.POST)
 	@ResponseBody
-	public Map<String, Object> newOrder(@RequestBody Map<String, Object> reqMap) {
+	public Map<String, Object> newStock(@RequestBody Map<String, Object> reqMap) {
 		ResultMap resultMap = ResultMap.one();
 		String goodsId = (String) reqMap.get("goodsId");
 		String count = (String) reqMap.get("count");
@@ -218,6 +219,37 @@ public class AnalyzeController {
 				return resultMap.toMap();
 			}
 			if (!stockService.newStockInfo(creator, Integer.valueOf(goodsId), Integer.valueOf(count))) {
+				resultMap.setFailed();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.setFailed();
+			resultMap.setMessage("异常" + e.getMessage());
+			return resultMap.toMap();
+		}
+		return resultMap.toMap();
+	}
+
+	@RequestMapping(value = "/modifyStock", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> modifyStock(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		String op_type = (String) reqMap.get("op_type");
+		String stockId = (String) reqMap.get("stockId");
+		String updateCount = (String) reqMap.get("updateCount");
+		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
+		try {
+			int count = 0;
+			TStockInfo info = stockService.queryStockInfoById(Integer.valueOf(stockId));
+			if ("1".equals(op_type)) { // 增加
+				count = info.getCount() + Integer.valueOf(updateCount);
+			} else if ("2".equals(op_type)) { // 减少
+				count = info.getCount() - Integer.valueOf(updateCount);
+			} else { // 更新
+				count = Integer.valueOf(updateCount);
+			}
+			info.setCount(count);
+			if (!stockService.modifyStockInfo(creator, info)) {
 				resultMap.setFailed();
 			}
 		} catch (Exception e) {
