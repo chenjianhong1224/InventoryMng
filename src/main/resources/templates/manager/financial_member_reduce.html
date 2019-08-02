@@ -24,6 +24,7 @@
 					var form = layui.form;
 					form.render('select', 'form1');
 					form.render('select', 'form2');
+					form.render('radio', 'form2');
 					$('#brand').change(function() {
 						if($("#brand").val() == '0'){
 							$("#member").html("");
@@ -150,6 +151,9 @@
 						field : 'reduceItem',
 						title : '减免/奖励事由',
 						width : 460
+					}, {
+						field : 'managerCostFlag',
+						title : '减免/奖励事由'
 					},{
 						field : 'op',
 						title : '操作',
@@ -160,6 +164,7 @@
 						$("[data-field='id']").css('display', 'none');
 						$("[data-field='memberId']").css('display', 'none');
 						$("[data-field='brand']").css('display', 'none');
+						$("[data-field='managerCostFlag']").css('display', 'none');
 					}
 				});
 				var $ = layui.$, active = {
@@ -211,6 +216,13 @@
 							$("#reduceItem").val(data.reduceItem);
 							$("#reduceId").val(data.reduceId);
 							$("#memberId").val(data.memberId);
+							if(data.managerCostFlag == 1){
+								$("input:radio[name=reduceType][value=1]").attr("checked",true); 
+							}if(data.managerCostFlag == 2){
+								$("input:radio[name=reduceType][value=2]").attr("checked",true); 
+							}if(data.managerCostFlag == 0){
+								$("input:radio[name=reduceType][value=0]").attr("checked",true); 
+							}
 							layui.laydate.render({
 								elem : '#reduceDate' //指定元素
 								,
@@ -240,6 +252,7 @@
 						$("#member2").get(0).selectedIndex = 0;
 						layui.form.render('select', 'form2');
 						layui.form.render('checkbox', 'form2');
+						layui.form.render('radio', 'form2');
 						layui.laydate.render({
 							elem : '#reduceDate2' //指定元素
 							,
@@ -265,9 +278,7 @@
 				　　alert("请输入正确的金额");
 				　　return;
 				}
-				if($('#managerCostFlag2').is(':checked')){
-					flag = 1;
-				}
+				var flag = $("input[name='reduceType2']:checked").val();
 				$.ajax({
 					url : '/financial/newReduce',
 					type : "post",
@@ -301,9 +312,7 @@
 					return;
 				}
 				var flag = 0;
-				if($('#managerCostFlag').is(':checked')){
-					flag = 1;
-				}
+				flag = $("input[name='reduceType']:checked").val();
 				$.ajax({
 					url : '/financial/modifyReduce',
 					type : "post",
@@ -402,8 +411,9 @@
 				</div>
 				<div class="layui-form-item center mgt20">
 					<div class="layui-input-block">
-						<input type="checkbox" id="managerCostFlag2"
-							name="managerCostFlag2" title="是否是管理费减免" lay-skin="primary">
+						<input type="radio" name="reduceType2" value="1" title="管理费减免">
+						<input type="radio" name="reduceType2" value="2" title="推广费奖励">
+						<input type="radio" name="reduceType2" value="0" title="其他">
 					</div>
 				</div>
 				<div class="layui-form-item center mgt20">
@@ -443,8 +453,9 @@
 		<div id="modify-reduce" style="display: none;">
 			<div class="layui-form-item center mgt30">
 				<div class="layui-input-block">
-					<input type="checkbox" id="managerCostFlag"
-						name="managerCostFlag" title="是否是管理费减免" lay-skin="primary">&nbsp;&nbsp;是否是管理费减免
+					<input type="radio" name="reduceType" value="1" title="管理费减免">管理费减免&nbsp;&nbsp;&nbsp;&nbsp;
+					<input type="radio" name="reduceType" value="2" title="推广费奖励">推广费奖励&nbsp;&nbsp;&nbsp;&nbsp;
+					<input type="radio" name="reduceType" value="0" title="其他">其他
 				</div>
 			</div>
 			<div class="layui-form-item center mgt30">

@@ -35,14 +35,20 @@
 		select e.Id, good_name, manufacturer_id, e.supplier_id,
 		specifications,
 		purchase_price, member_price,
-		e.status, create_time,
-		creator,
-		update_time, updater from t_goods_info e, t_supplier a,
-		t_group_map b
+		e.status, e.create_time,
+		e.creator,
+		e.update_time, e.updater from t_goods_info e, t_supplier a,
+		t_group_map b, t_member_info c
 		WHERE 1 = 1 AND e.status = 1 AND a.id = b.supplier_id
 		AND e.supplier_id = a.id
 		AND b.member_id = #{memberId,
 		jdbcType=INTEGER}
+		AND b.member_id = c.id 
+		AND not exists (select 1 from t_goods_blacklist f 
+					where f.status = 1 
+					AND f.province = c.province 
+					AND f.city = c.city 
+					AND e.id = f.goods_id )
 		<if test="manufacturerId != null">
 			AND e.manufacturer_id = #{manufacturerId,
 			jdbcType=INTEGER}

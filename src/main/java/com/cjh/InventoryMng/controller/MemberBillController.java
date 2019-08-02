@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.cjh.InventoryMng.bean.UserInfo;
+import com.cjh.InventoryMng.entity.TMemberReduce;
 import com.cjh.InventoryMng.entity.VMemberBillInfo;
 import com.cjh.InventoryMng.service.MemberService;
 import com.cjh.InventoryMng.vo.MemberBillInfoVO;
@@ -26,7 +27,7 @@ import com.google.common.collect.Lists;
 public class MemberBillController {
 
 	@Autowired
-	private MemberService memberSerice;
+	private MemberService memberService;
 
 	@RequestMapping(value = "/query", method = RequestMethod.POST)
 	@ResponseBody
@@ -42,9 +43,9 @@ public class MemberBillController {
 			resultMap.setFailed();
 			return resultMap.toMap();
 		}
-		Page<VMemberBillInfo> memberBillInfos = memberSerice.getMemberBill(brandId, memberId, beginDate, endDate, page,
+		Page<VMemberBillInfo> memberBillInfos = memberService.getMemberBill(brandId, memberId, beginDate, endDate, page,
 				limit);
-		Page<VMemberBillInfo> allMemberBillInfos = memberSerice.getMemberBill(brandId, memberId, beginDate, endDate,
+		Page<VMemberBillInfo> allMemberBillInfos = memberService.getMemberBill(brandId, memberId, beginDate, endDate,
 				page, 0);
 		List<MemberBillInfoVO> returnList = Lists.newArrayList();
 		for (VMemberBillInfo vMemberBillInfo : memberBillInfos) {
@@ -65,8 +66,14 @@ public class MemberBillController {
 			amount += vMemberBillInfo.getElemeProfit() + vMemberBillInfo.getMeituanProfit();
 			orderAmount += vMemberBillInfo.getOrderAmount();
 		}
+		Integer reduceAmount = 0;
+		Page<TMemberReduce> reduces = memberService.getMemberReduceExceptTuiguang(memberId == null ? null : Integer.valueOf(memberId),
+				beginDate, endDate, page, limit);
+		for (TMemberReduce tMemberReduce : reduces) {
+			reduceAmount += tMemberReduce.getReduceAmount();
+		}
 		managementCost = amount * 0.05;
-		settleAmount = amount - managementCost - orderAmount;
+		settleAmount = amount - managementCost - orderAmount + reduceAmount;
 		resultMap.setDataObject(returnList);
 		Map<String, Object> t = resultMap.toMap();
 		t.put("count", allMemberBillInfos.getTotal());
@@ -74,6 +81,7 @@ public class MemberBillController {
 		t.put("managementCost", new DecimalFormat("#.##").format(managementCost / 100));
 		t.put("allOrderAmount", new DecimalFormat("#.##").format(((double) orderAmount) / 100));
 		t.put("settleAmount", new DecimalFormat("#.##").format(settleAmount / 100));
+		t.put("reduceAmount", new DecimalFormat("#.##").format(((double) reduceAmount) / 100));
 		return t;
 	}
 }

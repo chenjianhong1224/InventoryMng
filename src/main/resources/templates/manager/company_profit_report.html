@@ -1,0 +1,149 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org">
+<body>
+	<div class="layui-main mgt10">
+		<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: 22px;
+}
+</style>
+		<script type="text/javascript">
+			layui.use('laydate', function() {
+
+				var laydate = layui.laydate;
+
+				//执行一个laydate实例
+				laydate.render({
+					elem : '#orderBeginTime' //指定元素
+					,
+					format : 'yyyy-MM',
+					value : new Date(new Date().getFullYear(), (new Date()
+							.getMonth()), 0),
+					type : 'month'
+				});
+				laydate.render({
+					elem : '#orderEndTime' //指定元素
+					,
+					format : 'yyyy-MM',
+					value : new Date(),
+					type : 'month'
+				});
+			});
+		</script>
+		<script type="text/javascript">
+			layui.use('table', function() {
+				var table = layui.table;
+				//第一个实例
+				table.render({
+					elem : '#CompanyProfitReport',
+					url : '/report/company/queryCompanyProfit' //数据接口
+					,
+					contentType : 'application/json',
+					method : 'post',
+					page : true //开启分页
+					,
+					where : {
+						beginDate : new Date(new Date().getFullYear(),
+								(new Date().getMonth()), 0).format("yyyy-MM"),
+						endDate : new Date().format("yyyy-MM"),
+					},
+					cols : [ [ //表头
+					{
+						field : 'goodsProfit',
+						title : '货款利润',
+						width : 100,
+					}, {
+						field : 'managerProfit',
+						title : '管理费利润',
+						width : 100,
+					}, {
+						field : 'freightCost',
+						title : '运费成本',
+						width : 100,
+					}, {
+						field : 'salaryCost',
+						title : '工资成本',
+						width : 100
+					}, {
+						field : 'allCost',
+						title : '所有成本',
+						width : 100
+					}, {
+						field : 'approvedAccount',
+						title : '报销金额',
+						width : 100
+					}, {
+						field : 'tuiguangReduce',
+						title : '推广补贴',
+						width : 100
+					}, {
+						field : 'month',
+						title : '月份',
+						width : 120
+					} ] ],
+					done : function(res, curr, count) {
+						$('#companySettle').html(res.companySettle);
+						$('#profit').html(res.profit);
+					}
+				});
+				var $ = layui.$, active = {
+					reload : function() {
+						//执行重载
+						table.reload('CompanyProfitReport', {
+							page : {
+								curr : 1
+							//重新从第 1 页开始
+							},
+							where : {
+								beginDate : $("#orderBeginTime").val(),
+								endDate : $("#orderEndTime").val()
+							}
+						});
+					}
+				};
+				$('#queryButton').on('click', function() {
+					var t1 = new Date($('#orderBeginTime').val()).getTime();//返回从1970-1-1开始计算到Date对象中的时间之间的毫秒数
+					var t2 = new Date($('#orderEndTime').val()).getTime();//返回从1970-1-1开始计算到Date对象中的时间之间的毫秒数
+					if (t1 > t2) {
+						alert('开始时间不能大于结束时间');
+						return;
+					}
+					var type = $(this).data('type');
+					active[type] ? active[type].call(this) : '';
+				});
+			});
+		</script>
+		<div class="layui-inline mgr10">
+			<label>开始时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="orderBeginTime">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<label>结束时间:</label>
+			<div class="layui-input-inline">
+				<input type="text" id="orderEndTime">
+			</div>
+		</div>
+		<div class="layui-inline mgr10">
+			<button class="layui-btn layui-btn-radius" id="queryButton"
+				data-type="reload">查询</button>
+		</div>
+		<div>
+			<table id="CompanyProfitReport" lay-filter="CompanyProfitReport"></table>
+		</div>
+		<div class="layui-inline">
+			<label>应结公司:&nbsp;<span style="color:red" id="companySettle"></span></label> <label
+				class="mgl15">本地利润合计:&nbsp;<span id="profit" style="color:red"></span></label>
+		</div>
+		<div class="mgt10">
+			<label>应结公司 = ( 货款利润  + 管理费 - 运费) * 2/5</label>
+		</div>
+		<div class="mgt10">
+			<label>本地利润合计 = ( 货款利润 + 管理费 - 运费 ) * 3/5 - 除运费的成本 - 报销金额</label>
+		</div>
+	</div>
+</body>
+</html>

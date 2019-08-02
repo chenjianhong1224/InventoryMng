@@ -17,6 +17,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cjh.InventoryMng.bean.PlatformProfitImportBean;
+import com.cjh.InventoryMng.bean.UserInfo;
 import com.cjh.InventoryMng.bean.PlatformProfitImportBean.ProfitBean;
+import com.cjh.InventoryMng.entity.TCompanyProfit;
 import com.cjh.InventoryMng.entity.TGoodsInfo;
 import com.cjh.InventoryMng.entity.TMemberInfo;
 import com.cjh.InventoryMng.entity.TMemberReduce;
@@ -39,6 +42,7 @@ import com.cjh.InventoryMng.entity.TOrderInfo;
 import com.cjh.InventoryMng.entity.TPlatformProfit;
 import com.cjh.InventoryMng.entity.TSupplier;
 import com.cjh.InventoryMng.entity.TSysParam;
+import com.cjh.InventoryMng.entity.TUserInfo;
 import com.cjh.InventoryMng.entity.VMemberBillInfo;
 import com.cjh.InventoryMng.entity.VSuppplierBillInfo;
 import com.cjh.InventoryMng.entity.VUseGoodsCount;
@@ -49,6 +53,7 @@ import com.cjh.InventoryMng.service.ProfitService;
 import com.cjh.InventoryMng.service.SupplierService;
 import com.cjh.InventoryMng.service.SysParaService;
 import com.cjh.InventoryMng.utils.DateUtils;
+import com.cjh.InventoryMng.vo.CompanyProfitReportVO;
 import com.cjh.InventoryMng.vo.GoodsUsedCountVO;
 import com.cjh.InventoryMng.vo.MemberBillInfoVO;
 import com.cjh.InventoryMng.vo.MemberOrderReportInfoVO;
@@ -205,8 +210,8 @@ public class ReportController {
 		Integer orderAmount = 0;
 		Double settleAmount = 0.0;
 		Integer reduceAmount = 0;
-		Page<TMemberReduce> reduces = memberService.getMemberReduce(memberId == null ? null : Integer.valueOf(memberId),
-				beginDate, endDate, page, limit);
+		Page<TMemberReduce> reduces = memberService.getMemberReduceExceptTuiguang(
+				memberId == null ? null : Integer.valueOf(memberId), beginDate, endDate, page, limit);
 		for (TMemberReduce tMemberReduce : reduces) {
 			reduceAmount += tMemberReduce.getReduceAmount();
 		}
@@ -240,12 +245,13 @@ public class ReportController {
 			memberId = null;
 		}
 
-		Page<TMemberReduce> memberReduceInfos = memberService.getMemberReduce(
+		Page<TMemberReduce> memberReduceInfos = memberService.getMemberAllReduce(
 				StringUtils.isEmpty(memberId) ? null : Integer.valueOf(memberId), beginDate, endDate, page, limit);
 		List<MemberReduceInfoVO> returnList = Lists.newArrayList();
 		for (TMemberReduce tMemberReduce : memberReduceInfos) {
 			MemberReduceInfoVO vo = new MemberReduceInfoVO();
 			vo.setReduceId(tMemberReduce.getId());
+			vo.setManagerCostFlag(tMemberReduce.getManagerCostFlag());
 			vo.setReduceDate(tMemberReduce.getReduceDate());
 			vo.setReduceItem(tMemberReduce.getReduceItem());
 			String memberName = memberService.getMemberInfo(Integer.valueOf(tMemberReduce.getMemberId()))
@@ -439,5 +445,73 @@ public class ReportController {
 		Map<String, Object> t = resultMap.toMap();
 		t.put("count", useGoodsCountList.getTotal());
 		return t;
+	}
+
+	@RequestMapping(value = "/compantProfitReprotPage")
+	public String compantProfitReprotPage(Model model) {
+		return "manager/company_profit_report";
+	}
+
+	@RequestMapping(value = "/company/queryCompanyProfit", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> queryCompanyProfit(@RequestBody Map<String, Object> reqMap)
+			throws IllegalAccessException, InvocationTargetException {
+		ResultMap resultMap = ResultMap.one();
+		Integer page = (Integer) reqMap.get("page");
+		Integer limit = (Integer) reqMap.get("limit");
+		String beginDate = (String) reqMap.get("beginDate");
+		String endDate = (String) reqMap.get("endDate");
+		Page<TCompanyProfit> profitList = profitService.queryCompanyProfit(beginDate, endDate, page, limit);
+		Page<TCompanyProfit> allProfitList = profitService.queryCompanyProfit(beginDate, endDate, page, 0);
+
+		List<CompanyProfitReportVO> returnList = Lists.newArrayList();
+		double companySettle = 0.0;
+		double profit = 0.0;
+		for (TCompanyProfit t : profitList) {
+			CompanyProfitReportVO vo = new CompanyProfitReportVO();
+			vo.setMonth(t.getMonth());
+			vo.setAllCost(new DecimalFormat("#.##").format(((double) t.getAllCost()) / 100));
+			vo.setApprovedAccount(new DecimalFormat("#.##").format(((double) t.getApprovedAccount()) / 100));
+			vo.setFreightCost(new DecimalFormat("#.##").format(((double) t.getFreightCost()) / 100));
+			vo.setGoodsProfit(new DecimalFormat("#.##").format(((double) t.getGoodsProfit()) / 100));
+			vo.setManagerProfit(new DecimalFormat("#.##").format(((double) t.getManagerProfit()) / 100));
+			vo.setSalaryCost(new DecimalFormat("#.##").format(((double) t.getSalaryCost()) / 100));
+			vo.setTuiguangReduce(new DecimalFormat("#.##").format(((double) t.getTuiguangReduce()) / 100));
+			returnList.add(vo);
+		}
+		for (TCompanyProfit t : allProfitList) {
+			companySettle += 2 * (double) (t.getGoodsProfit() + t.getManagerProfit() - t.getFreightCost()) / 100 / 5;
+			profit += 3 * (double) (t.getGoodsProfit() + t.getManagerProfit() - t.getFreightCost()) / 100 / 5
+					- (double) (t.getAllCost() - t.getFreightCost()) / 100 - (double) t.getApprovedAccount() / 100;
+		}
+		resultMap.setDataList(returnList);
+		Map<String, Object> t = resultMap.toMap();
+		t.put("count", profitList.getTotal());
+		t.put("companySettle", new DecimalFormat("#.##").format(companySettle));
+		t.put("profit", new DecimalFormat("#.##").format(profit));
+		return t;
+	}
+
+	@RequestMapping(value = "/company/computeCompanyProfit")
+	@ResponseBody
+	public Map<String, Object> computeCompanyProfit(@RequestParam("month") String month)
+			throws IllegalAccessException, InvocationTargetException {
+		ResultMap resultMap = ResultMap.one();
+		TUserInfo user = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
+		try {
+			sdf.parse(month);
+		} catch (Exception e) {
+			resultMap.setFailed();
+			resultMap.setMessage("月份格式不正确");
+			return resultMap.toMap();
+		}
+		if (user.getUserType() != 2) {
+			resultMap.setFailed();
+			resultMap.setMessage("无权限");
+		} else {
+			profitService.computeCompanyProfit(month);
+		}
+		return resultMap.toMap();
 	}
 }

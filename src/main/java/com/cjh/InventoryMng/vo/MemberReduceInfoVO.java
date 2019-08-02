@@ -15,6 +15,8 @@ public class MemberReduceInfoVO implements Serializable {
 	private String reduceDate;
 	
 	private String reduceItem;
+	
+	private int managerCostFlag;
 
 	public int getReduceId() {
 		return reduceId;
@@ -62,6 +64,14 @@ public class MemberReduceInfoVO implements Serializable {
 
 	public void setReduceItem(String reduceItem) {
 		this.reduceItem = reduceItem;
+	}
+
+	public int getManagerCostFlag() {
+		return managerCostFlag;
+	}
+
+	public void setManagerCostFlag(int managerCostFlag) {
+		this.managerCostFlag = managerCostFlag;
 	}
 
 }

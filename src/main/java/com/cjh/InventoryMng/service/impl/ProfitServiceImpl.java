@@ -16,6 +16,14 @@ import org.springframework.util.StringUtils;
 
 import com.cjh.InventoryMng.bean.PlatformProfitImportBean;
 import com.cjh.InventoryMng.bean.PlatformProfitImportBean.ProfitBean;
+import com.cjh.InventoryMng.entity.TAccountRecord;
+import com.cjh.InventoryMng.entity.TAccountRecordExample;
+import com.cjh.InventoryMng.entity.TCompanyProfit;
+import com.cjh.InventoryMng.entity.TCompanyProfitExample;
+import com.cjh.InventoryMng.entity.TCostRecord;
+import com.cjh.InventoryMng.entity.TCostRecordExample;
+import com.cjh.InventoryMng.entity.TMemberReduce;
+import com.cjh.InventoryMng.entity.TMemberReduceExample;
 import com.cjh.InventoryMng.entity.TOrderInfo;
 import com.cjh.InventoryMng.entity.TOrderInfoExample;
 import com.cjh.InventoryMng.entity.TPlatformProfit;
@@ -23,6 +31,10 @@ import com.cjh.InventoryMng.entity.TPlatformProfitExample;
 import com.cjh.InventoryMng.exception.BusinessException;
 import com.cjh.InventoryMng.mapper.CustomInsertMapper;
 import com.cjh.InventoryMng.mapper.CustomQueryMapper;
+import com.cjh.InventoryMng.mapper.TAccountRecordMapper;
+import com.cjh.InventoryMng.mapper.TCompanyProfitMapper;
+import com.cjh.InventoryMng.mapper.TCostRecordMapper;
+import com.cjh.InventoryMng.mapper.TMemberReduceMapper;
 import com.cjh.InventoryMng.mapper.TOrderInfoMapper;
 import com.cjh.InventoryMng.mapper.TPlatformProfitMapper;
 import com.cjh.InventoryMng.service.MemberService;
@@ -53,6 +65,21 @@ public class ProfitServiceImpl implements ProfitService {
 
 	@Autowired
 	private CustomQueryMapper customQueryMapper;
+
+	@Autowired
+	private TCompanyProfitMapper tCompanyProfitMapper;
+
+	@Autowired
+	private TOrderInfoMapper tOrderInfoMapper;
+
+	@Autowired
+	private TMemberReduceMapper tMemberReduceMapper;
+
+	@Autowired
+	private TCostRecordMapper tCostRecordMapper;
+
+	@Autowired
+	private TAccountRecordMapper tAccountRecordMapper;
 
 	@Override
 	public void computeProfit(Integer memberId, String settleDate, Integer meituanProfit, Integer elemeProfit) {
@@ -133,6 +160,97 @@ public class ProfitServiceImpl implements ProfitService {
 			returnMap.put(dates[i] + " " + DateUtils.dateToWeek(dates[i]), new DecimalFormat("#.##").format(sum));
 		}
 		return returnMap;
+	}
+
+	@Override
+	public Page<TCompanyProfit> queryCompanyProfit(String beginDate, String endDate, int pageNo, int pageSize) {
+		PageHelper.startPage(pageNo, pageSize);
+		TCompanyProfitExample example = new TCompanyProfitExample();
+		example.createCriteria().andMonthGreaterThanOrEqualTo(beginDate).andMonthLessThanOrEqualTo(endDate);
+		return tCompanyProfitMapper.selectByExample(example);
+	}
+
+	@Override
+	public void computeCompanyProfit(String month) {
+		synchronized (this.getClass()) {
+			TCompanyProfitExample example = new TCompanyProfitExample();
+			example.createCriteria().andMonthEqualTo(month);
+			Page<TCompanyProfit> profits = tCompanyProfitMapper.selectByExample(example);
+			int goodsProfit = 0;
+			int managerProfit = 0;
+			double managerProfitd = 0.0;
+			int freightCost = 0;
+			int allCost = 0;
+			int approvedAccount = 0;
+			int salaryCost = 0;
+			int tuiguangReduce = 0;
+			TOrderInfoExample orderExample = new TOrderInfoExample();
+			orderExample.createCriteria().andStatusEqualTo(1).andOrderDateGreaterThanOrEqualTo(month)
+					.andOrderDateLessThanOrEqualTo(month + "-31");
+			Page<TOrderInfo> orderList = tOrderInfoMapper.selectByExample(orderExample);
+			for (TOrderInfo order : orderList) {
+				goodsProfit += (order.getMemberPrice() - order.getPurchasePrice()) * order.getNum();
+			}
+			TPlatformProfitExample platformProfitExample = new TPlatformProfitExample();
+			platformProfitExample.createCriteria().andSettleDateGreaterThan(month)
+					.andSettleDateLessThanOrEqualTo(month + "-31");
+			Page<TPlatformProfit> platformProfitList = tPlatformProfitMapper.selectByExample(platformProfitExample);
+			for (TPlatformProfit platformProfit : platformProfitList) {
+				managerProfitd += (platformProfit.getElemeProfit() + platformProfit.getMeituanProfit()) * 0.05;
+			}
+			TMemberReduceExample reduceExample = new TMemberReduceExample();
+			reduceExample.createCriteria().andReduceDateGreaterThanOrEqualTo(month)
+					.andReduceDateLessThanOrEqualTo(month + "-31");// 管理费减免
+			Page<TMemberReduce> reduceList = tMemberReduceMapper.selectByExample(reduceExample);
+			for (TMemberReduce tMemberReduce : reduceList) {
+				if (tMemberReduce.getManagerCostFlag() == 1) {
+					managerProfitd -= tMemberReduce.getReduceAmount();
+				}
+				if (tMemberReduce.getManagerCostFlag() == 2) {
+					tuiguangReduce += tMemberReduce.getReduceAmount();
+				}
+			}
+			managerProfit = (int) managerProfitd;
+			TCostRecordExample costExample = new TCostRecordExample();
+			costExample.createCriteria().andCostTimeGreaterThanOrEqualTo(month)
+					.andCostTimeLessThanOrEqualTo(month + "-31");
+			Page<TCostRecord> costList = tCostRecordMapper.selectByExample(costExample);
+			for (TCostRecord tCostRecord : costList) {
+				if (tCostRecord.getType().equals("1")) {
+					freightCost += tCostRecord.getAmount();
+				}
+				if (tCostRecord.getType().equals("2")) {
+					salaryCost += tCostRecord.getAmount();
+				}
+				allCost += tCostRecord.getAmount();
+			}
+			TAccountRecordExample accountExample = new TAccountRecordExample();
+			accountExample.createCriteria().andStatusEqualTo(1).andTheDateGreaterThanOrEqualTo(month)
+					.andTheDateLessThanOrEqualTo(month + "-31");
+			Page<TAccountRecord> recordList = tAccountRecordMapper.selectByExample(accountExample);
+			for (TAccountRecord record : recordList) {
+				approvedAccount += record.getAmount();
+			}
+			TCompanyProfit profit = null;
+			if (CollectionUtils.isEmpty(profits)) {
+				profit = new TCompanyProfit();
+			} else {
+				profit = profits.get(0);
+			}
+			profit.setAllCost(allCost);
+			profit.setApprovedAccount(approvedAccount);
+			profit.setFreightCost(freightCost);
+			profit.setGoodsProfit(goodsProfit);
+			profit.setManagerProfit(managerProfit);
+			profit.setMonth(month);
+			profit.setSalaryCost(salaryCost);
+			profit.setTuiguangReduce(tuiguangReduce);
+			if (CollectionUtils.isEmpty(profits)) {
+				tCompanyProfitMapper.insert(profit);
+			} else {
+				tCompanyProfitMapper.updateByPrimaryKey(profit);
+			}
+		}
 	}
 
 	// @Autowired

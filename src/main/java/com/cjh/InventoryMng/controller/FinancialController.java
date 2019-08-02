@@ -191,12 +191,12 @@ public class FinancialController {
 		String reduceAmount = (String) reqMap.get("reduceAmount");
 		String reduceDate = (String) reqMap.get("reduceDate");
 		String reduceItem = (String) reqMap.get("reduceItem");
-		int flag = (int) reqMap.get("managerCostFlag2");
+		String flag = (String) reqMap.get("managerCostFlag2");
 		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
 		try {
 			String memberName = memberService.getMemberInfo(Integer.valueOf(memberId)).getMemberName();
 			if (!financialService.newMemberReduce(creator, Integer.valueOf(memberId), memberName,
-					Integer.valueOf(reduceAmount), reduceDate, reduceItem, flag )) {
+					Integer.valueOf(reduceAmount), reduceDate, reduceItem, Integer.valueOf(flag) )) {
 				resultMap.setFailed();
 			}
 		} catch (Exception e) {
@@ -217,7 +217,7 @@ public class FinancialController {
 		String reduceAmount = (String) reqMap.get("reduceAmount");
 		String reduceDate = (String) reqMap.get("reduceDate");
 		String reduceItem = (String) reqMap.get("reduceItem");
-		int flag = (int) reqMap.get("managerCostFlag");
+		String flag = (String) reqMap.get("managerCostFlag");
 		if (StringUtils.isEmpty(reduceAmount)) {
 			reduceAmount = "0";
 		}
@@ -225,7 +225,7 @@ public class FinancialController {
 		try {
 			String memberName = memberService.getMemberInfo(Integer.valueOf(memberId)).getMemberName();
 			if (!financialService.modifyMemberReduce(creator, Integer.valueOf(reduceId), memberName,
-					Integer.valueOf(reduceAmount), reduceDate, reduceItem, flag)) {
+					Integer.valueOf(reduceAmount), reduceDate, reduceItem, Integer.valueOf(flag))) {
 				resultMap.setFailed();
 			}
 		} catch (Exception e) {

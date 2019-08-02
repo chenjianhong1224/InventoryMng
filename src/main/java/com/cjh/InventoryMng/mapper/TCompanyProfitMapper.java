@@ -2,6 +2,8 @@ package com.cjh.InventoryMng.mapper;
 
 import com.cjh.InventoryMng.entity.TCompanyProfit;
 import com.cjh.InventoryMng.entity.TCompanyProfitExample;
+import com.github.pagehelper.Page;
+
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
@@ -14,7 +16,7 @@ public interface TCompanyProfitMapper {
 
     int insertSelective(TCompanyProfit record);
 
-    List<TCompanyProfit> selectByExample(TCompanyProfitExample example);
+    Page<TCompanyProfit> selectByExample(TCompanyProfitExample example);
 
     TCompanyProfit selectByPrimaryKey(Integer id);
 

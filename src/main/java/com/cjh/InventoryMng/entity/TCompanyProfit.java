@@ -15,6 +15,10 @@ public class TCompanyProfit {
 
     private String month;
 
+    private Integer salaryCost;
+
+    private Integer tuiguangReduce;
+
     public Integer getId() {
         return id;
     }
@@ -69,5 +73,21 @@ public class TCompanyProfit {
 
     public void setMonth(String month) {
         this.month = month == null ? null : month.trim();
+    }
+
+    public Integer getSalaryCost() {
+        return salaryCost;
+    }
+
+    public void setSalaryCost(Integer salaryCost) {
+        this.salaryCost = salaryCost;
+    }
+
+    public Integer getTuiguangReduce() {
+        return tuiguangReduce;
+    }
+
+    public void setTuiguangReduce(Integer tuiguangReduce) {
+        this.tuiguangReduce = tuiguangReduce;
     }
 }

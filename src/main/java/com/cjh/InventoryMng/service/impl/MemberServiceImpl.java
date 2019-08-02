@@ -265,12 +265,13 @@ public class MemberServiceImpl implements MemberService {
 	}
 
 	@Override
-	public Page<TMemberReduce> getMemberReduce(Integer memberId, String beginDate, String endDate, int pageNo,
-			int pageSize) {
+	public Page<TMemberReduce> getMemberReduceExceptTuiguang(Integer memberId, String beginDate, String endDate,
+			int pageNo, int pageSize) {
 		PageHelper.startPage(pageNo, pageSize);
 		TMemberReduceExample example = new TMemberReduceExample();
 		com.cjh.InventoryMng.entity.TMemberReduceExample.Criteria c = example.createCriteria()
-				.andReduceDateGreaterThanOrEqualTo(beginDate).andReduceDateLessThanOrEqualTo(endDate);
+				.andReduceDateGreaterThanOrEqualTo(beginDate).andReduceDateLessThanOrEqualTo(endDate)
+				.andManagerCostFlagNotEqualTo(2);
 		if (memberId != null) {
 			c.andMemberIdEqualTo(memberId);
 		}
@@ -301,7 +302,7 @@ public class MemberServiceImpl implements MemberService {
 					hasFound = true;
 				}
 			}
-			if(!hasFound){
+			if (!hasFound) {
 				TGroupMap tGroupMap = new TGroupMap();
 				tGroupMap.setMemberId(memberId);
 				tGroupMap.setSupplierId(tGroupMap2.getSupplierId());
@@ -310,6 +311,19 @@ public class MemberServiceImpl implements MemberService {
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public Page<TMemberReduce> getMemberAllReduce(Integer memberId, String beginDate, String endDate, int pageNo,
+			int pageSize) {
+		PageHelper.startPage(pageNo, pageSize);
+		TMemberReduceExample example = new TMemberReduceExample();
+		com.cjh.InventoryMng.entity.TMemberReduceExample.Criteria c = example.createCriteria()
+				.andReduceDateGreaterThanOrEqualTo(beginDate).andReduceDateLessThanOrEqualTo(endDate);
+		if (memberId != null) {
+			c.andMemberIdEqualTo(memberId);
+		}
+		return tMemberReduceMapper.selectByExample(example);
 	}
 
 }

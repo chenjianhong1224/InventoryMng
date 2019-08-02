@@ -533,6 +533,126 @@ public class TCompanyProfitExample {
             addCriterion("month not between", value1, value2, "month");
             return (Criteria) this;
         }
+
+        public Criteria andSalaryCostIsNull() {
+            addCriterion("salary_cost is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSalaryCostIsNotNull() {
+            addCriterion("salary_cost is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSalaryCostEqualTo(Integer value) {
+            addCriterion("salary_cost =", value, "salaryCost");
+            return (Criteria) this;
+        }
+
+        public Criteria andSalaryCostNotEqualTo(Integer value) {
+            addCriterion("salary_cost <>", value, "salaryCost");
+            return (Criteria) this;
+        }
+
+        public Criteria andSalaryCostGreaterThan(Integer value) {
+            addCriterion("salary_cost >", value, "salaryCost");
+            return (Criteria) this;
+        }
+
+        public Criteria andSalaryCostGreaterThanOrEqualTo(Integer value) {
+            addCriterion("salary_cost >=", value, "salaryCost");
+            return (Criteria) this;
+        }
+
+        public Criteria andSalaryCostLessThan(Integer value) {
+            addCriterion("salary_cost <", value, "salaryCost");
+            return (Criteria) this;
+        }
+
+        public Criteria andSalaryCostLessThanOrEqualTo(Integer value) {
+            addCriterion("salary_cost <=", value, "salaryCost");
+            return (Criteria) this;
+        }
+
+        public Criteria andSalaryCostIn(List<Integer> values) {
+            addCriterion("salary_cost in", values, "salaryCost");
+            return (Criteria) this;
+        }
+
+        public Criteria andSalaryCostNotIn(List<Integer> values) {
+            addCriterion("salary_cost not in", values, "salaryCost");
+            return (Criteria) this;
+        }
+
+        public Criteria andSalaryCostBetween(Integer value1, Integer value2) {
+            addCriterion("salary_cost between", value1, value2, "salaryCost");
+            return (Criteria) this;
+        }
+
+        public Criteria andSalaryCostNotBetween(Integer value1, Integer value2) {
+            addCriterion("salary_cost not between", value1, value2, "salaryCost");
+            return (Criteria) this;
+        }
+
+        public Criteria andTuiguangReduceIsNull() {
+            addCriterion("tuiguang_reduce is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTuiguangReduceIsNotNull() {
+            addCriterion("tuiguang_reduce is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTuiguangReduceEqualTo(Integer value) {
+            addCriterion("tuiguang_reduce =", value, "tuiguangReduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andTuiguangReduceNotEqualTo(Integer value) {
+            addCriterion("tuiguang_reduce <>", value, "tuiguangReduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andTuiguangReduceGreaterThan(Integer value) {
+            addCriterion("tuiguang_reduce >", value, "tuiguangReduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andTuiguangReduceGreaterThanOrEqualTo(Integer value) {
+            addCriterion("tuiguang_reduce >=", value, "tuiguangReduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andTuiguangReduceLessThan(Integer value) {
+            addCriterion("tuiguang_reduce <", value, "tuiguangReduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andTuiguangReduceLessThanOrEqualTo(Integer value) {
+            addCriterion("tuiguang_reduce <=", value, "tuiguangReduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andTuiguangReduceIn(List<Integer> values) {
+            addCriterion("tuiguang_reduce in", values, "tuiguangReduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andTuiguangReduceNotIn(List<Integer> values) {
+            addCriterion("tuiguang_reduce not in", values, "tuiguangReduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andTuiguangReduceBetween(Integer value1, Integer value2) {
+            addCriterion("tuiguang_reduce between", value1, value2, "tuiguangReduce");
+            return (Criteria) this;
+        }
+
+        public Criteria andTuiguangReduceNotBetween(Integer value1, Integer value2) {
+            addCriterion("tuiguang_reduce not between", value1, value2, "tuiguangReduce");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

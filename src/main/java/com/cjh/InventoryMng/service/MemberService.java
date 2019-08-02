@@ -25,9 +25,11 @@ public interface MemberService {
 	Page<VMemberBillInfo> getMemberBill(String brandId, Integer memberId, String beginDate, String endDate, int pageNo,
 			int pageSize);
 
-	Page<TMemberReduce> getMemberReduce(Integer memberId, String beginDate, String endDate, int pageNo,
+	Page<TMemberReduce> getMemberReduceExceptTuiguang(Integer memberId, String beginDate, String endDate, int pageNo,
 			int pageSize);
 	
+	Page<TMemberReduce> getMemberAllReduce(Integer memberId, String beginDate, String endDate, int pageNo,
+			int pageSize);
 	
 	Integer getMemberId(String memberName, String brandId);
 

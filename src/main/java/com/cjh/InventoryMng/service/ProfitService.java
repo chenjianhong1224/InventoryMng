@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.TreeMap;
 
 import com.cjh.InventoryMng.bean.PlatformProfitImportBean;
+import com.cjh.InventoryMng.entity.TCompanyProfit;
 import com.cjh.InventoryMng.entity.TPlatformProfit;
 import com.cjh.InventoryMng.exception.BusinessException;
 import com.github.pagehelper.Page;
@@ -21,8 +22,12 @@ public interface ProfitService {
 	void computeProfit(Integer memberId, String settleDate, Integer meituanProfit, Integer elemeProfit);
 
 	void importPlatformProfit(List<PlatformProfitImportBean> beans) throws BusinessException;
-	
+
 	TreeMap<String, String> getLast7DaysProfit();
+
+	Page<TCompanyProfit> queryCompanyProfit(String beginDate, String endDate, int pageNo, int pageSize);
+
+	void computeCompanyProfit(String month);
 	
 	// List<TProfit> queryPeriodProfit(String period);
 	//
