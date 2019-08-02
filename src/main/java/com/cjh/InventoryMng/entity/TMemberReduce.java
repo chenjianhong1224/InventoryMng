@@ -13,13 +13,15 @@ public class TMemberReduce {
 
     private String creator;
 
+    private Date updateTime;
+
     private Date createTime;
 
     private String updater;
 
     private String reduceItem;
 
-    private Date updateTime;
+    private Integer managerCostFlag;
 
     public Integer getId() {
         return id;
@@ -61,6 +63,14 @@ public class TMemberReduce {
         this.creator = creator == null ? null : creator.trim();
     }
 
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
     public Date getCreateTime() {
         return createTime;
     }
@@ -85,11 +95,11 @@ public class TMemberReduce {
         this.reduceItem = reduceItem == null ? null : reduceItem.trim();
     }
 
-    public Date getUpdateTime() {
-        return updateTime;
+    public Integer getManagerCostFlag() {
+        return managerCostFlag;
     }
 
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
+    public void setManagerCostFlag(Integer managerCostFlag) {
+        this.managerCostFlag = managerCostFlag;
     }
 }

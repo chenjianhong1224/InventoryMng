@@ -20,140 +20,170 @@
 			var flag = 1;
 			var memberId = 0;
 			var addMembers;
+			var copyMember;
 			$(function() {
 				addMembers = $("#add-member").html();
 				$("#add-member").html("");
-			});			
-			layui.use('table', function() {
-				var table = layui.table;
-				//第一个实例
-				table.render({
-					elem : '#MemberList',
-					url : '/public/queryMember' //数据接口
-					,
-					contentType : 'application/json',
-					method : 'post',
-					page : true //开启分页
-					,
-					limits : [ 5 ],
-					limit : 5,
-					where : {
-						brandId : document.getElementById("brand").value,
-						memberName : document.getElementById("memberName").value
-					},
-					cols : [ [ //表头
-					{
-						field : 'id',
-						title : 'ID',
-						width : 60,
-					}, {
-						field : 'brand',
-						title : '品牌',
-						width : 120,
-					}, {
-						field : 'memberName',
-						title : '加盟商',
-						width : 120,
-					}, {
-						field : 'province',
-						title : '省份',
-						width : 70
-					}, {
-						field : 'city',
-						title : '城市',
-						width : 70
-					}, {
-						field : 'phone',
-						title : '电话',
-						width : 100
-					}, {
-						field : 'accName',
-						title : '账户',
-						width : 90
-					}, {
-						field : 'accNo',
-						title : '账号',
-						width : 100
-					}, {
-						field : 'status',
-						title : '状态',
-						width : 70,
-					}, {
-						field : 'address',
-						title : '地址',
-						width : 130
-					}, {
-						field : 'role',
-						title : '角色',
-						width : 80
-					}, {
-						field : 'op',
-						title : '操作',
-						toolbar : "#opBar",
-						width : 150
-					} ] ],
-					done : function(res, curr, count) {
-						$("[data-field='id']").css('display','none');
-					}
-				});
-				var $ = layui.$, active = {
-					reload : function() {
-						//执行重载
-						table.reload('MemberList', {
-							page : {
-								curr : 1
-							//重新从第 1 页开始
-							},
-							where : {
-								brandId : document.getElementById("brand").value,
-								memberName : document.getElementById("memberName").value
-							}
-						});
-					}
-				};
-				$('#queryButton').on('click', function() {
-					var type = $(this).data('type');
-					active[type] ? active[type].call(this) : '';
-				});
-				table.on('tool(MemberList)', function(obj) { //注：tool是工具条事件名，RoleList是table原始容器的属性 lay-filter="对应的值"
-					var data = obj.data; //获得当前行数据
-					var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
-					var tr = obj.tr; //获得当前行 tr 的DOM对象
-					if (layEvent == 'deleteMember') {
-						$.ajax({
-							type : "post",
-							url : "/manager/member/deleteMember",
-							contentType : "application/json",
-							data : JSON.stringify({
-								id : data.id
-							}),
-							success : function(result) {
-								if (result.code == 0) {
-									alert("删除成功");
-									table.reload('MemberList', {
-										page : {
-											curr : 1
-										//重新从第 1 页开始
-										},
-										where : {
-											brandId : document.getElementById("brand").value,
-											memberName : document.getElementById("memberName").value
-										}
-									});
-								} else {
-									alert("系统异常: " + result.message);
-								}
-							},
-							error : function() {
-								alert("系统错误");
-							}
-						});
-					}
-					if(layEvent == 'modifyMember'){
-						onModifyBtn(data);
-					}
-				});
+				copyMember = $("#copy-member").html();
+				$("#copy-member").html("");
 			});
+			layui
+					.use(
+							'table',
+							function() {
+								var table = layui.table;
+								//第一个实例
+								table
+										.render({
+											elem : '#MemberList',
+											url : '/public/queryMember' //数据接口
+											,
+											contentType : 'application/json',
+											method : 'post',
+											page : true //开启分页
+											,
+											limits : [ 5 ],
+											limit : 5,
+											where : {
+												brandId : document
+														.getElementById("brand").value,
+												memberName : document
+														.getElementById("memberName").value
+											},
+											cols : [ [ //表头
+											{
+												field : 'id',
+												title : 'ID',
+												width : 60,
+											}, {
+												field : 'brand',
+												title : '品牌',
+												width : 120,
+											}, {
+												field : 'memberName',
+												title : '加盟商',
+												width : 120,
+											}, {
+												field : 'province',
+												title : '省份',
+												width : 70
+											}, {
+												field : 'city',
+												title : '城市',
+												width : 70
+											}, {
+												field : 'phone',
+												title : '电话',
+												width : 100
+											}, {
+												field : 'accName',
+												title : '账户',
+												width : 90
+											}, {
+												field : 'accNo',
+												title : '账号',
+												width : 100
+											}, {
+												field : 'status',
+												title : '状态',
+												width : 70,
+											}, {
+												field : 'address',
+												title : '地址',
+												width : 130
+											}, {
+												field : 'role',
+												title : '角色',
+												width : 80
+											}, {
+												field : 'op',
+												title : '操作',
+												toolbar : "#opBar",
+												width : 150
+											} ] ],
+											done : function(res, curr, count) {
+												$("[data-field='id']").css(
+														'display', 'none');
+											}
+										});
+								var $ = layui.$, active = {
+									reload : function() {
+										//执行重载
+										table
+												.reload(
+														'MemberList',
+														{
+															page : {
+																curr : 1
+															//重新从第 1 页开始
+															},
+															where : {
+																brandId : document
+																		.getElementById("brand").value,
+																memberName : document
+																		.getElementById("memberName").value
+															}
+														});
+									}
+								};
+								$('#queryButton').on(
+										'click',
+										function() {
+											var type = $(this).data('type');
+											active[type] ? active[type]
+													.call(this) : '';
+										});
+								table
+										.on(
+												'tool(MemberList)',
+												function(obj) { //注：tool是工具条事件名，RoleList是table原始容器的属性 lay-filter="对应的值"
+													var data = obj.data; //获得当前行数据
+													var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+													var tr = obj.tr; //获得当前行 tr 的DOM对象
+													if (layEvent == 'deleteMember') {
+														$
+																.ajax({
+																	type : "post",
+																	url : "/manager/member/deleteMember",
+																	contentType : "application/json",
+																	data : JSON
+																			.stringify({
+																				id : data.id
+																			}),
+																	success : function(
+																			result) {
+																		if (result.code == 0) {
+																			alert("删除成功");
+																			table
+																					.reload(
+																							'MemberList',
+																							{
+																								page : {
+																									curr : 1
+																								//重新从第 1 页开始
+																								},
+																								where : {
+																									brandId : document
+																											.getElementById("brand").value,
+																									memberName : document
+																											.getElementById("memberName").value
+																								}
+																							});
+																		} else {
+																			alert("系统异常: "
+																					+ result.message);
+																		}
+																	},
+																	error : function() {
+																		alert("系统错误");
+																	}
+																});
+													}
+													if (layEvent == 'modifyMember') {
+														onModifyBtn(data);
+													}
+												});
+							});
 			function onModifyBtn(data) {
 				layer.open({
 					type : 1,
@@ -192,7 +222,30 @@
 					}
 				});
 			}
-		
+			function onChangeBrand4() {
+				$.ajax({
+					url : '/public/queryMemberByBrand',
+					type : "post",
+					dataType : "json",
+					contentType : "application/json",
+					async : false,
+					data : JSON.stringify({
+						brandId : $("#brand4").val()
+					}),
+					success : function(result) {
+						var option = "<option value='0'>全部</option>";
+						if (result.code == 0) {
+							$("#member4").html("");
+							$.each(result.data, function(key, val) {
+								option += "<option value='" + val.id + "'>";
+								option += val.memberName + "</option>";
+							});
+							$("#member4").html(option);
+						}
+					}
+				});
+			}
+
 			$('#brand2').change(function() {
 				$.ajax({
 					url : '/public/queryMemberByBrand',
@@ -243,7 +296,7 @@
 					}
 				});
 			}
-			function saveMember(){
+			function saveMember() {
 				var memberName = $("#memberName3").val();
 				var province = $("#province").val();
 				var city = $("#city").val();
@@ -253,7 +306,7 @@
 				var address = $("#address").val();
 				var brand = $("#brand3").val();
 				var roleId = $("#role").val();
-				if(brand == 0){
+				if (brand == 0) {
 					alert("请选择品牌");
 					return;
 				}
@@ -288,7 +341,8 @@
 			}
 			function CloseWin() {
 				layer.close(layer.index);
-			}		
+			}
+
 			layui.use('table', function() {
 				var table = layui.table;
 				//第一个实例
@@ -360,27 +414,26 @@
 				};
 				$('#member').change(function() {
 					var memberId = $('#member').val();
-					if(memberId == 0){
+					if (memberId == 0) {
 						return;
 					}
-					table.reload('SupplierList',
-							{
-								page : {
-									curr : 1
-								//重新从第 1 页开始
-								},
-								where : {
-									memberId : document
-											.getElementById("member").value
-								}
-							});
+					table.reload('SupplierList', {
+						page : {
+							curr : 1
+						//重新从第 1 页开始
+						},
+						where : {
+							memberId : document.getElementById("member").value
+						}
+					});
 				});
 				table.on('tool(SupplierList)', function(obj) {
 					var data = obj.data; //获得当前行数据
 					var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
 					var tr = obj.tr; //获得当前行 tr 的DOM对象
 					if (layEvent == 'bindSupplier') {
-						if ($("#member").val()==undefined || $("#member").val() == "0") {
+						if ($("#member").val() == undefined
+								|| $("#member").val() == "0") {
 							return;
 						}
 						var flag = $(tr).find("input:eq(0)").prop('checked');
@@ -407,6 +460,66 @@
 					}
 				});
 			});
+			function onNewCopyBtn() {
+				var memberId = $('#member').val();
+				if (typeof (memberId) == undefined) {
+					alert("请选择一个加盟商");
+					return;
+				}
+				if (!memberId && typeof (memberId) != "undefined"
+						&& memberId != 0) {
+					alert("请选择一个加盟商");
+					return;
+				}
+				if (memberId == 0) {
+					alert("请选择一个加盟商");
+					return;
+				}
+				layer.open({
+					type : 1,
+					title : "复制加盟商",
+					closeBtn : false,
+					shift : 2,
+					area : [ '400px', '330px' ],
+					shadeClose : true,
+					content : $("#open-main"),
+					success : function(layero, index) {
+						$("#open-main").html("");
+						$("#open-main").html(copyMember);
+					},
+					yes : function() {
+					}
+				});
+			}
+			function copyMemberFunc() {
+				$.ajax({
+					type : "post",
+					url : "/manager/member/copyBindSupplier",
+					contentType : "application/json",
+					data : JSON.stringify({
+						copyMemberId : $("#member4").val(),
+						memberId : $("#member").val()
+					}),
+					success : function(result) {
+						if (result.code == 0) {
+							alert("操作成功");
+							$("#brand2").get(0).selectedIndex = 0;
+							var obj = document.getElementById("brand2");
+
+					            var e = document.createEvent('HTMLEvents');
+					            e.initEvent("change", false, false);
+					            obj.dispatchEvent(e);
+
+							CloseWin();
+						} else {
+							alert("系统异常: " + result.message);
+						}
+					},
+					error : function() {
+						alert("系统错误");
+					}
+				});
+			}
 		</script>
 		<div class="layui-inline mgr10">
 			<label class="layui-inline mgr10">品牌选择框</label>
@@ -450,13 +563,19 @@
 				<label class="layui-inline mgr10">加盟店选择框</label>
 				<div class="layui-inline mgr10">
 					<select id="member" name="member" lay-filter="member">
+						<option value="0">全部</option>
 					</select>
 				</div>
+			</div>
+			<div class="layui-inline mgr10">
+				<button class="layui-btn layui-btn-radius" id="newCopyButton"
+					data-type="newCopy" onclick="onNewCopyBtn()">复制关联关系</button>
 			</div>
 		</div>
 		<div>
 			<table id="SupplierList" lay-filter="SupplierList"></table>
 		</div>
+		<!-- 新增加盟商框  -->
 		<div id="add-member" style="display: none;">
 			<div class="layui-form-item center mgt20">
 				<label class="layui-form-label" style="width: 100px">加盟商名称</label>
@@ -500,7 +619,7 @@
 					<input type="text" id="accNo" required style="width: 240px"
 						lay-verify="required" autocomplete="off" class="layui-input">
 				</div>
-			</div>	
+			</div>
 			<div class="layui-form-item mgt20">
 				<label class="layui-form-label" style="width: 100px">地址</label>
 				<div class="layui-input-block">
@@ -519,7 +638,7 @@
 							th:text="${brand.paramValue}">全部</option>
 					</select>
 				</div>
-			</div>	
+			</div>
 			<div class="layui-form-item mgt20">
 				<label class="layui-form-label" style="width: 100px">角色选择框</label>
 				<div class="layui-input-block">
@@ -530,10 +649,42 @@
 							th:text="${role.roleName}">全部</option>
 					</select>
 				</div>
-			</div>				
+			</div>
 			<div class="layui-form-item">
 				<div class="layui-input-block">
-					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn" onclick="saveMember()">立即提交</button>
+					<button class="layui-btn" lay-submit lay-filter="save" id="addBtn"
+						onclick="saveMember()">立即提交</button>
+					<button type="reset" class="layui-btn layui-btn-primary"
+						id="closeBtn" onclick="CloseWin()">关闭</button>
+				</div>
+			</div>
+		</div>
+		<!-- 复制加盟商框  -->
+		<div id="copy-member" style="display: none;">
+			<div class="layui-form-item mgt20">
+				<label class="layui-form-label" style="width: 120px">品牌选择框</label>
+				<div class="layui-input-block mgt30">
+					<select id="brand4" name="brand4" onchange="onChangeBrand4()"
+						class="mgt10">
+						<option th:each="brand : ${brandList}"
+							th:value="
+						${brand.paramKey}"
+							th:text="${brand.paramValue}">全部</option>
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item mgr10">
+				<label class="layui-form-label" style="width: 120px">加盟店选择框</label>
+				<div class="layui-input-block">
+					<select id="member4" name="member4" class="mgt10">
+						<option value="0">全部</option>
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<div class="layui-input-block mgt20">
+					<button class="layui-btn" lay-submit lay-filter="copy" id="copyBtn"
+						onclick="copyMemberFunc()">立即提交</button>
 					<button type="reset" class="layui-btn layui-btn-primary"
 						id="closeBtn" onclick="CloseWin()">关闭</button>
 				</div>

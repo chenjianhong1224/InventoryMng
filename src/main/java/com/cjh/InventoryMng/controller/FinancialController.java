@@ -191,11 +191,12 @@ public class FinancialController {
 		String reduceAmount = (String) reqMap.get("reduceAmount");
 		String reduceDate = (String) reqMap.get("reduceDate");
 		String reduceItem = (String) reqMap.get("reduceItem");
+		int flag = (int) reqMap.get("managerCostFlag2");
 		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
 		try {
 			String memberName = memberService.getMemberInfo(Integer.valueOf(memberId)).getMemberName();
 			if (!financialService.newMemberReduce(creator, Integer.valueOf(memberId), memberName,
-					Integer.valueOf(reduceAmount), reduceDate, reduceItem)) {
+					Integer.valueOf(reduceAmount), reduceDate, reduceItem, flag )) {
 				resultMap.setFailed();
 			}
 		} catch (Exception e) {
@@ -216,6 +217,7 @@ public class FinancialController {
 		String reduceAmount = (String) reqMap.get("reduceAmount");
 		String reduceDate = (String) reqMap.get("reduceDate");
 		String reduceItem = (String) reqMap.get("reduceItem");
+		int flag = (int) reqMap.get("managerCostFlag");
 		if (StringUtils.isEmpty(reduceAmount)) {
 			reduceAmount = "0";
 		}
@@ -223,7 +225,7 @@ public class FinancialController {
 		try {
 			String memberName = memberService.getMemberInfo(Integer.valueOf(memberId)).getMemberName();
 			if (!financialService.modifyMemberReduce(creator, Integer.valueOf(reduceId), memberName,
-					Integer.valueOf(reduceAmount), reduceDate, reduceItem)) {
+					Integer.valueOf(reduceAmount), reduceDate, reduceItem, flag)) {
 				resultMap.setFailed();
 			}
 		} catch (Exception e) {
@@ -371,7 +373,7 @@ public class FinancialController {
 						nowRow.getCell(j).setCellType(CellType.STRING);
 					}
 					try {
-						if(nowRow.getCell(j) == null){
+						if (nowRow.getCell(j) == null) {
 							continue;
 						}
 						if (i % 15 == 0 && j % 9 == 0) {
@@ -681,7 +683,7 @@ public class FinancialController {
 		}
 		return resultMap.toMap();
 	}
-	
+
 	@RequestMapping(value = "/queryAllAccountRecords", method = RequestMethod.POST)
 	@ResponseBody
 	public Map<String, Object> queryAllAccountRecords(@RequestBody Map<String, Object> reqMap) {
@@ -694,8 +696,7 @@ public class FinancialController {
 		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
 		int approvedAmount = 0;
 		try {
-			Page<TAccountRecord> records = financialService.queryTAccountRecord(beginDate, endDate, desc, creator, page,
-					limit);
+			Page<TAccountRecord> records = financialService.queryTAccountRecord(beginDate, endDate, desc, page, limit);
 			List<ApplyAccountRecordVO> returnVOList = Lists.newArrayList();
 			SimpleDateFormat sdf = new SimpleDateFormat("MM-dd HH:mm:ss");
 			for (TAccountRecord tAccountRecord : records) {
@@ -914,7 +915,8 @@ public class FinancialController {
 		}
 		String creator = ((UserInfo) SecurityUtils.getSubject().getPrincipal()).gettUserInfo().getUserId();
 		try {
-			if (!financialService.modifyCost(Integer.valueOf(id), creator, costType, costDesc, Integer.valueOf(costAmount), costDate)) {
+			if (!financialService.modifyCost(Integer.valueOf(id), creator, costType, costDesc,
+					Integer.valueOf(costAmount), costDate)) {
 				resultMap.setFailed();
 			}
 		} catch (Exception e) {

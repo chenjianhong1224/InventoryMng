@@ -239,6 +239,7 @@
 						$("#brand2").get(0).selectedIndex = 0;
 						$("#member2").get(0).selectedIndex = 0;
 						layui.form.render('select', 'form2');
+						layui.form.render('checkbox', 'form2');
 						layui.laydate.render({
 							elem : '#reduceDate2' //指定元素
 							,
@@ -264,6 +265,9 @@
 				　　alert("请输入正确的金额");
 				　　return;
 				}
+				if($('#managerCostFlag2').is(':checked')){
+					flag = 1;
+				}
 				$.ajax({
 					url : '/financial/newReduce',
 					type : "post",
@@ -274,7 +278,8 @@
 						memberId : memberId,
 						reduceAmount : reduceAmount,
 						reduceItem :  $("#reduceItem2").val(),
-						reduceDate : $("#reduceDate2").val()
+						reduceDate : $("#reduceDate2").val(),
+						managerCostFlag2 : flag
 					}),
 					success : function(result) {
 						if (result.code == 0) {
@@ -289,11 +294,15 @@
 			}
 			function modifyReduce(data){
 				var reduceId = $("#reduceId").val();
-				var re2 = /^[0-9]+\.?[0-9]*]*$/; 
+				var re2 = /^-?[0-9]+\.?[0-9]*]*$/; 
 				var reduceAmount = $("#reduceAmount").val() + "";
 				if (!re2.test(reduceAmount)) {
 					alert("请输入正确的金额");
 					return;
+				}
+				var flag = 0;
+				if($('#managerCostFlag').is(':checked')){
+					flag = 1;
 				}
 				$.ajax({
 					url : '/financial/modifyReduce',
@@ -307,6 +316,7 @@
 						reduceItem : $("#reduceItem").val(),
 						reduceDate : $("#reduceDate").val(),
 						memberId: $("#memberId").val(),
+						managerCostFlag : flag
 					}),
 					success : function(result) {
 						if (result.code == 0) {
@@ -348,7 +358,8 @@
 			<label>减免时间:</label>
 			<div class="layui-input-inline">
 				<input type="text" id="orderBeginTime">
-			</div>&nbsp;至&nbsp;
+			</div>
+			&nbsp;至&nbsp;
 			<div class="layui-input-inline">
 				<input type="text" id="orderEndTime">
 			</div>
@@ -367,7 +378,7 @@
 		</div>
 		<!-- 新增减免记录框 -->
 		<div id="add-reduce" style="display: none;">
-			<div class="layui-form-item mgt30">
+			<div class="layui-form-item mgt20">
 				<label class="layui-form-label">品牌</label>
 				<div class="layui-input-block">
 					<select id="brand2" name="brand2" lay-filter="brand2"
@@ -380,7 +391,7 @@
 				</div>
 			</div>
 			<form class="layui-form" action="" lay-filter="form2">
-				<div class="layui-form-item mgt30">
+				<div class="layui-form-item mgt20">
 					<label class="layui-form-label">加盟商</label>
 					<div class="layui-input-block" style="width: 320px">
 						<select id="member2" name="member2" lay-filter="member2"
@@ -389,7 +400,13 @@
 						</select>
 					</div>
 				</div>
-				<div class="layui-form-item center mgt30">
+				<div class="layui-form-item center mgt20">
+					<div class="layui-input-block">
+						<input type="checkbox" id="managerCostFlag2"
+							name="managerCostFlag2" title="是否是管理费减免" lay-skin="primary">
+					</div>
+				</div>
+				<div class="layui-form-item center mgt20">
 					<label class="layui-form-label">减免/奖励金额（单位分）</label>
 					<div class="layui-input-block">
 						<input type="text" id="reduceAmount2" required value=""
@@ -397,7 +414,7 @@
 							class="layui-input">
 					</div>
 				</div>
-				<div class="layui-form-item center mgt30">
+				<div class="layui-form-item center mgt20">
 					<label class="layui-form-label">减免/奖励事由</label>
 					<div class="layui-input-block">
 						<input type="text" id="reduceItem2" required value=""
@@ -405,7 +422,7 @@
 							class="layui-input">
 					</div>
 				</div>
-				<div class="layui-form-item center mgt30">
+				<div class="layui-form-item center mgt20">
 					<label class="layui-form-label">日期</label>
 					<div class="layui-input-block">
 						<input type="text" id="reduceDate2" class="layui-input"
@@ -413,7 +430,7 @@
 					</div>
 				</div>
 			</form>
-			<div class="layui-form-item">
+			<div class="layui-form-item mgt20">
 				<div class="layui-input-block">
 					<button class="layui-btn" lay-submit lay-filter="save"
 						onclick="newReduce()">立即提交</button>
@@ -425,6 +442,12 @@
 		<!-- 修改减免记录框 -->
 		<div id="modify-reduce" style="display: none;">
 			<div class="layui-form-item center mgt30">
+				<div class="layui-input-block">
+					<input type="checkbox" id="managerCostFlag"
+						name="managerCostFlag" title="是否是管理费减免" lay-skin="primary">&nbsp;&nbsp;是否是管理费减免
+				</div>
+			</div>
+			<div class="layui-form-item center mgt30">
 				<label class="layui-form-label">减免/奖励金额（单位分）</label>
 				<div class="layui-input-block">
 					<input type="text" id="reduceAmount" required value=""
@@ -432,7 +455,7 @@
 						class="layui-input">
 				</div>
 			</div>
-			<div class="layui-form-item center mgt30">
+			<div class="layui-form-item center mgt20">
 				<label class="layui-form-label">日期</label>
 				<div class="layui-input-block">
 					<input type="text" id="reduceDate" class="layui-input"

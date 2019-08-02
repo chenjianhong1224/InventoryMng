@@ -18,10 +18,10 @@ public interface FinancialService {
 			Integer servicePrice, String orderDate) throws BusinessException, Exception;
 
 	boolean newMemberReduce(String creator, Integer memberId, String memberName, Integer reduceAmount,
-			String reduceDate, String reduceItem);
+			String reduceDate, String reduceItem, int flag);
 
 	boolean modifyMemberReduce(String updater, Integer reduceId, String memberName, Integer reduceAmount,
-			String reduceDate, String reduceItem);
+			String reduceDate, String reduceItem, int flag );
 
 	Page<TAccountRecord> queryTAccountRecord(String beginDate, String endDate, String desc, String userId, int pageNo,
 			int pageSize) throws ParseException;

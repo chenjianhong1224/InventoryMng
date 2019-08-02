@@ -44,4 +44,7 @@ public interface MemberService {
 	Page<VMemberSupplierMap> querySupplierOfMember(Integer memberId, int pageNo, int pageSize);
 	
 	boolean mapSupplier(Integer memberId, Integer supplierId, boolean bindFlag);
+	
+	boolean copySupplierMapper(Integer memberId, Integer copyMemberId);
+
 }

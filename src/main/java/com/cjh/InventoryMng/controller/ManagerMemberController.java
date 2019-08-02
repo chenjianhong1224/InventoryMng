@@ -107,4 +107,17 @@ public class ManagerMemberController {
 		}
 		return resultMap.toMap();
 	}
+	
+	@RequestMapping(value = "/copyBindSupplier", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> copyBindSupplier(@RequestBody Map<String, Object> reqMap) {
+		ResultMap resultMap = ResultMap.one();
+		String copyMemberId = (String) reqMap.get("copyMemberId");
+		String memberId = (String) reqMap.get("memberId");
+		if (!memberService.copySupplierMapper(Integer.valueOf(memberId), Integer.valueOf(copyMemberId))) {
+			resultMap.setFailed();
+			resultMap.setMessage("关联失败");
+		}
+		return resultMap.toMap();
+	}
 }

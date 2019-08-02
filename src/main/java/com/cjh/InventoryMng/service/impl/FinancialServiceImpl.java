@@ -216,12 +216,13 @@ public class FinancialServiceImpl implements FinancialService {
 
 	@Override
 	public boolean newMemberReduce(String creator, Integer memberId, String memberName, Integer reduceAmount,
-			String reduceDate, String reduceItem) {
+			String reduceDate, String reduceItem, int flag) {
 		TMemberReduce record = new TMemberReduce();
 		record.setCreator(creator);
 		record.setMemberId(memberId);
 		record.setReduceAmount(reduceAmount);
 		record.setReduceDate(reduceDate);
+		record.setManagerCostFlag(flag);
 		record.setReduceItem(reduceItem);
 		TFinanicalOpLog opLogRecord = new TFinanicalOpLog();
 		opLogRecord.setOperator(creator);
@@ -240,13 +241,14 @@ public class FinancialServiceImpl implements FinancialService {
 
 	@Override
 	public boolean modifyMemberReduce(String updater, Integer reduceId, String memberName, Integer reduceAmount,
-			String reduceDate, String reduceItem) {
+			String reduceDate, String reduceItem, int flag) {
 		TMemberReduce record = new TMemberReduce();
 		record.setUpdater(updater);
 		record.setId(reduceId);
 		record.setReduceAmount(reduceAmount);
 		record.setReduceItem(reduceItem);
 		record.setReduceDate(reduceDate);
+		record.setManagerCostFlag(flag);
 		tMemberReduceMapper.updateByPrimaryKeySelective(record);
 		TFinanicalOpLog opLogRecord = new TFinanicalOpLog();
 		opLogRecord.setOperator(updater);

@@ -277,4 +277,39 @@ public class MemberServiceImpl implements MemberService {
 		return tMemberReduceMapper.selectByExample(example);
 	}
 
+	@Override
+	public boolean copySupplierMapper(Integer memberId, Integer copyMemberId) {
+		TGroupMapExample example = new TGroupMapExample();
+		example.createCriteria().andMemberIdEqualTo(memberId);
+		List<TGroupMap> tGroupMapList = tGroupMapMapper.selectByExample(example);
+
+		TGroupMapExample example2 = new TGroupMapExample();
+		example2.createCriteria().andMemberIdEqualTo(copyMemberId);
+		List<TGroupMap> tGroupMapList2 = tGroupMapMapper.selectByExample(example2);
+
+		for (TGroupMap tGroupMap : tGroupMapList) {
+			tGroupMap.setStatus(0);
+			tGroupMapMapper.updateByPrimaryKey(tGroupMap);
+		}
+
+		for (TGroupMap tGroupMap2 : tGroupMapList2) {
+			boolean hasFound = false;
+			for (TGroupMap tGroupMap : tGroupMapList) {
+				if (tGroupMap2.getSupplierId() == tGroupMap.getSupplierId()) {
+					tGroupMap.setStatus(tGroupMap2.getStatus());
+					tGroupMapMapper.updateByPrimaryKey(tGroupMap);
+					hasFound = true;
+				}
+			}
+			if(!hasFound){
+				TGroupMap tGroupMap = new TGroupMap();
+				tGroupMap.setMemberId(memberId);
+				tGroupMap.setSupplierId(tGroupMap2.getSupplierId());
+				tGroupMap.setStatus(tGroupMap2.getStatus());
+				tGroupMapMapper.insert(tGroupMap);
+			}
+		}
+		return true;
+	}
+
 }
