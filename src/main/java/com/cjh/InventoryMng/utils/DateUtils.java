@@ -134,4 +134,12 @@ public class DateUtils {
 		}
 		return returnStr;
 	}
+
+	static public String getNextMonth(Date theDate, int intervalMonths, String format) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(theDate);
+		cal.add(Calendar.MONTH, intervalMonths);
+		SimpleDateFormat dft = new SimpleDateFormat(format);
+        return dft.format(cal.getTime());
+	}
 }
