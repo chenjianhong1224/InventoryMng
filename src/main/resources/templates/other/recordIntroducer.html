@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<title>进入店铺</title>
+<meta name="renderer" content="webkit">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" th:href="@{../aui/css/aui.css}" />
+<script th:src="@{../jquery/jquery.min.js}" charset="utf-8"></script>
+<script th:src="@{../aui/script/aui-dialog.js}" charset="utf-8"></script>
+</head>
+<script>
+ 	var dialog = new auiDialog({})
+	function introducer() {
+		if($("#introducer").val().length==0){
+			dialog.alert({
+                    msg:'请输入介绍人',
+                    buttons:['取消','确定']},function(ret){
+                })
+            return;
+		}
+		$("#introducerForm").submit();
+	}
+	function toShop() {
+		window.location.href="http://i.waimai.meituan.com/external/poi/qrcode/c69723cfc17a0b63ac?utm_source=5801&from=b_qrcode_b";
+	}
+</script>
+<body>
+	<header class="aui-bar aui-bar-nav">欢迎访问本小店</header>
+		<div class="aui-content " align="center">
+            <img class="aui-img-object"  th:src="@{../img/doujiang.jpg}" height="200" width="200">
+	</div>
+	<div class="aui-content aui-margin-b-15">
+		<form id="introducerForm" action="/other/recordIntroducer" method="post">
+			<ul class="aui-list aui-form-list">
+				<li class="aui-list-item">
+					<div class="aui-list-item-inner">
+						<div class="aui-list-item-label">介绍人</div>
+						<div class="aui-list-item-input">
+							<input type="text" name="introducer" id="introducer" placeholder="请填写">
+						</div>
+					</div>
+				</li>
+			</ul>
+			<p><div class="aui-btn aui-btn-danger aui-btn-block"
+				onclick="introducer()">填写介绍人进店</div></p>
+			<p><div class="aui-btn aui-btn-block aui-btn-outlined " onclick="toShop()">直接进店</div></p>
+				
+		</form>
+	</div>
+
+</body>
+</html>

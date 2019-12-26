@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cjh.InventoryMng.mapper.TIntroducerMapper">
+  <resultMap id="BaseResultMap" type="com.cjh.InventoryMng.entity.TIntroducer">
+    <id column="Id" jdbcType="INTEGER" property="id" />
+    <result column="introducer" jdbcType="VARCHAR" property="introducer" />
+    <result column="cust_ip" jdbcType="VARCHAR" property="custIp" />
+    <result column="date_time" jdbcType="VARCHAR" property="dateTime" />
+    <result column="d_date" jdbcType="VARCHAR" property="dDate" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    Id, introducer, cust_ip, date_time, d_date
+  </sql>
+  <select id="selectByExample" parameterType="com.cjh.InventoryMng.entity.TIntroducerExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    'false' as QUERYID,
+    <include refid="Base_Column_List" />
+    from t_introducer
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from t_introducer
+    where Id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from t_introducer
+    where Id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.cjh.InventoryMng.entity.TIntroducer">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into t_introducer (introducer, cust_ip, date_time, 
+      d_date)
+    values (#{introducer,jdbcType=VARCHAR}, #{custIp,jdbcType=VARCHAR}, #{dateTime,jdbcType=VARCHAR}, 
+      #{dDate,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.cjh.InventoryMng.entity.TIntroducer">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into t_introducer
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="introducer != null">
+        introducer,
+      </if>
+      <if test="custIp != null">
+        cust_ip,
+      </if>
+      <if test="dateTime != null">
+        date_time,
+      </if>
+      <if test="dDate != null">
+        d_date,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="introducer != null">
+        #{introducer,jdbcType=VARCHAR},
+      </if>
+      <if test="custIp != null">
+        #{custIp,jdbcType=VARCHAR},
+      </if>
+      <if test="dateTime != null">
+        #{dateTime,jdbcType=VARCHAR},
+      </if>
+      <if test="dDate != null">
+        #{dDate,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.cjh.InventoryMng.entity.TIntroducerExample" resultType="java.lang.Long">
+    select count(*) from t_introducer
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update t_introducer
+    <set>
+      <if test="record.id != null">
+        Id = #{record.id,jdbcType=INTEGER},
+      </if>
+      <if test="record.introducer != null">
+        introducer = #{record.introducer,jdbcType=VARCHAR},
+      </if>
+      <if test="record.custIp != null">
+        cust_ip = #{record.custIp,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dateTime != null">
+        date_time = #{record.dateTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dDate != null">
+        d_date = #{record.dDate,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update t_introducer
+    set Id = #{record.id,jdbcType=INTEGER},
+      introducer = #{record.introducer,jdbcType=VARCHAR},
+      cust_ip = #{record.custIp,jdbcType=VARCHAR},
+      date_time = #{record.dateTime,jdbcType=VARCHAR},
+      d_date = #{record.dDate,jdbcType=VARCHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.cjh.InventoryMng.entity.TIntroducer">
+    update t_introducer
+    <set>
+      <if test="introducer != null">
+        introducer = #{introducer,jdbcType=VARCHAR},
+      </if>
+      <if test="custIp != null">
+        cust_ip = #{custIp,jdbcType=VARCHAR},
+      </if>
+      <if test="dateTime != null">
+        date_time = #{dateTime,jdbcType=VARCHAR},
+      </if>
+      <if test="dDate != null">
+        d_date = #{dDate,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where Id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.cjh.InventoryMng.entity.TIntroducer">
+    update t_introducer
+    set introducer = #{introducer,jdbcType=VARCHAR},
+      cust_ip = #{custIp,jdbcType=VARCHAR},
+      date_time = #{dateTime,jdbcType=VARCHAR},
+      d_date = #{dDate,jdbcType=VARCHAR}
+    where Id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

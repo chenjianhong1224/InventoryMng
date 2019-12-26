@@ -11,8 +11,7 @@
 </head>
 <body>
 
-	<blockquote class="layui-elem-quote layui-text">
-		欢迎访问犇腾供销系统</blockquote>
+	<blockquote class="layui-elem-quote layui-text">工作记录</blockquote>
 
 	<fieldset class="layui-elem-field layui-field-title"
 		style="margin-top: 20px;">
@@ -25,21 +24,21 @@
 			<div class="layui-input-inline">
 				<input type="text" name="username" lay-verify="title"
 					autocomplete="off" placeholder="用户名" required="true"
-					class="layui-input" >
+					class="layui-input">
 			</div>
 		</div>
 		<div class="layui-form-item">
 			<label class="layui-form-label">密码</label>
 			<div class="layui-input-inline">
 				<input type="password" name="password" placeholder="请输入密码"
-					autocomplete="off" class="layui-input" >
+					autocomplete="off" class="layui-input">
 			</div>
 		</div>
 		<div class="layui-form-item">
 			<label class="layui-form-label">验证码</label>
 			<div class="layui-input-inline">
 				<input type="text" name="validateCode" placeholder="请输入验证码"
-					autocomplete="off" class="layui-input" >
+					autocomplete="off" class="layui-input">
 			</div>
 			<div class="layui-input-inline">
 				<img alt="验证码"
@@ -54,8 +53,14 @@
 		</div>
 	</form>
 	<blockquote class="layui-elem-quote text-center" id="errorInfo"
-		th:text="${error}"></blockquote>
+		th:text="${error}?:' 京ICP备19032581号-1 版权所有请点击查看 '"
+		onclick="errorInfoclick()"></blockquote>
 
 	<script th:src="@{layui/layui.js}" charset="utf-8"></script>
+	<script type="text/javascript">
+		function errorInfoclick() {
+			window.location.href = "http://beian.miit.gov.cn";
+		};
+	</script>
 </body>
 </html>

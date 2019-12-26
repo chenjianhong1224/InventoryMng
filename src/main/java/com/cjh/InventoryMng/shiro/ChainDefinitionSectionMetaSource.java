@@ -52,6 +52,7 @@ public class ChainDefinitionSectionMetaSource implements Factory<Ini.Section> {
 
 		// 配置退出 过滤器,其中的具体的退出代码Shiro已经替我们实现了
 		section.put("/logout", "logout");
+		section.put("/other/**", "anon");
 		section.put("/error/**", "anon");
 		section.put("/css/**", "anon");
 		section.put("/img/**", "anon");
